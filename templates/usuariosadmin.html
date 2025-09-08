@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administrador – UniMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f172a;           /* slate-900 */
+            --card: #111827;          /* gray-900 */
+            --muted: #94a3b8;         /* slate-400 */
+            --text: #e5e7eb;          /* gray-200 */
+            --brand: #22c55e;         /* green-500 */
+            --brand-2: #38bdf8;        /* sky-400 */
+            --accent: #fde047;        /* yellow-300 */
+            --error: #ef4444;          /* red-500 */
+            --ok: #10b981;             /* emerald-500 */
+            --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+            --radius: 12px;
+        }
+        * { box-sizing: border-box }
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background-color: var(--bg);
+        }
+        .dashboard-container {
+            display: flex;
+            height: 100%;
+            padding: 20px;
+            gap: 20px;
+        }
+        .sidebar {
+            flex: 0 0 250px;
+            background: rgba(2,6,23,.55);
+            border: 1px solid rgba(148,163,184,.20);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            letter-spacing: .2px;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+        .sidebar-logo-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            display: grid;
+            place-items: center;
+        }
+        .sidebar-logo-badge svg { width: 16px; height: 16px; }
+        .sidebar-nav a {
+            display: block;
+            padding: 12px;
+            border-radius: 8px;
+            color: var(--text);
+            text-decoration: none;
+            transition: background-color .2s;
+        }
+        .sidebar-nav a:hover, .sidebar-nav a.active {
+            background-color: rgba(56,189,248,.1);
+        }
+        .main-content {
+            flex: 1;
+            background: rgba(2,6,23,.55);
+            border: 1px solid rgba(148,163,184,.20);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content h1 {
+            margin: 0 0 20px;
+            font-size: 2rem;
+            text-align: center;
+            color: var(--text);
+        }
+        .content-section {
+            display: none; /* Oculto por defecto */
+        }
+        .content-section.active {
+            display: block; /* Muestra la sección activa */
+        }
+        .user-list, .product-list {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        }
+        .user-card, .product-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(148,163,184,.20);
+            transition: transform .2s ease;
+        }
+        .user-card:hover, .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,.2);
+        }
+        .user-card h3, .product-card h3 {
+            margin: 0 0 5px;
+            color: var(--brand);
+            font-size: 1.2rem;
+        }
+        .user-card p, .product-card p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+        .user-card p strong, .product-card p strong {
+            color: var(--text);
+        }
+        .user-actions, .product-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .user-actions button, .product-actions button {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: background-color .2s;
+        }
+        .user-actions .edit-btn, .product-actions .edit-btn { background-color: var(--brand-2); }
+        .user-actions .delete-btn, .product-actions .delete-btn { background-color: var(--error); }
+        
+        .message-box {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        .message-box.success { background-color: var(--ok); color: white; }
+        .message-box.error { background-color: var(--error); color: white; }
+
+        .edit-form-container {
+            display: none; /* Oculto por defecto */
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid rgba(148,163,184,.20);
+            border-radius: var(--radius);
+            background: rgba(2,6,23,.55);
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .edit-form-container h2 {
+            margin-top: 0;
+            text-align: center;
+        }
+        .edit-form-container .form-group {
+            margin-bottom: 15px;
+        }
+        .edit-form-container .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .edit-form-container .form-group input, .edit-form-container .form-group select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(148,163,184,.25);
+            background: rgba(2,6,23,.6);
+            color: var(--text);
+            outline: none;
+        }
+        .edit-form-container .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .edit-form-container .form-actions button {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+        .edit-form-container .form-actions .save-btn {
+            background-color: var(--brand);
+            color: white;
+        }
+        .edit-form-container .form-actions .cancel-btn {
+            background-color: var(--muted);
+            color: black;
+        }
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .filter-buttons button {
+            background: var(--card);
+            border: 1px solid rgba(148,163,184,.20);
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .filter-buttons button.active {
+            background-color: var(--brand-2);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+                padding: 10px;
+            }
+            .sidebar {
+                flex: none;
+                width: 100%;
+            }
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-badge" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 8V7a5 5 0 0 1 10 0v1" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
+                        <rect x="4" y="8" width="16" height="12" rx="3" fill="rgba(255,255,255,.90)"/>
+                        <path d="M7 13h10" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="10" cy="19" r="1.6" fill="#0b1020"/>
+                        <circle cx="16" cy="19" r="1.6" fill="#0b1020"/>
+                    </svg>
+                </div>
+                UniMarket
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" id="nav-users" class="active">Usuarios</a>
+                <a href="#" id="nav-products">Productos</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <h1 id="main-title">Panel de Administrador</h1>
+            <div id="message-box" class="message-box"></div>
+
+            <!-- Users Section -->
+            <div id="users-section" class="content-section active">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">Todos</button>
+                    <button class="filter-btn" data-filter="seller">Vendedores</button>
+                    <button class="filter-btn" data-filter="buyer">Compradores</button>
+                </div>
+                <div id="user-list" class="user-list">
+                    <!-- User cards will be rendered here -->
+                </div>
+                <div id="edit-user-form-container" class="edit-form-container">
+                    <h2>Editar Usuario</h2>
+                    <form id="edit-user-form">
+                        <input type="hidden" id="edit-user-email-original">
+                        <div class="form-group">
+                            <label for="edit-user-name">Nombre</label>
+                            <input type="text" id="edit-user-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-user-email">Correo Electrónico</label>
+                            <input type="email" id="edit-user-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-user-role">Rol</label>
+                            <select id="edit-user-role" required>
+                                <option value="seller">Vendedor</option>
+                                <option value="buyer">Comprador</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="cancel-btn" id="cancel-edit-user">Cancelar</button>
+                            <button type="submit" class="save-btn">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Products Section -->
+            <div id="products-section" class="content-section">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">Todos</button>
+                    <button class="filter-btn" data-filter="published">Publicados</button>
+                    <button class="filter-btn" data-filter="pending">Pendientes</button>
+                </div>
+                <div id="product-list" class="product-list">
+                    <!-- Product cards will be rendered here -->
+                </div>
+                <div id="edit-product-form-container" class="edit-form-container">
+                    <h2>Editar Producto</h2>
+                    <form id="edit-product-form">
+                        <input type="hidden" id="edit-product-id-original">
+                        <div class="form-group">
+                            <label for="edit-product-name">Nombre</label>
+                            <input type="text" id="edit-product-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-product-price">Precio</label>
+                            <input type="number" id="edit-product-price" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-product-status">Estado</label>
+                            <select id="edit-product-status" required>
+                                <option value="published">Publicado</option>
+                                <option value="pending">Pendiente</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="cancel-btn" id="cancel-edit-product">Cancelar</button>
+                            <button type="submit" class="save-btn">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let users = [
+                { name: 'Sofía Martínez', email: 'sofia.m@example.com', role: 'seller', registrationDate: '2023-01-15' },
+                { name: 'Juan Pérez', email: 'juan.p@example.com', role: 'buyer', registrationDate: '2023-01-20' },
+                { name: 'Carlos López', email: 'carlos.l@example.com', role: 'seller', registrationDate: '2023-02-01' },
+                { name: 'Laura Gómez', email: 'laura.g@example.com', role: 'buyer', registrationDate: '2023-02-10' },
+                { name: 'Miguel Torres', email: 'miguel.t@example.com', role: 'seller', registrationDate: '2023-03-05' },
+                { name: 'Ana Ramírez', email: 'ana.r@example.com', role: 'buyer', registrationDate: '2023-03-12' },
+                { name: 'Pedro Sánchez', email: 'pedro.s@example.com', role: 'seller', registrationDate: '2023-04-20' },
+                { name: 'Isabel Díaz', email: 'isabel.d@example.com', role: 'buyer', registrationDate: '2023-05-01' }
+            ];
+
+            let products = [
+                { id: 'prod-001', name: 'Libro de Cálculo Avanzado', price: 25.50, status: 'published', seller: 'Sofia Martínez' },
+                { id: 'prod-002', name: 'Tablet Gráfica usada', price: 120.00, status: 'pending', seller: 'Juan Pérez' },
+                { id: 'prod-003', name: 'Apuntes de Historia del Arte', price: 8.75, status: 'published', seller: 'Laura Gómez' },
+                { id: 'prod-004', name: 'Calculadora Científica', price: 15.00, status: 'published', seller: 'Miguel Torres' },
+                { id: 'prod-005', name: 'Mochila para Laptop', price: 35.00, status: 'published', seller: 'Ana Ramírez' },
+                { id: 'prod-006', name: 'Audífonos Bluetooth', price: 50.00, status: 'pending', seller: 'Carlos López' }
+            ];
+
+            const mainTitle = document.getElementById('main-title');
+            const navUsers = document.getElementById('nav-users');
+            const navProducts = document.getElementById('nav-products');
+            const usersSection = document.getElementById('users-section');
+            const productsSection = document.getElementById('products-section');
+            const messageBox = document.getElementById('message-box');
+
+            function showMessage(message, type) {
+                messageBox.textContent = message;
+                messageBox.className = `message-box ${type}`;
+                messageBox.style.display = 'block';
+                setTimeout(() => {
+                    messageBox.style.display = 'none';
+                }, 3000);
+            }
+
+            const renderUsers = (filter = 'all') => {
+                const userListContainer = document.getElementById('user-list');
+                const editFormContainer = document.getElementById('edit-user-form-container');
+                userListContainer.innerHTML = '';
+                editFormContainer.style.display = 'none';
+
+                const filteredUsers = users.filter(user => filter === 'all' || user.role === filter);
+                
+                if (filteredUsers.length === 0) {
+                    userListContainer.innerHTML = `<p style="text-align: center; color: var(--muted); margin-top: 50px;">No se encontraron usuarios de este tipo.</p>`;
+                    return;
+                }
+
+                filteredUsers.forEach(user => {
+                    const userCard = document.createElement('div');
+                    userCard.className = 'user-card';
+                    userCard.innerHTML = `
+                        <h3>${user.name}</h3>
+                        <p><strong>Rol:</strong> ${user.role === 'seller' ? 'Vendedor' : 'Comprador'}</p>
+                        <p><strong>Correo:</strong> ${user.email}</p>
+                        <p><strong>Registro:</strong> ${user.registrationDate}</p>
+                        <div class="user-actions">
+                            <button class="edit-btn" onclick="editUser('${user.email}')">Editar</button>
+                            <button class="delete-btn" onclick="deleteUser('${user.email}')">Eliminar</button>
+                        </div>
+                    `;
+                    userListContainer.appendChild(userCard);
+                });
+            };
+
+            const renderProducts = (filter = 'all') => {
+                const productListContainer = document.getElementById('product-list');
+                const editFormContainer = document.getElementById('edit-product-form-container');
+                productListContainer.innerHTML = '';
+                editFormContainer.style.display = 'none';
+                
+                const filteredProducts = products.filter(product => filter === 'all' || product.status === filter);
+                
+                if (filteredProducts.length === 0) {
+                    productListContainer.innerHTML = `<p style="text-align: center; color: var(--muted); margin-top: 50px;">No se encontraron productos de este tipo.</p>`;
+                    return;
+                }
+
+                filteredProducts.forEach(product => {
+                    const productCard = document.createElement('div');
+                    productCard.className = 'product-card';
+                    productCard.innerHTML = `
+                        <h3>${product.name}</h3>
+                        <p><strong>Precio:</strong> $${product.price.toFixed(2)}</p>
+                        <p><strong>Estado:</strong> ${product.status === 'published' ? 'Publicado' : 'Pendiente'}</p>
+                        <p><strong>Vendedor:</strong> ${product.seller}</p>
+                        <div class="product-actions">
+                            <button class="edit-btn" onclick="editProduct('${product.id}')">Editar</button>
+                            <button class="delete-btn" onclick="deleteProduct('${product.id}')">Eliminar</button>
+                        </div>
+                    `;
+                    productListContainer.appendChild(productCard);
+                });
+            };
+
+            const showSection = (sectionId) => {
+                const allSections = document.querySelectorAll('.content-section');
+                allSections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(sectionId).classList.add('active');
+
+                const allNavLinks = document.querySelectorAll('.sidebar-nav a');
+                allNavLinks.forEach(link => {
+                    link.classList.remove('active');
+                });
+                
+                if (sectionId === 'users-section') {
+                    navUsers.classList.add('active');
+                    mainTitle.textContent = 'Panel de Administrador – Usuarios';
+                    // Reset filter to 'all' and update button
+                    document.querySelectorAll('#users-section .filter-btn').forEach(btn => btn.classList.remove('active'));
+                    document.querySelector('#users-section .filter-btn[data-filter="all"]').classList.add('active');
+                    renderUsers('all');
+                } else {
+                    navProducts.classList.add('active');
+                    mainTitle.textContent = 'Panel de Administrador – Productos';
+                    // Reset filter to 'all' and update button
+                    document.querySelectorAll('#products-section .filter-btn').forEach(btn => btn.classList.remove('active'));
+                    document.querySelector('#products-section .filter-btn[data-filter="all"]').classList.add('active');
+                    renderProducts('all');
+                }
+            };
+            
+            // User Actions
+            window.deleteUser = (email) => {
+                // Reemplazando `confirm()` con un modal de mensaje
+                const userToDelete = users.find(user => user.email === email);
+                if (userToDelete) {
+                    const confirmMessage = `¿Estás seguro de que quieres eliminar al usuario ${userToDelete.name}?`;
+                    showCustomModal(confirmMessage, () => {
+                        const initialLength = users.length;
+                        users = users.filter(user => user.email !== email);
+                        if (users.length < initialLength) {
+                            showMessage('Usuario eliminado correctamente.', 'success');
+                            renderUsers(document.querySelector('#users-section .filter-btn.active').dataset.filter);
+                        } else {
+                            showMessage('Error al eliminar el usuario.', 'error');
+                        }
+                    });
+                }
+            };
+
+            window.editUser = (email) => {
+                const userToEdit = users.find(user => user.email === email);
+                if (userToEdit) {
+                    document.getElementById('edit-user-email-original').value = userToEdit.email;
+                    document.getElementById('edit-user-name').value = userToEdit.name;
+                    document.getElementById('edit-user-email').value = userToEdit.email;
+                    document.getElementById('edit-user-role').value = userToEdit.role;
+                    document.getElementById('user-list').style.display = 'none';
+                    document.getElementById('edit-user-form-container').style.display = 'block';
+                }
+            };
+
+            document.getElementById('cancel-edit-user').addEventListener('click', () => {
+                document.getElementById('edit-user-form-container').style.display = 'none';
+                document.getElementById('user-list').style.display = 'grid';
+            });
+
+            document.getElementById('edit-user-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const originalEmail = document.getElementById('edit-user-email-original').value;
+                const newName = document.getElementById('edit-user-name').value;
+                const newEmail = document.getElementById('edit-user-email').value;
+                const newRole = document.getElementById('edit-user-role').value;
+                
+                const userIndex = users.findIndex(user => user.email === originalEmail);
+                if (userIndex !== -1) {
+                    users[userIndex].name = newName;
+                    users[userIndex].email = newEmail;
+                    users[userIndex].role = newRole;
+                    showMessage('Usuario actualizado correctamente.', 'success');
+                    document.getElementById('edit-user-form-container').style.display = 'none';
+                    document.getElementById('user-list').style.display = 'grid';
+                    renderUsers(document.querySelector('#users-section .filter-btn.active').dataset.filter);
+                } else {
+                    showMessage('Error al actualizar el usuario.', 'error');
+                }
+            });
+
+            // Product Actions
+            window.deleteProduct = (id) => {
+                const productToDelete = products.find(product => product.id === id);
+                if (productToDelete) {
+                    const confirmMessage = `¿Estás seguro de que quieres eliminar el producto "${productToDelete.name}"?`;
+                    showCustomModal(confirmMessage, () => {
+                        const initialLength = products.length;
+                        products = products.filter(product => product.id !== id);
+                        if (products.length < initialLength) {
+                            showMessage('Producto eliminado correctamente.', 'success');
+                            renderProducts(document.querySelector('#products-section .filter-btn.active').dataset.filter);
+                        } else {
+                            showMessage('Error al eliminar el producto.', 'error');
+                        }
+                    });
+                }
+            };
+
+            window.editProduct = (id) => {
+                const productToEdit = products.find(product => product.id === id);
+                if (productToEdit) {
+                    document.getElementById('edit-product-id-original').value = productToEdit.id;
+                    document.getElementById('edit-product-name').value = productToEdit.name;
+                    document.getElementById('edit-product-price').value = productToEdit.price;
+                    document.getElementById('edit-product-status').value = productToEdit.status;
+                    document.getElementById('product-list').style.display = 'none';
+                    document.getElementById('edit-product-form-container').style.display = 'block';
+                }
+            };
+
+            document.getElementById('cancel-edit-product').addEventListener('click', () => {
+                document.getElementById('edit-product-form-container').style.display = 'none';
+                document.getElementById('product-list').style.display = 'grid';
+            });
+
+            document.getElementById('edit-product-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const originalId = document.getElementById('edit-product-id-original').value;
+                const newName = document.getElementById('edit-product-name').value;
+                const newPrice = parseFloat(document.getElementById('edit-product-price').value);
+                const newStatus = document.getElementById('edit-product-status').value;
+                
+                const productIndex = products.findIndex(product => product.id === originalId);
+                if (productIndex !== -1) {
+                    products[productIndex].name = newName;
+                    products[productIndex].price = newPrice;
+                    products[productIndex].status = newStatus;
+                    showMessage('Producto actualizado correctamente.', 'success');
+                    document.getElementById('edit-product-form-container').style.display = 'none';
+                    document.getElementById('product-list').style.display = 'grid';
+                    renderProducts(document.querySelector('#products-section .filter-btn.active').dataset.filter);
+                } else {
+                    showMessage('Error al actualizar el producto.', 'error');
+                }
+            });
+
+            // Event Listeners for Nav
+            navUsers.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSection('users-section');
+            });
+
+            navProducts.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSection('products-section');
+            });
+
+            // Event Listeners para los botones de filtro de usuarios
+            document.querySelectorAll('#users-section .filter-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('#users-section .filter-btn').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    renderUsers(button.dataset.filter);
+                });
+            });
+
+            // Event Listeners para los botones de filtro de productos
+            document.querySelectorAll('#products-section .filter-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('#products-section .filter-btn').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    renderProducts(button.dataset.filter);
+                });
+            });
+
+            // Modal customizado para reemplazar `confirm()`
+            function showCustomModal(message, onConfirm) {
+                const modalHtml = `
+                    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.5); display: flex; justify-content: center; align-items: center; z-index: 1000;" id="custom-modal-backdrop">
+                        <div style="background: var(--card); padding: 30px; border-radius: var(--radius); border: 1px solid rgba(148,163,184,.20); box-shadow: var(--shadow); max-width: 400px; text-align: center;">
+                            <p style="margin-top: 0; font-size: 1.1rem;">${message}</p>
+                            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+                                <button id="modal-cancel" style="padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; background: var(--muted); color: black;">Cancelar</button>
+                                <button id="modal-confirm" style="padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; background: var(--error); color: white;">Confirmar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+                document.getElementById('modal-confirm').addEventListener('click', () => {
+                    onConfirm();
+                    document.getElementById('custom-modal-backdrop').remove();
+                });
+                document.getElementById('modal-cancel').addEventListener('click', () => {
+                    document.getElementById('custom-modal-backdrop').remove();
+                });
+            }
+
+            // Initial render on load
+            showSection('users-section');
+        });
+    </script>
+</body>
+</html>

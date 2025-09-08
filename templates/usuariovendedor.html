@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard de Vendedor – UniMarket</title>
+    <meta name="description" content="Gestiona tus productos y pedidos en UniMarket." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f172a;           /* slate-900 */
+            --card: #111827;          /* gray-900 */
+            --muted: #94a3b8;         /* slate-400 */
+            --text: #e5e7eb;          /* gray-200 */
+            --brand: #22c55e;         /* green-500 */
+            --brand-2: #38bdf8;       /* sky-400 */
+            --accent: #fde047;        /* yellow-300 */
+            --error: #ef4444;         /* red-500 */
+            --ok: #10b981;            /* emerald-500 */
+            --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+            --radius: 16px;
+        }
+        * { box-sizing: border-box }
+        html, body { height: 100% }
+        body {
+            margin: 0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+            background: radial-gradient(1200px 600px at 10% -10%, rgba(56,189,248,.25), rgba(56,189,248,0)),
+                        radial-gradient(900px 600px at 120% 10%, rgba(34,197,94,.20), rgba(34,197,94,0)),
+                        var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+        }
+        a { color: inherit; text-decoration: none }
+        .container { max-width: 1200px; margin: auto; padding: 20px }
+
+        /* Header */
+        header {
+            position: sticky; top: 0; z-index: 50; backdrop-filter: blur(10px);
+            background: linear-gradient(180deg, rgba(15,23,42,.85), rgba(15,23,42,.65));
+            border-bottom: 1px solid rgba(148,163,184,.15);
+        }
+        .header-wrap { display: flex; align-items: center; gap: 16px; padding: 14px 20px }
+        .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: .2px }
+        .logo-badge {
+            width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            box-shadow: var(--shadow);
+        }
+        .logo svg { filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .35)) }
+        .brand { font-size: 1.35rem }
+        .tagline { font-size: .9rem; color: var(--muted) }
+        .actions { margin-left: auto; }
+        .icon-btn {
+            width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; border: 1px solid rgba(148,163,184,.25);
+            background: rgba(2,6,23,.6); cursor: pointer; transition: transform .06s ease, border .2s;
+        }
+        .icon-btn:hover { border-color: var(--brand-2) }
+        .icon-btn:active { transform: translateY(1px) }
+        
+        /* Main content & Card view */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: rgba(2,6,23,.55);
+            border: 1px solid rgba(148,163,184,.20);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 32px;
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 20px;
+        }
+        .card h1 {
+            font-size: 2rem;
+            margin: 0 0 8px;
+            text-align: center;
+        }
+        .card p {
+            margin: 0 0 24px;
+            color: var(--muted);
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(148,163,184,.25);
+            background: rgba(2,6,23,.6);
+            color: var(--text);
+            outline: none;
+            transition: border .2s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--brand-2);
+        }
+        .flex-row {
+            display: flex;
+            gap: 20px;
+        }
+        .flex-row > div {
+            flex: 1;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(148,163,184,.1);
+            color: var(--text);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s, transform .06s;
+        }
+        .btn:hover {
+            background: rgba(148,163,184,.2);
+        }
+        .btn.active {
+            background: var(--brand-2);
+            color: white;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            color: white;
+            font-weight: 800;
+            border: none;
+        }
+        .btn-primary:hover {
+            filter: brightness(1.05);
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        }
+        
+        /* Secciones del Dashboard */
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        
+        /* Lista de Productos */
+        .product-list {
+            display: grid;
+            gap: 20px;
+        }
+        .product-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 16px;
+            background: rgba(148,163,184,.05);
+            border-radius: 12px;
+            border: 1px solid rgba(148,163,184,.1);
+        }
+        .product-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: var(--card);
+        }
+        .product-details {
+            flex: 1;
+        }
+        .product-details h3 {
+            margin: 0 0 4px;
+            font-size: 1.2rem;
+        }
+        .product-details p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        .product-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Lista de Pedidos */
+        .order-list {
+            display: grid;
+            gap: 20px;
+        }
+        .order-item {
+            padding: 16px;
+            background: rgba(148,163,184,.05);
+            border-radius: 12px;
+            border: 1px solid rgba(148,163,184,.1);
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .order-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        .order-status {
+            font-weight: bold;
+        }
+        .order-status.pending {
+            color: var(--accent);
+        }
+        .order-status.completed {
+            color: var(--ok);
+        }
+        .order-details p {
+            margin: 0 0 8px;
+            font-size: 0.95rem;
+        }
+        
+        /* Footer */
+        footer {
+            padding: 20px;
+            color: var(--muted);
+            text-align: center;
+        }
+        
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-wrap container">
+            <a class="logo" href="#">
+                <div class="logo-badge" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo UniMarket">
+                        <path d="M7 8V7a5 5 0 0 1 10 0v1" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
+                        <rect x="4" y="8" width="16" height="12" rx="3" fill="rgba(255,255,255,.90)"/>
+                        <path d="M7 13h10" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="10" cy="19" r="1.6" fill="#0b1020"/>
+                        <circle cx="16" cy="19" r="1.6" fill="#0b1020"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="brand">UniMarket</div>
+                    <div class="tagline">Dashboard de Vendedor</div>
+                </div>
+            </a>
+            <div class="actions">
+                <a href="#" class="icon-btn" title="Cerrar sesión" aria-label="Cerrar sesión">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15 4h1a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-1M12 8l4 4m-4 4l4-4M12 12H4" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="card">
+            <h1>Bienvenido, Vendedor</h1>
+            <p>Gestiona tus productos y pedidos desde tu panel de control.</p>
+
+            <!-- Menú de navegación del dashboard -->
+            <div class="btn-group">
+                <button class="btn active" onclick="showSection('add-product', this)">Agregar productos</button>
+                <button class="btn" onclick="showSection('product-list', this)">Lista de productos</button>
+                <button class="btn" onclick="showSection('new-orders', this)">Nuevos pedidos</button>
+                <button class="btn" onclick="showSection('order-history', this)">Historial de pedidos</button>
+            </div>
+
+            <!-- Sección: Agregar productos -->
+            <div id="add-product" class="content-section active">
+                <h2 style="text-align: center; margin-bottom: 24px;">Agregar Nuevo Producto</h2>
+                <form id="add-product-form">
+                    <input type="hidden" id="product-id" value="">
+                    <div class="form-group">
+                        <label for="product-name">Nombre del producto</label>
+                        <input type="text" id="product-name" required placeholder="Ej. Libro de cálculo">
+                    </div>
+                    <div class="form-group">
+                        <label for="product-description">Descripción</label>
+                        <textarea id="product-description" rows="4" required placeholder="Describe tu producto para que los compradores sepan qué es."></textarea>
+                    </div>
+                    <div class="flex-row">
+                        <div class="form-group">
+                            <label for="product-quantity">Cantidad disponible</label>
+                            <input type="number" id="product-quantity" min="1" required value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="product-cost">Costo ($)</label>
+                            <input type="number" id="product-cost" min="0" step="0.01" required value="0.00">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-image">Imagen del producto</label>
+                        <input type="file" id="product-image" accept="image/*" class="btn">
+                    </div>
+                    <button type="submit" class="btn-primary" style="margin-top: 20px;">Guardar Producto</button>
+                </form>
+            </div>
+
+            <!-- Sección: Lista de productos -->
+            <div id="product-list" class="content-section">
+                <h2 style="text-align: center; margin-bottom: 24px;">Mis Productos</h2>
+                <div id="product-list-container" class="product-list">
+                    <!-- Los productos se cargarán aquí dinámicamente -->
+                    <p style="text-align: center; color: var(--muted);">No hay productos registrados.</p>
+                </div>
+            </div>
+            
+            <!-- Sección: Nuevos pedidos -->
+            <div id="new-orders" class="content-section">
+                <h2 style="text-align: center; margin-bottom: 24px;">Nuevos Pedidos</h2>
+                <div id="new-orders-container" class="order-list">
+                    <!-- Los nuevos pedidos se cargarán aquí dinámicamente -->
+                    <p style="text-align: center; color: var(--muted);">No hay nuevos pedidos.</p>
+                </div>
+            </div>
+
+            <!-- Sección: Historial de pedidos -->
+            <div id="order-history" class="content-section">
+                <h2 style="text-align: center; margin-bottom: 24px;">Historial de Pedidos</h2>
+                <div id="order-history-container" class="order-list">
+                    <!-- El historial de pedidos se cargará aquí dinámicamente -->
+                    <p style="text-align: center; color: var(--muted);">No hay historial de pedidos.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            © <span id="year"></span> UniMarket • Hecho por estudiantes para estudiantes.
+        </div>
+    </footer>
+
+    <script>
+        // Año dinámico
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Variables de estado
+        let products = JSON.parse(localStorage.getItem('products')) || [];
+        let orders = JSON.parse(localStorage.getItem('orders')) || [];
+
+        // Funciones del dashboard
+        function showSection(sectionId, clickedButton) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+
+            // Actualiza la clase activa en los botones, pero solo si un botón fue clickeado
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            if (clickedButton) {
+                clickedButton.classList.add('active');
+            } else {
+                // Si la función se llama al cargar la página (sin un botón),
+                // busca el botón con el onclick correcto y lo activa.
+                const initialButton = document.querySelector('.btn[onclick*="' + sectionId + '"]');
+                if (initialButton) {
+                    initialButton.classList.add('active');
+                }
+            }
+
+            // Recargar datos al cambiar de sección
+            if (sectionId === 'product-list') renderProductList();
+            if (sectionId === 'new-orders') renderOrderList('pending');
+            if (sectionId === 'order-history') renderOrderList('completed');
+        }
+
+        // --- Gestión de Productos ---
+        document.getElementById('add-product-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const id = document.getElementById('product-id').value;
+            const name = document.getElementById('product-name').value;
+            const description = document.getElementById('product-description').value;
+            const quantity = parseInt(document.getElementById('product-quantity').value);
+            const cost = parseFloat(document.getElementById('product-cost').value);
+            const image = document.getElementById('product-image').files[0];
+
+            if (id) {
+                // Editar producto existente
+                const productIndex = products.findIndex(p => p.id === id);
+                if (productIndex !== -1) {
+                    products[productIndex] = { ...products[productIndex], name, description, quantity, cost };
+                    // Simulación de guardar imagen
+                    if (image) {
+                        products[productIndex].image = URL.createObjectURL(image);
+                    }
+                }
+            } else {
+                // Agregar nuevo producto
+                const newProduct = {
+                    id: 'prod_' + Date.now(),
+                    name,
+                    description,
+                    quantity,
+                    cost,
+                    image: image ? URL.createObjectURL(image) : 'https://placehold.co/80x80/1f2937/d1d5db?text=Producto'
+                };
+                products.push(newProduct);
+            }
+
+            localStorage.setItem('products', JSON.stringify(products));
+            resetForm();
+            showSection('product-list', document.querySelector('button[onclick*="product-list"]'));
+            renderProductList();
+        });
+
+        function editProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (product) {
+                document.getElementById('product-id').value = product.id;
+                document.getElementById('product-name').value = product.name;
+                document.getElementById('product-description').value = product.description;
+                document.getElementById('product-quantity').value = product.quantity;
+                document.getElementById('product-cost').value = product.cost;
+                showSection('add-product', document.querySelector('button[onclick*="add-product"]'));
+                // Simulación: la imagen no se puede cargar de nuevo en el input file por seguridad
+            }
+        }
+
+        function deleteProduct(id) {
+            products = products.filter(p => p.id !== id);
+            localStorage.setItem('products', JSON.stringify(products));
+            renderProductList();
+        }
+
+        function renderProductList() {
+            const container = document.getElementById('product-list-container');
+            container.innerHTML = '';
+            if (products.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--muted);">No hay productos registrados.</p>';
+                return;
+            }
+            products.forEach(product => {
+                const item = document.createElement('div');
+                item.classList.add('product-item');
+                item.innerHTML = `
+                    <img src="${product.image}" alt="Imagen de ${product.name}">
+                    <div class="product-details">
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                        <p><strong>Costo:</strong> $${product.cost.toFixed(2)}</p>
+                        <p><strong>Cantidad:</strong> ${product.quantity}</p>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn" onclick="editProduct('${product.id}')">Editar</button>
+                        <button class="btn" style="background: var(--error);" onclick="deleteProduct('${product.id}')">Eliminar</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function resetForm() {
+            document.getElementById('add-product-form').reset();
+            document.getElementById('product-id').value = '';
+        }
+
+        // --- Gestión de Pedidos ---
+        function renderOrderList(status) {
+            const container = status === 'pending' ? document.getElementById('new-orders-container') : document.getElementById('order-history-container');
+            container.innerHTML = '';
+            const filteredOrders = orders.filter(o => o.status === status);
+
+            if (filteredOrders.length === 0) {
+                container.innerHTML = `<p style="text-align: center; color: var(--muted);">No hay ${status === 'pending' ? 'nuevos pedidos' : 'historial de pedidos'}.</p>`;
+                return;
+            }
+
+            filteredOrders.forEach(order => {
+                const orderItem = document.createElement('div');
+                orderItem.classList.add('order-item');
+                orderItem.innerHTML = `
+                    <div class="order-header">
+                        <h3>Pedido #${order.id.slice(-6)}</h3>
+                        <span class="order-status ${order.status}">${order.status === 'pending' ? 'Pendiente' : 'Completado'}</span>
+                    </div>
+                    <div class="order-details">
+                        <p><strong>Producto:</strong> ${order.product}</p>
+                        <p><strong>Comprador:</strong> ${order.buyerName} (${order.buyerContact})</p>
+                        <p><strong>Entrega:</strong> ${order.deliveryDate} | ${order.deliveryTime} | ${order.deliveryLocation}</p>
+                    </div>
+                `;
+                container.appendChild(orderItem);
+            });
+        }
+
+        // --- Datos de simulación (si no hay datos guardados) ---
+        if (products.length === 0) {
+            products = [
+                { id: 'prod_1', name: 'Libro de Álgebra', description: 'Libro de texto en buen estado.', quantity: 2, cost: 150.00, image: 'https://placehold.co/80x80/38bdf8/0f172a?text=Libro' },
+                { id: 'prod_2', name: 'Calculadora Científica', description: 'Calculadora Casio fx-82 usada.', quantity: 1, cost: 250.50, image: 'https://placehold.co/80x80/22c55e/0f172a?text=Calc' }
+            ];
+            localStorage.setItem('products', JSON.stringify(products));
+        }
+
+        if (orders.length === 0) {
+            orders = [
+                { id: 'ord_1', status: 'pending', product: 'Libro de Álgebra', buyerName: 'Ana García', buyerContact: '55 9876 5432', deliveryDate: 'Martes, 28/11/2023', deliveryTime: 'Matutino', deliveryLocation: 'Biblioteca' },
+                { id: 'ord_2', status: 'completed', product: 'Libro de Cálculo', buyerName: 'Luis Pérez', buyerContact: '55 1122 3344', deliveryDate: 'Lunes, 27/11/2023', deliveryTime: 'Vespertino', deliveryLocation: 'Torniquetes' }
+            ];
+            localStorage.setItem('orders', JSON.stringify(orders));
+        }
+
+        // Inicializar la página
+        window.onload = function() {
+            showSection('add-product');
+            // Cargar datos en el inicio
+            renderProductList();
+            renderOrderList('pending');
+            renderOrderList('completed');
+        };
+    </script>
+</body>
+</html>
