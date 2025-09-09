@@ -218,28 +218,36 @@
             
             <div id="message-box" role="alert"></div>
 
-            <form id="login-form">
+            <form id="login-form" method="POST" action="{{url_for('inicio_sesion')}}">
                 <div class="form-group user-type-group">
-                    <div class="radio-option selected" data-user-type="seller">
-                        <input type="radio" id="user-type-seller" name="userType" value="seller" checked>
-                        <label for="user-type-seller">Vendedor</label>
-                    </div>
-                    <div class="radio-option" data-user-type="buyer">
-                        <input type="radio" id="user-type-buyer" name="userType" value="buyer">
-                        <label for="user-type-buyer">Comprador</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="email">Correo electrónico</label>
-                    <input type="email" id="email" required placeholder="vendedor@unimarket.com o comprador@unimarket.com">
-                </div>
-                <div class="form-group">
-                    <label for="password">Contraseña</label>
-                    <input type="password" id="password" required placeholder="contraseña">
-                </div>
-                <button type="submit" class="btn-primary">Continuar</button>
-            </form>
+        <div class="radio-option selected" data-user-type="2">
+            <input type="radio" id="user-type-seller" name="id_rol" value="2" checked>
+            <label for="user-type-seller">Vendedor</label>
+        </div>
+        <div class="radio-option" data-user-type="3">
+            <input type="radio" id="user-type-buyer" name="id_rol" value="3">
+            <label for="user-type-buyer">Comprador</label>
+        </div>
+    </div>
 
+    <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <input type="email" id="email" name="correo" required>
+    </div>
+    <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+
+    <button type="submit" class="btn-primary">Continuar</button>
+            </form>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <p style="color: red;">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
             <div class="separator">o</div>
 
             <button id="guest-login-btn" class="btn-primary" style="background: var(--card); border: 1px solid rgba(148,163,184,.25); width: 100%; max-width: 400px;">Continuar como invitado</button>
@@ -247,57 +255,14 @@
     </div>
 
     <script>
-        const loginForm = document.getElementById('login-form');
-        const guestLoginBtn = document.getElementById('guest-login-btn');
-        const messageBox = document.getElementById('message-box');
-        const radioOptions = document.querySelectorAll('.radio-option');
+const radios = document.querySelectorAll('input[name="id_rol"]');
+const display = document.getElementById('selected-role');
 
-        function showMessage(message, isError = false) {
-            messageBox.textContent = message;
-            messageBox.style.display = 'block';
-            messageBox.style.backgroundColor = isError ? 'var(--error)' : 'var(--ok)';
-        }
-
-        radioOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                radioOptions.forEach(opt => opt.classList.remove('selected'));
-                option.classList.add('selected');
-                option.querySelector('input').checked = true;
-            });
-        });
-
-        loginForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const userType = document.querySelector('input[name="userType"]:checked').value;
-
-            // Simulación de autenticación
-            if (userType === 'seller' && email === 'vendedor@unimarket.com' && password === 'admin123') {
-                localStorage.setItem('userType', 'seller');
-                showMessage('Inicio de sesión exitoso. Redirigiendo...', false);
-                setTimeout(() => {
-                    window.location.href = 'vendedor.html';
-                }, 1500);
-            } else if (userType === 'buyer' && email === 'comprador@unimarket.com' && password === 'user123') {
-                localStorage.setItem('userType', 'buyer');
-                showMessage('Inicio de sesión exitoso. Redirigiendo...', false);
-                setTimeout(() => {
-                    window.location.href = 'comprador.html';
-                }, 1500);
-            } else {
-                showMessage('Correo electrónico o contraseña incorrectos.', true);
-            }
-        });
-
-        guestLoginBtn.addEventListener('click', function() {
-            localStorage.setItem('userType', 'buyer');
-            showMessage('Iniciando sesión como invitado. Redirigiendo...', false);
-            setTimeout(() => {
-                window.location.href = '/comprador';
-            }, 1500);
-        });
-
-    </script>
+radios.forEach(radio => {
+    radio.addEventListener('change', () => {
+        display.textContent = radio.checked ? `Has seleccionado: ${radio.nextElementSibling.textContent}` : '';
+    });
+});
+</script>
 </body>
 </html>

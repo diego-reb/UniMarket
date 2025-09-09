@@ -1,7 +1,7 @@
 from src.conn import db
 from werkzeug.security import generate_password_hash, check_password_hash
-
-class Usuario(db.Model):
+from flask_login import UserMixin
+class Usuario(db.Model, UserMixin):
     __tablename__ = 'usuario'
     id_usuario = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
@@ -18,3 +18,6 @@ class Usuario(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
+    
+    def get_id(self):
+        return self.id_usuario

@@ -1,6 +1,7 @@
 from flask import Flask, render_template, flash, request, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy##importe la conexion a la bd
+from flask_sqlalchemy import SQLAlchemy 
 from src.conn import db, init_app
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user 
 from models.Usuario import Usuario
 from models.Rol import Rol
 
@@ -25,10 +26,48 @@ def index():
 
 ##-----------------------------------fin_index-----------------------------------------------------------------------------------------------
 ##-----------------------------------inicio_sesion-------------------------------------------------------------------------------------
-@app.route('/inicio_sesion')
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view= 'inicio_sesion'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return Usuario.query.get(int(user_id))
+@app.route('/inicio_sesion', methods=['GET','POST'])
 def inicio_sesion():
+    if request.method == 'POST':
+        print("Formulario recibido:")
+        print(request.form)
+        correo = request.form['correo']
+        password = request.form['password']
+        id_rol = int(request.form['id_rol'])
+
+        usuario = Usuario.query.filter_by(correo=correo, id_rol=id_rol).first()
+        print("Usuario encontrado:", usuario)
+
+        if usuario and usuario.check_password(password):
+            if usuario.estado:
+                login_user(usuario)
+                flash("Inicio de sesion exitoso")
+                print("login Excitoso")
+                return redirect(url_for('index'))
+            else:
+                flash("Cuenta deshabilitada, contactanos")
+                print("cuenta sin habilitar")
+        else:
+            flash("Correo o contraseña incorrectos")
+            print("login_fallado")
     return render_template('iniciosesion.html')
 ##-----------------------------------fin_inicio_sesion-----------------------------------------------------------------------------------------------
+
+##-----------------------------------cerrar_sesion-------------------------------------------------------------------------------------
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash("Has cerrado sesion")
+    return redirect(url_for('index'))
+##-----------------------------------fin_cerrar_sesion-----------------------------------------------------------------------------------------------
 ##-----------------------------------registro-------------------------------------------------------------------------------------
 @app.route('/registro', methods=['GET','POST'])
 def registro():
