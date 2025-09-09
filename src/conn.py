@@ -1,10 +1,14 @@
-import psycopg2
+from flask_sqlalchemy import SQLAlchemy
+from flask import Flask
 
-def get_connection():
-    conn=psycopg2.connect(
-        dbname="SaborLocal",
-        user="postgres",
-        password="admin",
-        host="Localhost"
+# Inicializamos la BD
+db = SQLAlchemy()
+
+def init_app(app: Flask):
+    app.config['SQLALCHEMY_DATABASE_URI'] = (
+        'postgresql://postgres:postgres@localhost:5432/UniMarket'
     )
-    return conn
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    db.init_app(app)
+    return app
