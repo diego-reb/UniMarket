@@ -250,19 +250,23 @@
     {% endwith %}
             <div class="separator">o</div>
 
-            <button id="guest-login-btn" class="btn-primary" style="background: var(--card); border: 1px solid rgba(148,163,184,.25); width: 100%; max-width: 400px;">Continuar como invitado</button>
+            <button id="guest-login-btn" class="btn-primary" style="background: var(--card); border: 1px solid rgba(148,163,184,.25); width: 100%; max-width: 400px;">Registrate</button>
         </div>
     </div>
-
-    <script>
-const radios = document.querySelectorAll('input[name="id_rol"]');
-const display = document.getElementById('selected-role');
-
-radios.forEach(radio => {
-    radio.addEventListener('change', () => {
-        display.textContent = radio.checked ? `Has seleccionado: ${radio.nextElementSibling.textContent}` : '';
-    });
+<script>
+    document.getElementById("guest-login-btn").addEventListener("click", function() {
+    window.location.href = "/registro";  // tu ruta de registro en Flask
 });
+    const radioOptions = document.querySelectorAll('.radio-option');
+
+    radioOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            radioOptions.forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+            option.querySelector('input').checked = true;
+        });
+    });
 </script>
+    
 </body>
 </html>

@@ -2,6 +2,7 @@ from flask import Flask, render_template, flash, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy 
 from src.conn import db, init_app
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user 
+from werkzeug.security import generate_password_hash, check_password_hash
 from models.Usuario import Usuario
 from models.Rol import Rol
 
@@ -36,27 +37,33 @@ def load_user(user_id):
 @app.route('/inicio_sesion', methods=['GET','POST'])
 def inicio_sesion():
     if request.method == 'POST':
-        print("Formulario recibido:")
-        print(request.form)
+       
         correo = request.form['correo']
         password = request.form['password']
-        id_rol = int(request.form['id_rol'])
 
-        usuario = Usuario.query.filter_by(correo=correo, id_rol=id_rol).first()
-        print("Usuario encontrado:", usuario)
+        usuario = Usuario.query.filter_by(correo=correo).first()
+        
 
         if usuario and usuario.check_password(password):
             if usuario.estado:
                 login_user(usuario)
                 flash("Inicio de sesion exitoso")
-                print("login Excitoso")
-                return redirect(url_for('index'))
+
+                if usuario.id_rol==1:
+                    return redirect(url_for('Admin'))
+                elif usuario.id_rol==2:
+                    return redirect(url_for('vendedor'))
+                elif usuario.id_rol==3:
+                    return redirect(url_for('comprador'))
+                else:
+                    return redirect(url_for('index'))
+              
             else:
                 flash("Cuenta deshabilitada, contactanos")
-                print("cuenta sin habilitar")
+                
         else:
             flash("Correo o contraseña incorrectos")
-            print("login_fallado")
+            
     return render_template('iniciosesion.html')
 ##-----------------------------------fin_inicio_sesion-----------------------------------------------------------------------------------------------
 
@@ -100,6 +107,64 @@ def registro():
     return render_template('registro.html')
 
 ##-------------------------------------------------------------fin_registro------------------------------------------------------------------
+##--------------------------------------------------------------registro_administrador--------------------------------------------------------------
+@app.route('/RA', methods=['GET','POST'])
+
+def registro_administrador():
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        correo = request.form['correo']
+        password = request.form['password']
+        confirmar = request.form['confirmar']
+
+        if password != confirmar:
+            flash("Las contraseñas no coinciden")
+            return redirect(url_for('RA'))
+        
+        existente = Usuario.query.filter_by(correo=correo).first()
+        if existente:
+            flash("El correo ya esta en uso")
+            return redirect(url_for('RA'))
+        
+        nuevo_admin = Usuario(
+            nombre=nombre,
+            correo=correo,
+            password=generate_password_hash(password),
+            id_rol=1,
+            estado=True
+
+        )
+        db.session.add(nuevo_admin)
+        db.session.commit()
+        flash("Administrador registrado con exito")
+        return redirect(url_for('Admin'))
+    return render_template('registroadministrador.html')
+##-------------------------------------------------------------carrito-------------------------------------------------------------------------------------
+@app.route('/carrito')
+@login_required
+def carrito():
+    return render_template('carritocomprador.html')
+##-------------------------------------------------------------fin_carrito------------------------------------------------------------------
+##-------------------------------------------------------------Admin-------------------------------------------------------------------------------------
+@app.route('/Admin')
+@login_required
+def Admin():
+    return render_template('usuariosadmin.html')
+##-------------------------------------------------------------fin_Admin------------------------------------------------------------------
+##-------------------------------------------------------------vendedor-------------------------------------------------------------------------------------
+@app.route('/vendedor')
+@login_required
+def vendedor():
+    return render_template('usuariovendedor.html')
+##-------------------------------------------------------------fin_vendedor------------------------------------------------------------------
+##-------------------------------------------------------------comprador-------------------------------------------------------------------------------------
+@app.route('/comprador')
+@login_required
+def comprador():
+    return render_template('usuariocomprador.html')
+##-------------------------------------------------------------fin_comprador------------------------------------------------------------------
+
+
 
 if __name__ == '__main__': ##depurar proyecto 
    with app.app_context():
