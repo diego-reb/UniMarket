@@ -1,10 +1,13 @@
-from flask import Flask, render_template, flash, request, redirect, url_for
+from flask import Flask, render_template, flash, request, redirect, url_for, Blueprint, jsonify 
 from flask_sqlalchemy import SQLAlchemy 
+from sqlalchemy.orm import joinedload
 from src.conn import db, init_app
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user 
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.Usuario import Usuario
 from models.Rol import Rol
+from models.Producto import Producto
+from models import Categoria
 
 app = Flask(__name__) ##iniciar proyecto
 app.secret_key = 'contraseña_secreta'
@@ -146,10 +149,52 @@ def carrito():
     return render_template('carritocomprador.html')
 ##-------------------------------------------------------------fin_carrito------------------------------------------------------------------
 ##-------------------------------------------------------------Admin-------------------------------------------------------------------------------------
-@app.route('/Admin')
-@login_required
+@app.route('/admin')
 def Admin():
-    return render_template('usuariosadmin.html')
+    usuarios = Usuario.query.options(joinedload(Usuario.rol)).all()
+    productos = Producto.query.all()
+    return render_template('usuariosadmin.html', usuarios=usuarios, productos=productos)
+
+@app.route('/usuario/editar/<int:id>', methods=['GET', 'POST'])
+def editar_usuario(id):
+    usuario = Usuario.query.get_or_404(id)
+    if request.method == 'POST':
+        usuario.nombre = request.form['nombre']
+        usuario.email = request.form['email']
+        usuario.rol = int(request.form['rol'])
+        db.session.commit()
+        flash('Usuario actualizado correctamente', 'success')
+        return redirect(url_for('admin_panel'))
+    return render_template('editar_usuario.html', usuario=usuario)
+
+@app.route('/usuario/eliminar/<int:id>', methods=['POST'])
+def eliminar_usuario(id):
+    usuario = Usuario.query.get_or_404(id)
+    db.session.delete(usuario)
+    db.session.commit()
+    flash('Usuario eliminado correctamente', 'success')
+    return redirect(url_for('admin_panel'))
+
+# Similar para productos:
+@app.route('/producto/editar/<int:id>', methods=['GET', 'POST'])
+def editar_producto(id):
+    producto = Producto.query.get_or_404(id)
+    if request.method == 'POST':
+        producto.nombre = request.form['nombre']
+        producto.precio = float(request.form['precio'])
+        producto.estado = request.form['estado'] == 'published'
+        db.session.commit()
+        flash('Producto actualizado correctamente', 'success')
+        return redirect(url_for('admin_panel'))
+    return render_template('editar_producto.html', producto=producto)
+
+@app.route('/producto/eliminar/<int:id>', methods=['POST'])
+def eliminar_producto(id):
+    producto = Producto.query.get_or_404(id)
+    db.session.delete(producto)
+    db.session.commit()
+    flash('Producto eliminado correctamente', 'success')
+    return redirect(url_for('admin_panel'))
 ##-------------------------------------------------------------fin_Admin------------------------------------------------------------------
 ##-------------------------------------------------------------vendedor-------------------------------------------------------------------------------------
 @app.route('/vendedor')

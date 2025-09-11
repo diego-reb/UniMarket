@@ -3,7 +3,12 @@ CREATE TABLE Rol (
     nombre VARCHAR(50) NOT NULL UNIQUE  
 );
 insert into Rol (nombre) values ('Administrador'),('Vendedor'),('Comprador');
-select * from rol
+
+SELECT u.nombre, u.correo, r.nombre AS rol_nombre
+FROM usuario u
+JOIN rol r ON u.id_rol = r.id_rol;
+
+
 create table Usuario(
 	id_usuario SERIAL primary key,
 	nombre varchar(100) not null,

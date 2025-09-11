@@ -269,8 +269,9 @@
             <div id="users-section" class="content-section active">
                 <div class="filter-buttons">
                     <button class="filter-btn active" data-filter="all">Todos</button>
-                    <button class="filter-btn" data-filter="seller">Vendedores</button>
-                    <button class="filter-btn" data-filter="buyer">Compradores</button>
+                    <button class="filter-btn" data-filter="vendedor">Vendedores</button>
+                    <button class="filter-btn" data-filter="comprador">Compradores</button>
+                    <button class="filter-btn" data-filter="administrador">Administrador</button>
                 </div>
                 <div id="user-list" class="user-list">
                     <!-- User cards will be rendered here -->
@@ -342,301 +343,169 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            let users = [
-                { name: 'Sofía Martínez', email: 'sofia.m@example.com', role: 'seller', registrationDate: '2023-01-15' },
-                { name: 'Juan Pérez', email: 'juan.p@example.com', role: 'buyer', registrationDate: '2023-01-20' },
-                { name: 'Carlos López', email: 'carlos.l@example.com', role: 'seller', registrationDate: '2023-02-01' },
-                { name: 'Laura Gómez', email: 'laura.g@example.com', role: 'buyer', registrationDate: '2023-02-10' },
-                { name: 'Miguel Torres', email: 'miguel.t@example.com', role: 'seller', registrationDate: '2023-03-05' },
-                { name: 'Ana Ramírez', email: 'ana.r@example.com', role: 'buyer', registrationDate: '2023-03-12' },
-                { name: 'Pedro Sánchez', email: 'pedro.s@example.com', role: 'seller', registrationDate: '2023-04-20' },
-                { name: 'Isabel Díaz', email: 'isabel.d@example.com', role: 'buyer', registrationDate: '2023-05-01' }
-            ];
+document.addEventListener('DOMContentLoaded', () => {
+    let users = [
+        {% for u in usuarios %}
+        {
+            name: "{{ u.nombre }}",
+            email: "{{ u.correo }}",
+            role: "{{ u.rol.nombre|lower }}" // Asegúrate que viene de tu JOIN
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
 
-            let products = [
-                { id: 'prod-001', name: 'Libro de Cálculo Avanzado', price: 25.50, status: 'published', seller: 'Sofia Martínez' },
-                { id: 'prod-002', name: 'Tablet Gráfica usada', price: 120.00, status: 'pending', seller: 'Juan Pérez' },
-                { id: 'prod-003', name: 'Apuntes de Historia del Arte', price: 8.75, status: 'published', seller: 'Laura Gómez' },
-                { id: 'prod-004', name: 'Calculadora Científica', price: 15.00, status: 'published', seller: 'Miguel Torres' },
-                { id: 'prod-005', name: 'Mochila para Laptop', price: 35.00, status: 'published', seller: 'Ana Ramírez' },
-                { id: 'prod-006', name: 'Audífonos Bluetooth', price: 50.00, status: 'pending', seller: 'Carlos López' }
-            ];
+    let products = [
+        {% for p in productos %}
+        {
+            id: "{{ p.id_pro }}",
+            name: "{{ p.nombre }}",
+            price: {{ p.precio }},
+            status: "{{ p.estado }}",
+            seller: "{{ p.vendedor }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
 
-            const mainTitle = document.getElementById('main-title');
-            const navUsers = document.getElementById('nav-users');
-            const navProducts = document.getElementById('nav-products');
-            const usersSection = document.getElementById('users-section');
-            const productsSection = document.getElementById('products-section');
-            const messageBox = document.getElementById('message-box');
+    const mainTitle = document.getElementById('main-title');
+    const navUsers = document.getElementById('nav-users');
+    const navProducts = document.getElementById('nav-products');
+    const messageBox = document.getElementById('message-box');
 
-            function showMessage(message, type) {
-                messageBox.textContent = message;
-                messageBox.className = `message-box ${type}`;
-                messageBox.style.display = 'block';
-                setTimeout(() => {
-                    messageBox.style.display = 'none';
-                }, 3000);
-            }
+    function showMessage(message, type) {
+        messageBox.textContent = message;
+        messageBox.className = `message-box ${type}`;
+        messageBox.style.display = 'block';
+        setTimeout(() => {
+            messageBox.style.display = 'none';
+        }, 3000);
+    }
 
-            const renderUsers = (filter = 'all') => {
-                const userListContainer = document.getElementById('user-list');
-                const editFormContainer = document.getElementById('edit-user-form-container');
-                userListContainer.innerHTML = '';
-                editFormContainer.style.display = 'none';
+    // --- USERS ---
+    const renderUsers = (filter = 'all') => {
+        const userListContainer = document.getElementById('user-list');
+        const editFormContainer = document.getElementById('edit-user-form-container');
+        userListContainer.innerHTML = '';
+        editFormContainer.style.display = 'none';
 
-                const filteredUsers = users.filter(user => filter === 'all' || user.role === filter);
-                
-                if (filteredUsers.length === 0) {
-                    userListContainer.innerHTML = `<p style="text-align: center; color: var(--muted); margin-top: 50px;">No se encontraron usuarios de este tipo.</p>`;
-                    return;
-                }
+        const filteredUsers = users.filter(user => filter === 'all' || user.role === filter);
 
-                filteredUsers.forEach(user => {
-                    const userCard = document.createElement('div');
-                    userCard.className = 'user-card';
-                    userCard.innerHTML = `
-                        <h3>${user.name}</h3>
-                        <p><strong>Rol:</strong> ${user.role === 'seller' ? 'Vendedor' : 'Comprador'}</p>
-                        <p><strong>Correo:</strong> ${user.email}</p>
-                        <p><strong>Registro:</strong> ${user.registrationDate}</p>
-                        <div class="user-actions">
-                            <button class="edit-btn" onclick="editUser('${user.email}')">Editar</button>
-                            <button class="delete-btn" onclick="deleteUser('${user.email}')">Eliminar</button>
-                        </div>
-                    `;
-                    userListContainer.appendChild(userCard);
-                });
-            };
+        if (filteredUsers.length === 0) {
+            userListContainer.innerHTML = `<p style="text-align: center; color: var(--muted); margin-top: 50px;">No se encontraron usuarios de este tipo.</p>`;
+            return;
+        }
 
-            const renderProducts = (filter = 'all') => {
-                const productListContainer = document.getElementById('product-list');
-                const editFormContainer = document.getElementById('edit-product-form-container');
-                productListContainer.innerHTML = '';
-                editFormContainer.style.display = 'none';
-                
-                const filteredProducts = products.filter(product => filter === 'all' || product.status === filter);
-                
-                if (filteredProducts.length === 0) {
-                    productListContainer.innerHTML = `<p style="text-align: center; color: var(--muted); margin-top: 50px;">No se encontraron productos de este tipo.</p>`;
-                    return;
-                }
-
-                filteredProducts.forEach(product => {
-                    const productCard = document.createElement('div');
-                    productCard.className = 'product-card';
-                    productCard.innerHTML = `
-                        <h3>${product.name}</h3>
-                        <p><strong>Precio:</strong> $${product.price.toFixed(2)}</p>
-                        <p><strong>Estado:</strong> ${product.status === 'published' ? 'Publicado' : 'Pendiente'}</p>
-                        <p><strong>Vendedor:</strong> ${product.seller}</p>
-                        <div class="product-actions">
-                            <button class="edit-btn" onclick="editProduct('${product.id}')">Editar</button>
-                            <button class="delete-btn" onclick="deleteProduct('${product.id}')">Eliminar</button>
-                        </div>
-                    `;
-                    productListContainer.appendChild(productCard);
-                });
-            };
-
-            const showSection = (sectionId) => {
-                const allSections = document.querySelectorAll('.content-section');
-                allSections.forEach(section => {
-                    section.classList.remove('active');
-                });
-                document.getElementById(sectionId).classList.add('active');
-
-                const allNavLinks = document.querySelectorAll('.sidebar-nav a');
-                allNavLinks.forEach(link => {
-                    link.classList.remove('active');
-                });
-                
-                if (sectionId === 'users-section') {
-                    navUsers.classList.add('active');
-                    mainTitle.textContent = 'Panel de Administrador – Usuarios';
-                    // Reset filter to 'all' and update button
-                    document.querySelectorAll('#users-section .filter-btn').forEach(btn => btn.classList.remove('active'));
-                    document.querySelector('#users-section .filter-btn[data-filter="all"]').classList.add('active');
-                    renderUsers('all');
-                } else {
-                    navProducts.classList.add('active');
-                    mainTitle.textContent = 'Panel de Administrador – Productos';
-                    // Reset filter to 'all' and update button
-                    document.querySelectorAll('#products-section .filter-btn').forEach(btn => btn.classList.remove('active'));
-                    document.querySelector('#products-section .filter-btn[data-filter="all"]').classList.add('active');
-                    renderProducts('all');
-                }
-            };
-            
-            // User Actions
-            window.deleteUser = (email) => {
-                // Reemplazando `confirm()` con un modal de mensaje
-                const userToDelete = users.find(user => user.email === email);
-                if (userToDelete) {
-                    const confirmMessage = `¿Estás seguro de que quieres eliminar al usuario ${userToDelete.name}?`;
-                    showCustomModal(confirmMessage, () => {
-                        const initialLength = users.length;
-                        users = users.filter(user => user.email !== email);
-                        if (users.length < initialLength) {
-                            showMessage('Usuario eliminado correctamente.', 'success');
-                            renderUsers(document.querySelector('#users-section .filter-btn.active').dataset.filter);
-                        } else {
-                            showMessage('Error al eliminar el usuario.', 'error');
-                        }
-                    });
-                }
-            };
-
-            window.editUser = (email) => {
-                const userToEdit = users.find(user => user.email === email);
-                if (userToEdit) {
-                    document.getElementById('edit-user-email-original').value = userToEdit.email;
-                    document.getElementById('edit-user-name').value = userToEdit.name;
-                    document.getElementById('edit-user-email').value = userToEdit.email;
-                    document.getElementById('edit-user-role').value = userToEdit.role;
-                    document.getElementById('user-list').style.display = 'none';
-                    document.getElementById('edit-user-form-container').style.display = 'block';
-                }
-            };
-
-            document.getElementById('cancel-edit-user').addEventListener('click', () => {
-                document.getElementById('edit-user-form-container').style.display = 'none';
-                document.getElementById('user-list').style.display = 'grid';
-            });
-
-            document.getElementById('edit-user-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const originalEmail = document.getElementById('edit-user-email-original').value;
-                const newName = document.getElementById('edit-user-name').value;
-                const newEmail = document.getElementById('edit-user-email').value;
-                const newRole = document.getElementById('edit-user-role').value;
-                
-                const userIndex = users.findIndex(user => user.email === originalEmail);
-                if (userIndex !== -1) {
-                    users[userIndex].name = newName;
-                    users[userIndex].email = newEmail;
-                    users[userIndex].role = newRole;
-                    showMessage('Usuario actualizado correctamente.', 'success');
-                    document.getElementById('edit-user-form-container').style.display = 'none';
-                    document.getElementById('user-list').style.display = 'grid';
-                    renderUsers(document.querySelector('#users-section .filter-btn.active').dataset.filter);
-                } else {
-                    showMessage('Error al actualizar el usuario.', 'error');
-                }
-            });
-
-            // Product Actions
-            window.deleteProduct = (id) => {
-                const productToDelete = products.find(product => product.id === id);
-                if (productToDelete) {
-                    const confirmMessage = `¿Estás seguro de que quieres eliminar el producto "${productToDelete.name}"?`;
-                    showCustomModal(confirmMessage, () => {
-                        const initialLength = products.length;
-                        products = products.filter(product => product.id !== id);
-                        if (products.length < initialLength) {
-                            showMessage('Producto eliminado correctamente.', 'success');
-                            renderProducts(document.querySelector('#products-section .filter-btn.active').dataset.filter);
-                        } else {
-                            showMessage('Error al eliminar el producto.', 'error');
-                        }
-                    });
-                }
-            };
-
-            window.editProduct = (id) => {
-                const productToEdit = products.find(product => product.id === id);
-                if (productToEdit) {
-                    document.getElementById('edit-product-id-original').value = productToEdit.id;
-                    document.getElementById('edit-product-name').value = productToEdit.name;
-                    document.getElementById('edit-product-price').value = productToEdit.price;
-                    document.getElementById('edit-product-status').value = productToEdit.status;
-                    document.getElementById('product-list').style.display = 'none';
-                    document.getElementById('edit-product-form-container').style.display = 'block';
-                }
-            };
-
-            document.getElementById('cancel-edit-product').addEventListener('click', () => {
-                document.getElementById('edit-product-form-container').style.display = 'none';
-                document.getElementById('product-list').style.display = 'grid';
-            });
-
-            document.getElementById('edit-product-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const originalId = document.getElementById('edit-product-id-original').value;
-                const newName = document.getElementById('edit-product-name').value;
-                const newPrice = parseFloat(document.getElementById('edit-product-price').value);
-                const newStatus = document.getElementById('edit-product-status').value;
-                
-                const productIndex = products.findIndex(product => product.id === originalId);
-                if (productIndex !== -1) {
-                    products[productIndex].name = newName;
-                    products[productIndex].price = newPrice;
-                    products[productIndex].status = newStatus;
-                    showMessage('Producto actualizado correctamente.', 'success');
-                    document.getElementById('edit-product-form-container').style.display = 'none';
-                    document.getElementById('product-list').style.display = 'grid';
-                    renderProducts(document.querySelector('#products-section .filter-btn.active').dataset.filter);
-                } else {
-                    showMessage('Error al actualizar el producto.', 'error');
-                }
-            });
-
-            // Event Listeners for Nav
-            navUsers.addEventListener('click', (e) => {
-                e.preventDefault();
-                showSection('users-section');
-            });
-
-            navProducts.addEventListener('click', (e) => {
-                e.preventDefault();
-                showSection('products-section');
-            });
-
-            // Event Listeners para los botones de filtro de usuarios
-            document.querySelectorAll('#users-section .filter-btn').forEach(button => {
-                button.addEventListener('click', () => {
-                    document.querySelectorAll('#users-section .filter-btn').forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                    renderUsers(button.dataset.filter);
-                });
-            });
-
-            // Event Listeners para los botones de filtro de productos
-            document.querySelectorAll('#products-section .filter-btn').forEach(button => {
-                button.addEventListener('click', () => {
-                    document.querySelectorAll('#products-section .filter-btn').forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                    renderProducts(button.dataset.filter);
-                });
-            });
-
-            // Modal customizado para reemplazar `confirm()`
-            function showCustomModal(message, onConfirm) {
-                const modalHtml = `
-                    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.5); display: flex; justify-content: center; align-items: center; z-index: 1000;" id="custom-modal-backdrop">
-                        <div style="background: var(--card); padding: 30px; border-radius: var(--radius); border: 1px solid rgba(148,163,184,.20); box-shadow: var(--shadow); max-width: 400px; text-align: center;">
-                            <p style="margin-top: 0; font-size: 1.1rem;">${message}</p>
-                            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
-                                <button id="modal-cancel" style="padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; background: var(--muted); color: black;">Cancelar</button>
-                                <button id="modal-confirm" style="padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; background: var(--error); color: white;">Confirmar</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-                document.getElementById('modal-confirm').addEventListener('click', () => {
-                    onConfirm();
-                    document.getElementById('custom-modal-backdrop').remove();
-                });
-                document.getElementById('modal-cancel').addEventListener('click', () => {
-                    document.getElementById('custom-modal-backdrop').remove();
-                });
-            }
-
-            // Initial render on load
-            showSection('users-section');
+        filteredUsers.forEach(user => {
+            const userCard = document.createElement('div');
+            userCard.className = 'user-card';
+            userCard.innerHTML = `
+                <h3>${user.name}</h3>
+                <p><strong>Rol:</strong> ${user.role}</p>
+                <p><strong>Correo:</strong> ${user.email}</p>
+                <div class="user-actions">
+                    <button class="edit-btn" onclick="editUser('${user.email}')">Editar</button>
+                    <button class="delete-btn" onclick="deleteUser('${user.email}')">Eliminar</button>
+                </div>
+            `;
+            userListContainer.appendChild(userCard);
         });
-    </script>
+    };
+
+    // --- PRODUCTS ---
+    const renderProducts = (filter = 'all') => {
+        const productListContainer = document.getElementById('product-list');
+        const editFormContainer = document.getElementById('edit-product-form-container');
+        productListContainer.innerHTML = '';
+        editFormContainer.style.display = 'none';
+        
+        const filteredProducts = products.filter(product => filter === 'all' || product.status === filter);
+        
+        if (filteredProducts.length === 0) {
+            productListContainer.innerHTML = `<p style="text-align: center; color: var(--muted); margin-top: 50px;">No se encontraron productos de este tipo.</p>`;
+            return;
+        }
+
+        filteredProducts.forEach(product => {
+            const productCard = document.createElement('div');
+            productCard.className = 'product-card';
+            productCard.innerHTML = `
+                <h3>${product.name}</h3>
+                <p><strong>Precio:</strong> $${product.price.toFixed(2)}</p>
+                <p><strong>Estado:</strong> ${product.status === 'published' ? 'Publicado' : 'Pendiente'}</p>
+                <p><strong>Vendedor:</strong> ${product.seller}</p>
+                <div class="product-actions">
+                    <button class="edit-btn" onclick="editProduct('${product.id}')">Editar</button>
+                    <button class="delete-btn" onclick="deleteProduct('${product.id}')">Eliminar</button>
+                </div>
+            `;
+            productListContainer.appendChild(productCard);
+        });
+    };
+
+    // --- SHOW SECTION ---
+    const showSection = (sectionId) => {
+        document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+
+        document.querySelectorAll('.sidebar-nav a').forEach(link => link.classList.remove('active'));
+        
+        if (sectionId === 'users-section') {
+            navUsers.classList.add('active');
+            mainTitle.textContent = 'Panel de Administrador – Usuarios';
+            document.querySelectorAll('#users-section .filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('#users-section .filter-btn[data-filter="all"]').classList.add('active');
+            renderUsers('all');
+        } else {
+            navProducts.classList.add('active');
+            mainTitle.textContent = 'Panel de Administrador – Productos';
+            document.querySelectorAll('#products-section .filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('#products-section .filter-btn[data-filter="all"]').classList.add('active');
+            renderProducts('all');
+        }
+    };
+
+    // --- NAV ---
+    navUsers.addEventListener('click', e => { e.preventDefault(); showSection('users-section'); });
+    navProducts.addEventListener('click', e => { e.preventDefault(); showSection('products-section'); });
+
+    // --- FILTERS ---
+    document.querySelectorAll('#users-section .filter-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelectorAll('#users-section .filter-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            renderUsers(button.dataset.filter);
+        });
+    });
+
+    document.querySelectorAll('#products-section .filter-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelectorAll('#products-section .filter-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            renderProducts(button.dataset.filter);
+        });
+    });
+
+    // --- MODAL CUSTOM ---
+    function showCustomModal(message, onConfirm) {
+        const modalHtml = `
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.5); display: flex; justify-content: center; align-items: center; z-index: 1000;" id="custom-modal-backdrop">
+                <div style="background: var(--card); padding: 30px; border-radius: var(--radius); border: 1px solid rgba(148,163,184,.20); box-shadow: var(--shadow); max-width: 400px; text-align: center;">
+                    <p style="margin-top: 0; font-size: 1.1rem;">${message}</p>
+                    <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+                        <button id="modal-cancel" style="padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; background: var(--muted); color: black;">Cancelar</button>
+                        <button id="modal-confirm" style="padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; background: var(--error); color: white;">Confirmar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        document.getElementById('modal-confirm').addEventListener('click', () => { onConfirm(); document.getElementById('custom-modal-backdrop').remove(); });
+        document.getElementById('modal-cancel').addEventListener('click', () => { document.getElementById('custom-modal-backdrop').remove(); });
+    }
+
+    // --- INITIAL ---
+    showSection('users-section');
+});
+</script>
+
 </body>
 </html>
