@@ -10,7 +10,8 @@ class Producto(db.Model):
     descripcion = db.Column(db.String(255), nullable=False)
     precio = db.Column(db.Numeric(10,2), nullable=False)
     stock = db.Column(db.Integer, nullable=False)
-
+    foto = db.Column(db.String(255)) 
+    estado = db.Column(db.String(20), default='activo')
 
     id_categoria = db.Column(db.Integer,
                              db.ForeignKey('categoria.id_categoria'),
@@ -18,7 +19,6 @@ class Producto(db.Model):
     id_vendedor = db.Column(db.Integer,
                             db.ForeignKey('usuario.id_usuario'),
                             nullable=False)
-    estado= db.Column(db.Boolean, default =True)
 
     vendedor = db.relationship('Usuario', backref=db.backref('productos', lazy=True))
 

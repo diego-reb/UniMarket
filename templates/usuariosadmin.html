@@ -4,238 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administrador – UniMarket</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0f172a;           /* slate-900 */
-            --card: #111827;          /* gray-900 */
-            --muted: #94a3b8;         /* slate-400 */
-            --text: #e5e7eb;          /* gray-200 */
-            --brand: #22c55e;         /* green-500 */
-            --brand-2: #38bdf8;        /* sky-400 */
-            --accent: #fde047;        /* yellow-300 */
-            --error: #ef4444;          /* red-500 */
-            --ok: #10b981;             /* emerald-500 */
-            --shadow: 0 10px 30px rgba(0, 0, 0, .35);
-            --radius: 12px;
-        }
+        /* (aquí va exactamente tu CSS — lo mantuve igual) */
+        :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --brand:#22c55e; --brand-2:#38bdf8; --accent:#fde047; --error:#ef4444; --ok:#10b981; --shadow:0 10px 30px rgba(0,0,0,.35); --radius:12px; }
         * { box-sizing: border-box }
-        html, body {
-            height: 100%;
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            color: var(--text);
-            background-color: var(--bg);
-        }
-        .dashboard-container {
-            display: flex;
-            height: 100%;
-            padding: 20px;
-            gap: 20px;
-        }
-        .sidebar {
-            flex: 0 0 250px;
-            background: rgba(2,6,23,.55);
-            border: 1px solid rgba(148,163,184,.20);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .sidebar-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 800;
-            letter-spacing: .2px;
-            margin-bottom: 20px;
-            padding: 10px;
-        }
-        .sidebar-logo-badge {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, var(--brand), var(--brand-2));
-            display: grid;
-            place-items: center;
-        }
-        .sidebar-logo-badge svg { width: 16px; height: 16px; }
-        .sidebar-nav a {
-            display: block;
-            padding: 12px;
-            border-radius: 8px;
-            color: var(--text);
-            text-decoration: none;
-            transition: background-color .2s;
-        }
-        .sidebar-nav a:hover, .sidebar-nav a.active {
-            background-color: rgba(56,189,248,.1);
-        }
-        .main-content {
-            flex: 1;
-            background: rgba(2,6,23,.55);
-            border: 1px solid rgba(148,163,184,.20);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-        }
-        .main-content h1 {
-            margin: 0 0 20px;
-            font-size: 2rem;
-            text-align: center;
-            color: var(--text);
-        }
-        .content-section {
-            display: none; /* Oculto por defecto */
-        }
-        .content-section.active {
-            display: block; /* Muestra la sección activa */
-        }
-        .user-list, .product-list {
-            display: grid;
-            gap: 20px;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        }
-        .user-card, .product-card {
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid rgba(148,163,184,.20);
-            transition: transform .2s ease;
-        }
-        .user-card:hover, .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 20px rgba(0,0,0,.2);
-        }
-        .user-card h3, .product-card h3 {
-            margin: 0 0 5px;
-            color: var(--brand);
-            font-size: 1.2rem;
-        }
-        .user-card p, .product-card p {
-            margin: 0;
-            font-size: 0.9rem;
-            color: var(--muted);
-        }
-        .user-card p strong, .product-card p strong {
-            color: var(--text);
-        }
-        .user-actions, .product-actions {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-        }
-        .user-actions button, .product-actions button {
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: none;
-            color: white;
-            cursor: pointer;
-            transition: background-color .2s;
-        }
-        .user-actions .edit-btn, .product-actions .edit-btn { background-color: var(--brand-2); }
-        .user-actions .delete-btn, .product-actions .delete-btn { background-color: var(--error); }
-        
-        .message-box {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            display: none;
-        }
-        .message-box.success { background-color: var(--ok); color: white; }
-        .message-box.error { background-color: var(--error); color: white; }
-
-        .edit-form-container {
-            display: none; /* Oculto por defecto */
-            margin-top: 20px;
-            padding: 20px;
-            border: 1px solid rgba(148,163,184,.20);
-            border-radius: var(--radius);
-            background: rgba(2,6,23,.55);
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .edit-form-container h2 {
-            margin-top: 0;
-            text-align: center;
-        }
-        .edit-form-container .form-group {
-            margin-bottom: 15px;
-        }
-        .edit-form-container .form-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .edit-form-container .form-group input, .edit-form-container .form-group select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid rgba(148,163,184,.25);
-            background: rgba(2,6,23,.6);
-            color: var(--text);
-            outline: none;
-        }
-        .edit-form-container .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        .edit-form-container .form-actions button {
-            padding: 10px 20px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-        }
-        .edit-form-container .form-actions .save-btn {
-            background-color: var(--brand);
-            color: white;
-        }
-        .edit-form-container .form-actions .cancel-btn {
-            background-color: var(--muted);
-            color: black;
-        }
-        .filter-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .filter-buttons button {
-            background: var(--card);
-            border: 1px solid rgba(148,163,184,.20);
-            color: var(--text);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .filter-buttons button.active {
-            background-color: var(--brand-2);
-            color: white;
-        }
-        
-        @media (max-width: 768px) {
-            .dashboard-container {
-                flex-direction: column;
-                padding: 10px;
-            }
-            .sidebar {
-                flex: none;
-                width: 100%;
-            }
-            .main-content {
-                padding: 20px;
-            }
-        }
+        html, body { height: 100%; margin: 0; font-family:'Inter', sans-serif; color: var(--text); background-color: var(--bg); }
+        .dashboard-container { display:flex; height:100%; padding:20px; gap:20px; }
+        .sidebar { flex:0 0 250px; background:rgba(2,6,23,.55); border:1px solid rgba(148,163,184,.20); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; display:flex; flex-direction:column; gap:10px; }
+        .sidebar-logo { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px; margin-bottom:20px; padding:10px; }
+        .sidebar-logo-badge { width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,var(--brand),var(--brand-2)); display:grid; place-items:center; }
+        .sidebar-logo-badge svg { width:16px; height:16px; }
+        .sidebar-nav a { display:block; padding:12px; border-radius:8px; color:var(--text); text-decoration:none; transition:background-color .2s; }
+        .sidebar-nav a:hover, .sidebar-nav a.active { background-color: rgba(56,189,248,.1); }
+        .main-content { flex:1; background:rgba(2,6,23,.55); border:1px solid rgba(148,163,184,.20); border-radius:var(--radius); box-shadow:var(--shadow); padding:30px; display:flex; flex-direction:column; }
+        .main-content h1 { margin:0 0 20px; font-size:2rem; text-align:center; color:var(--text); }
+        .content-section { display:none; }
+        .content-section.active { display:block; }
+        .user-list, .product-list { display:grid; gap:20px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+        .user-card, .product-card { background:var(--card); border-radius:var(--radius); padding:20px; display:flex; flex-direction:column; border:1px solid rgba(148,163,184,.20); transition:transform .2s ease; }
+        .user-card:hover, .product-card:hover { transform: translateY(-5px); box-shadow: 0 5px 20px rgba(0,0,0,.2); }
+        .user-card h3, .product-card h3 { margin:0 0 5px; color:var(--brand); font-size:1.2rem; }
+        .user-card p, .product-card p { margin:0; font-size:.9rem; color:var(--muted); }
+        .user-card p strong, .product-card p strong { color:var(--text); }
+        .user-actions, .product-actions { margin-top:15px; display:flex; gap:10px; }
+        .user-actions .edit-btn, .product-actions .edit-btn { background-color:var(--brand-2); padding:8px 12px; color:white; border-radius:6px; text-decoration:none; display:inline-block; }
+        .user-actions .delete-btn, .product-actions .delete-btn { background-color:var(--error); padding:8px 12px; color:white; border-radius:6px; border:none; cursor:pointer; }
+        .message-box { padding:15px; border-radius:8px; margin-bottom:20px; text-align:center; display:none; }
+        .message-box.success { background-color:var(--ok); color:white; }
+        .message-box.error { background-color:var(--error); color:white; }
+        .edit-form-container { display:none; margin-top:20px; padding:20px; border:1px solid rgba(148,163,184,.20); border-radius:var(--radius); background:rgba(2,6,23,.55); max-width:500px; margin-left:auto; margin-right:auto; }
+        .filter-buttons { display:flex; justify-content:center; gap:10px; margin-bottom:20px; }
+        .filter-buttons button { background:var(--card); border:1px solid rgba(148,163,184,.20); color:var(--text); padding:8px 16px; border-radius:6px; cursor:pointer; }
+        .filter-buttons button.active { background-color:var(--brand-2); color:white; }
+        @media (max-width:768px) { .dashboard-container { flex-direction:column; padding:10px; } .sidebar { flex:none; width:100%; } .main-content { padding:20px; } }
     </style>
 </head>
 <body>
@@ -257,255 +62,232 @@
             <nav class="sidebar-nav">
                 <a href="#" id="nav-users" class="active">Usuarios</a>
                 <a href="#" id="nav-products">Productos</a>
+                <a href="{{ url_for('logout') }}" style="margin-top: auto; color: var(--error); font-weight: bold;">Cerrar sesión</a>
             </nav>
         </div>
 
         <!-- Main Content -->
         <div class="main-content">
             <h1 id="main-title">Panel de Administrador</h1>
+            <h1>Bienvenid@ de nuevo {{current_user.nombre}}</h1>
             <div id="message-box" class="message-box"></div>
 
             <!-- Users Section -->
             <div id="users-section" class="content-section active">
-                <div class="filter-buttons">
-                    <button class="filter-btn active" data-filter="all">Todos</button>
-                    <button class="filter-btn" data-filter="vendedor">Vendedores</button>
-                    <button class="filter-btn" data-filter="comprador">Compradores</button>
-                    <button class="filter-btn" data-filter="administrador">Administrador</button>
-                </div>
-                <div id="user-list" class="user-list">
-                    <!-- User cards will be rendered here -->
-                </div>
+  <div class="filter-buttons">
+    <button class="filter-btn active" data-filter="all">Todos</button>
+    <button class="filter-btn" data-filter="vendedor">Vendedores</button>
+    <button class="filter-btn" data-filter="comprador">Compradores</button>
+    <button class="filter-btn" data-filter="administrador">Administrador</button>
+    <button clas="crear-btn" style="margin-left:auto; background-color:var(--ok); color:white; padding:8px 16px; border-radius:6px; text-decoration:none;" onclick="document.getElementById('crear-usuario-form').style.display='block'">Crear Usuario</button>
+    <div id="crear-usuario-form" class="edit-form-container" style="display:none;">
+    <h3>Crear Nuevo Usuario</h3>
+    <form method="POST" action="{{ url_for('crear_usuario') }}">
+        {% if csrf_token is defined %}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% endif %}
+
+        <label>Nombre:</label>
+        <input type="text" name="nombre" required><br><br>
+
+        <label>Correo:</label>
+        <input type="email" name="correo" required><br><br>
+
+        <label>Contraseña:</label>
+        <input type="password" name="password" required><br><br>
+
+        <label>Confirmar contraseña:</label>
+<input type="password" name="confirmar" required><br><br>
+
+        <label>Teléfono:</label>
+        <input type="text" name="telefono"><br><br>
+
+        <label>Rol:</label>
+        <select name="id_rol" required>
+            {% for r in rol %}
+            <option value="{{ r.id_rol }}">{{ r.nombre }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <button type="submit" class="edit-btn" style="background-color:var(--ok);">Crear Usuario</button>
+        <button type="button" class="delete-btn" onclick="document.getElementById('crear-usuario-form').style.display='none'">Cancelar</button>
+    </form>
+</div>
+  </div>
+
+  <!-- SOLO UNA lista de usuarios -->
+  <div id="user-list" class="user-list">
+    {% for u in usuarios %}
+    <div class="user-card" data-role="{{ u.rol.nombre|lower }}">
+      <h3>{{ u.nombre }}</h3>
+      <p><strong>Rol:</strong> {{ u.rol.nombre if u.rol else 'Sin rol' }}</p>
+
+      <p><strong>Correo:</strong> {{ u.correo }}</p>
+      <div class="user-actions">
+        <a class="edit-btn" href="{{ url_for('editar_usuario', id=u.id_usuario) }}">Editar</a>
+        <form method="POST" action="{{ url_for('eliminar_usuario', id=u.id_usuario) }}" style="display:inline;" onsubmit="return confirm('¿Seguro que quieres eliminar a {{ u.nombre }}?');">
+          {% if csrf_token is defined %}
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          {% endif %}
+          <button type="submit" class="delete-btn">Eliminar</button>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <p style="text-align:center; color:var(--muted);">No hay usuarios registrados.</p>
+    {% endfor %}
+  </div>
+
+  <!-- Formulario de edición embebido -->
+  {% if usuario_editar %}
+  <div class="edit-form-container" style="display:block;">
+    <h3>Editar Usuario: {{ usuario_editar.nombre }}</h3>
+    <form method="POST" action="{{ url_for('editar_usuario', id=usuario_editar.id_usuario) }}">
+      {% if csrf_token is defined %}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {% endif %}
+      <label>Nombre:</label>
+      <input type="text" name="nombre" value="{{ usuario_editar.nombre }}" required><br><br>
+
+      <label>Correo:</label>
+      <input type="email" name="correo" value="{{ usuario_editar.correo }}" required><br><br>
+
+      <label>Rol:</label>
+<select name="id_rol" required>
+    {% for r in rol %}
+        <option value="{{ r.id_rol }}" {% if usuario_editar and r.id_rol == usuario_editar.id_rol %}selected{% endif %}>
+            {{ r.nombre }}
+        </option>
+    {% endfor %}
+</select>
+<br><br>
+
+      <button type="submit" class="edit-btn">Guardar cambios</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+
                 <div id="edit-user-form-container" class="edit-form-container">
-                    <h2>Editar Usuario</h2>
-                    <form id="edit-user-form">
-                        <input type="hidden" id="edit-user-email-original">
-                        <div class="form-group">
-                            <label for="edit-user-name">Nombre</label>
-                            <input type="text" id="edit-user-name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-user-email">Correo Electrónico</label>
-                            <input type="email" id="edit-user-email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-user-role">Rol</label>
-                            <select id="edit-user-role" required>
-                                <option value="seller">Vendedor</option>
-                                <option value="buyer">Comprador</option>
-                            </select>
-                        </div>
-                        <div class="form-actions">
-                            <button type="button" class="cancel-btn" id="cancel-edit-user">Cancelar</button>
-                            <button type="submit" class="save-btn">Guardar Cambios</button>
-                        </div>
-                    </form>
+                    
                 </div>
             </div>
 
-            <!-- Products Section -->
+          
             <div id="products-section" class="content-section">
-                <div class="filter-buttons">
-                    <button class="filter-btn active" data-filter="all">Todos</button>
-                    <button class="filter-btn" data-filter="published">Publicados</button>
-                    <button class="filter-btn" data-filter="pending">Pendientes</button>
-                </div>
-                <div id="product-list" class="product-list">
-                    <!-- Product cards will be rendered here -->
-                </div>
-                <div id="edit-product-form-container" class="edit-form-container">
-                    <h2>Editar Producto</h2>
-                    <form id="edit-product-form">
-                        <input type="hidden" id="edit-product-id-original">
-                        <div class="form-group">
-                            <label for="edit-product-name">Nombre</label>
-                            <input type="text" id="edit-product-name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-product-price">Precio</label>
-                            <input type="number" id="edit-product-price" step="0.01" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-product-status">Estado</label>
-                            <select id="edit-product-status" required>
-                                <option value="published">Publicado</option>
-                                <option value="pending">Pendiente</option>
-                            </select>
-                        </div>
-                        <div class="form-actions">
-                            <button type="button" class="cancel-btn" id="cancel-edit-product">Cancelar</button>
-                            <button type="submit" class="save-btn">Guardar Cambios</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+    <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">Todos</button>
+        <button class="filter-btn" data-filter="published">Publicados</button>
+        <button class="filter-btn" data-filter="pending">Pendientes</button>
+        <button class="crear-btn" style="margin-left:auto; background-color:var(--ok); color:white; padding:8px 16px; border-radius:6px; text-decoration:none;" onclick="document.getElementById('crear-producto-form').style.display='block'">Agregar Producto</button>
+    </div>
+    <div id="crear-producto-form" class="edit-form-container" style="display:none;">
+        <h3>Agregar Nuevo Producto</h3>
+        <form method="POST" action="{{ url_for('crear_producto') }}" enctype="multipart/form-data">
+            {% if csrf_token is defined %}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {% endif %}
+
+            <label>Nombre del producto:</label>
+            <input type="text" name="nombre" required><br><br>
+
+            <label>Descripción:</label>
+            <textarea name="descripcion" rows="4" required></textarea><br><br>
+
+            <label>Cantidad:</label>
+            <input type="number" name="cantidad" min="1" value="1" required><br><br>
+
+            <label>Precio ($):</label>
+            <input type="number" name="precio" min="0" step="0.01" value="0.00" required><br><br>
+
+            <label>Foto:</label>
+            <input type="file" name="foto" accept="image/*" required><br><br>
+
+            <label>Vendedor:</label>
+            <select name="id_vendedor" required>
+                {% for v in vendedores %}
+                    <option value="{{ v.id_usuario }}">{{ v.nombre }}</option>
+                {% endfor %}
+            </select><br><br>
+
+            <button type="submit" class="edit-btn" style="background-color:var(--ok);">Crear Producto</button>
+            <button type="button" class="delete-btn" onclick="document.getElementById('crear-producto-form').style.display='none'">Cancelar</button>
+        </form>
     </div>
 
+             <div id="product-list" class="product-list">
+    {% for p in productos %}
+    <div class="product-card" data-status="{{ 'published' if p.estado else 'pending' }}">
+        <h3>{{ p.nombre }}</h3>
+        <p><strong>Descripción:</strong> {{ p.descripcion }}</p>
+        <p><strong>Precio:</strong> ${{ '%.2f'|format(p.precio) }}</p>
+        <p><strong>Stock:</strong> {{ p.stock }}</p>
+        <p><strong>Vendedor:</strong> {{ p.vendedor.nombre }}</p>
+        {% if p.foto %}
+        <img src="{{ url_for('static', filename='uploads/' ~ p.foto) }}" alt="{{ p.nombre }}" style="max-width:100%; border-radius:8px;">
+        {% endif %}
+        <p><strong>Estado:</strong> {{ 'Publicado' if p.estado else 'Pendiente' }}</p>
+        <div class="product-actions">
+            <a class="edit-btn" href="{{ url_for('editar_producto', id=p.id_producto) }}">Editar</a>
+            <form method="POST" action="{{ url_for('eliminar_producto', id=p.id_producto) }}" style="display:inline;" onsubmit="return confirm('¿Seguro que quieres eliminar el producto \"{{ p.nombre }}\"?');">
+                {% if csrf_token is defined %}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {% endif %}
+                <button type="submit" class="delete-btn">Eliminar</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <p style="text-align:center; color:var(--muted);">No hay productos.</p>
+    {% endfor %}
+</div>
+
     <script>
-document.addEventListener('DOMContentLoaded', () => {
-    let users = [
-        {% for u in usuarios %}
-        {
-            name: "{{ u.nombre }}",
-            email: "{{ u.correo }}",
-            role: "{{ u.rol.nombre|lower }}" // Asegúrate que viene de tu JOIN
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-    ];
+    // JS mínimo: navegación entre secciones y filtros (no reconstruye nada, sólo muestra/oculta)
+    document.addEventListener('DOMContentLoaded', () => {
+        const navUsers = document.getElementById('nav-users');
+        const navProducts = document.getElementById('nav-products');
 
-    let products = [
-        {% for p in productos %}
-        {
-            id: "{{ p.id_pro }}",
-            name: "{{ p.nombre }}",
-            price: {{ p.precio }},
-            status: "{{ p.estado }}",
-            seller: "{{ p.vendedor }}"
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-    ];
-
-    const mainTitle = document.getElementById('main-title');
-    const navUsers = document.getElementById('nav-users');
-    const navProducts = document.getElementById('nav-products');
-    const messageBox = document.getElementById('message-box');
-
-    function showMessage(message, type) {
-        messageBox.textContent = message;
-        messageBox.className = `message-box ${type}`;
-        messageBox.style.display = 'block';
-        setTimeout(() => {
-            messageBox.style.display = 'none';
-        }, 3000);
-    }
-
-    // --- USERS ---
-    const renderUsers = (filter = 'all') => {
-        const userListContainer = document.getElementById('user-list');
-        const editFormContainer = document.getElementById('edit-user-form-container');
-        userListContainer.innerHTML = '';
-        editFormContainer.style.display = 'none';
-
-        const filteredUsers = users.filter(user => filter === 'all' || user.role === filter);
-
-        if (filteredUsers.length === 0) {
-            userListContainer.innerHTML = `<p style="text-align: center; color: var(--muted); margin-top: 50px;">No se encontraron usuarios de este tipo.</p>`;
-            return;
+        function showSection(id) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+            if (id === 'users-section') navUsers.classList.add('active'); else navProducts.classList.add('active');
         }
 
-        filteredUsers.forEach(user => {
-            const userCard = document.createElement('div');
-            userCard.className = 'user-card';
-            userCard.innerHTML = `
-                <h3>${user.name}</h3>
-                <p><strong>Rol:</strong> ${user.role}</p>
-                <p><strong>Correo:</strong> ${user.email}</p>
-                <div class="user-actions">
-                    <button class="edit-btn" onclick="editUser('${user.email}')">Editar</button>
-                    <button class="delete-btn" onclick="deleteUser('${user.email}')">Eliminar</button>
-                </div>
-            `;
-            userListContainer.appendChild(userCard);
+        navUsers.addEventListener('click', e => { e.preventDefault(); showSection('users-section'); });
+        navProducts.addEventListener('click', e => { e.preventDefault(); showSection('products-section'); });
+
+        // FILTROS USUARIOS (usa data-role en las tarjetas)
+        document.querySelectorAll('#users-section .filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#users-section .filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const filter = btn.dataset.filter; // 'all' | 'vendedor' | 'comprador' | 'administrador'
+                document.querySelectorAll('#user-list .user-card').forEach(card => {
+                    if (filter === 'all' || card.dataset.role === filter) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
         });
-    };
 
-    // --- PRODUCTS ---
-    const renderProducts = (filter = 'all') => {
-        const productListContainer = document.getElementById('product-list');
-        const editFormContainer = document.getElementById('edit-product-form-container');
-        productListContainer.innerHTML = '';
-        editFormContainer.style.display = 'none';
-        
-        const filteredProducts = products.filter(product => filter === 'all' || product.status === filter);
-        
-        if (filteredProducts.length === 0) {
-            productListContainer.innerHTML = `<p style="text-align: center; color: var(--muted); margin-top: 50px;">No se encontraron productos de este tipo.</p>`;
-            return;
-        }
-
-        filteredProducts.forEach(product => {
-            const productCard = document.createElement('div');
-            productCard.className = 'product-card';
-            productCard.innerHTML = `
-                <h3>${product.name}</h3>
-                <p><strong>Precio:</strong> $${product.price.toFixed(2)}</p>
-                <p><strong>Estado:</strong> ${product.status === 'published' ? 'Publicado' : 'Pendiente'}</p>
-                <p><strong>Vendedor:</strong> ${product.seller}</p>
-                <div class="product-actions">
-                    <button class="edit-btn" onclick="editProduct('${product.id}')">Editar</button>
-                    <button class="delete-btn" onclick="deleteProduct('${product.id}')">Eliminar</button>
-                </div>
-            `;
-            productListContainer.appendChild(productCard);
-        });
-    };
-
-    // --- SHOW SECTION ---
-    const showSection = (sectionId) => {
-        document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
-        document.getElementById(sectionId).classList.add('active');
-
-        document.querySelectorAll('.sidebar-nav a').forEach(link => link.classList.remove('active'));
-        
-        if (sectionId === 'users-section') {
-            navUsers.classList.add('active');
-            mainTitle.textContent = 'Panel de Administrador – Usuarios';
-            document.querySelectorAll('#users-section .filter-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector('#users-section .filter-btn[data-filter="all"]').classList.add('active');
-            renderUsers('all');
-        } else {
-            navProducts.classList.add('active');
-            mainTitle.textContent = 'Panel de Administrador – Productos';
-            document.querySelectorAll('#products-section .filter-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector('#products-section .filter-btn[data-filter="all"]').classList.add('active');
-            renderProducts('all');
-        }
-    };
-
-    // --- NAV ---
-    navUsers.addEventListener('click', e => { e.preventDefault(); showSection('users-section'); });
-    navProducts.addEventListener('click', e => { e.preventDefault(); showSection('products-section'); });
-
-    // --- FILTERS ---
-    document.querySelectorAll('#users-section .filter-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            document.querySelectorAll('#users-section .filter-btn').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            renderUsers(button.dataset.filter);
+        // FILTROS PRODUCTOS (usa data-status)
+        document.querySelectorAll('#products-section .filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#products-section .filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const filter = btn.dataset.filter; // all | published | pending
+                document.querySelectorAll('#product-list .product-card').forEach(card => {
+                    if (filter === 'all' || card.dataset.status === filter) card.style.display = '';
+                    else card.style.display = 'none';
+                });
+            });
         });
     });
-
-    document.querySelectorAll('#products-section .filter-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            document.querySelectorAll('#products-section .filter-btn').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            renderProducts(button.dataset.filter);
-        });
-    });
-
-    // --- MODAL CUSTOM ---
-    function showCustomModal(message, onConfirm) {
-        const modalHtml = `
-            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.5); display: flex; justify-content: center; align-items: center; z-index: 1000;" id="custom-modal-backdrop">
-                <div style="background: var(--card); padding: 30px; border-radius: var(--radius); border: 1px solid rgba(148,163,184,.20); box-shadow: var(--shadow); max-width: 400px; text-align: center;">
-                    <p style="margin-top: 0; font-size: 1.1rem;">${message}</p>
-                    <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
-                        <button id="modal-cancel" style="padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; background: var(--muted); color: black;">Cancelar</button>
-                        <button id="modal-confirm" style="padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; background: var(--error); color: white;">Confirmar</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        document.getElementById('modal-confirm').addEventListener('click', () => { onConfirm(); document.getElementById('custom-modal-backdrop').remove(); });
-        document.getElementById('modal-cancel').addEventListener('click', () => { document.getElementById('custom-modal-backdrop').remove(); });
-    }
-
-    // --- INITIAL ---
-    showSection('users-section');
-});
-</script>
-
+    </script>
 </body>
 </html>

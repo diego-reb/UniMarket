@@ -10,15 +10,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f172a;           /* slate-900 */
-            --card: #111827;          /* gray-900 */
-            --muted: #94a3b8;         /* slate-400 */
-            --text: #e5e7eb;          /* gray-200 */
-            --brand: #22c55e;         /* green-500 */
-            --brand-2: #38bdf8;       /* sky-400 */
-            --accent: #fde047;        /* yellow-300 */
-            --error: #ef4444;         /* red-500 */
-            --ok: #10b981;            /* emerald-500 */
+            --bg: #0f172a;           
+            --card: #111827;         
+            --muted: #94a3b8;        
+            --text: #e5e7eb;         
+            --brand: #22c55e;        
+            --brand-2: #38bdf8;      
+            --accent: #fde047;       
+            --error: #ef4444;        
+            --ok: #10b981;           
             --shadow: 0 10px 30px rgba(0, 0, 0, .35);
             --radius: 16px;
         }
@@ -245,7 +245,7 @@
 <body>
     <header>
         <div class="header-wrap container">
-            <a class="logo" href="#">
+            <a class="logo" href="/vendedor">
                 <div class="logo-badge" aria-hidden="true">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo UniMarket">
                         <path d="M7 8V7a5 5 0 0 1 10 0v1" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
@@ -272,7 +272,7 @@
 
     <main>
         <div class="card">
-            <h1>Bienvenido, Vendedor</h1>
+            <h1>Bienvenid@, {{current_user.nombre}}</h1>
             <p>Gestiona tus productos y pedidos desde tu panel de control.</p>
 
             <!-- Menú de navegación del dashboard -->
@@ -318,7 +318,6 @@
             <div id="product-list" class="content-section">
                 <h2 style="text-align: center; margin-bottom: 24px;">Mis Productos</h2>
                 <div id="product-list-container" class="product-list">
-                    <!-- Los productos se cargarán aquí dinámicamente -->
                     <p style="text-align: center; color: var(--muted);">No hay productos registrados.</p>
                 </div>
             </div>
@@ -327,7 +326,6 @@
             <div id="new-orders" class="content-section">
                 <h2 style="text-align: center; margin-bottom: 24px;">Nuevos Pedidos</h2>
                 <div id="new-orders-container" class="order-list">
-                    <!-- Los nuevos pedidos se cargarán aquí dinámicamente -->
                     <p style="text-align: center; color: var(--muted);">No hay nuevos pedidos.</p>
                 </div>
             </div>
@@ -336,7 +334,6 @@
             <div id="order-history" class="content-section">
                 <h2 style="text-align: center; margin-bottom: 24px;">Historial de Pedidos</h2>
                 <div id="order-history-container" class="order-list">
-                    <!-- El historial de pedidos se cargará aquí dinámicamente -->
                     <p style="text-align: center; color: var(--muted);">No hay historial de pedidos.</p>
                 </div>
             </div>
@@ -356,32 +353,16 @@
 
         // Variables de estado
         let products = JSON.parse(localStorage.getItem('products')) || [];
-        let orders = JSON.parse(localStorage.getItem('orders')) || [];
+        let orders = [];
 
         // Funciones del dashboard
         function showSection(sectionId, clickedButton) {
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.classList.remove('active');
-            });
+            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
 
-            // Actualiza la clase activa en los botones, pero solo si un botón fue clickeado
-            document.querySelectorAll('.btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+            if (clickedButton) clickedButton.classList.add('active');
 
-            if (clickedButton) {
-                clickedButton.classList.add('active');
-            } else {
-                // Si la función se llama al cargar la página (sin un botón),
-                // busca el botón con el onclick correcto y lo activa.
-                const initialButton = document.querySelector('.btn[onclick*="' + sectionId + '"]');
-                if (initialButton) {
-                    initialButton.classList.add('active');
-                }
-            }
-
-            // Recargar datos al cambiar de sección
             if (sectionId === 'product-list') renderProductList();
             if (sectionId === 'new-orders') renderOrderList('pending');
             if (sectionId === 'order-history') renderOrderList('completed');
@@ -398,17 +379,12 @@
             const image = document.getElementById('product-image').files[0];
 
             if (id) {
-                // Editar producto existente
                 const productIndex = products.findIndex(p => p.id === id);
                 if (productIndex !== -1) {
                     products[productIndex] = { ...products[productIndex], name, description, quantity, cost };
-                    // Simulación de guardar imagen
-                    if (image) {
-                        products[productIndex].image = URL.createObjectURL(image);
-                    }
+                    if (image) products[productIndex].image = URL.createObjectURL(image);
                 }
             } else {
-                // Agregar nuevo producto
                 const newProduct = {
                     id: 'prod_' + Date.now(),
                     name,
@@ -435,7 +411,6 @@
                 document.getElementById('product-quantity').value = product.quantity;
                 document.getElementById('product-cost').value = product.cost;
                 showSection('add-product', document.querySelector('button[onclick*="add-product"]'));
-                // Simulación: la imagen no se puede cargar de nuevo en el input file por seguridad
             }
         }
 
@@ -449,26 +424,25 @@
             const container = document.getElementById('product-list-container');
             container.innerHTML = '';
             if (products.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: var(--muted);">No hay productos registrados.</p>';
+                container.innerHTML = '<p style="text-align:center;color:var(--muted)">No hay productos registrados.</p>';
                 return;
             }
             products.forEach(product => {
-                const item = document.createElement('div');
-                item.classList.add('product-item');
-                item.innerHTML = `
-                    <img src="${product.image}" alt="Imagen de ${product.name}">
+                const div = document.createElement('div');
+                div.classList.add('product-item');
+                div.innerHTML = `
+                    <img src="${product.image}" alt="${product.name}">
                     <div class="product-details">
                         <h3>${product.name}</h3>
                         <p>${product.description}</p>
-                        <p><strong>Costo:</strong> $${product.cost.toFixed(2)}</p>
-                        <p><strong>Cantidad:</strong> ${product.quantity}</p>
+                        <p>Cantidad: ${product.quantity} • $${product.cost.toFixed(2)}</p>
                     </div>
                     <div class="product-actions">
                         <button class="btn" onclick="editProduct('${product.id}')">Editar</button>
-                        <button class="btn" style="background: var(--error);" onclick="deleteProduct('${product.id}')">Eliminar</button>
+                        <button class="btn" onclick="deleteProduct('${product.id}')">Eliminar</button>
                     </div>
                 `;
-                container.appendChild(item);
+                container.appendChild(div);
             });
         }
 
@@ -477,17 +451,35 @@
             document.getElementById('product-id').value = '';
         }
 
-        // --- Gestión de Pedidos ---
+        // --- Gestión de Pedidos con datos reales de Flask ---
+        function fetchOrders() {
+            fetch('/vendedor/pedidos')
+                .then(response => response.json())
+                .then(data => {
+                    orders = data.map(o => ({
+                        id: 'ord_' + o.id_pedido + '_' + o.producto,
+                        status: o.estado || 'pending', // Ajusta si tienes estado real en la BD
+                        product: o.producto,
+                        buyerName: o.comprador || 'Cliente',
+                        buyerContact: o.contacto || 'N/A',
+                        deliveryDate: o.fecha || 'No definida',
+                        deliveryTime: o.hora || '',
+                        deliveryLocation: o.ubicacion || ''
+                    }));
+                    renderOrderList('pending');
+                    renderOrderList('completed');
+                })
+                .catch(err => console.error('Error al cargar pedidos:', err));
+        }
+
         function renderOrderList(status) {
             const container = status === 'pending' ? document.getElementById('new-orders-container') : document.getElementById('order-history-container');
             container.innerHTML = '';
             const filteredOrders = orders.filter(o => o.status === status);
-
             if (filteredOrders.length === 0) {
                 container.innerHTML = `<p style="text-align: center; color: var(--muted);">No hay ${status === 'pending' ? 'nuevos pedidos' : 'historial de pedidos'}.</p>`;
                 return;
             }
-
             filteredOrders.forEach(order => {
                 const orderItem = document.createElement('div');
                 orderItem.classList.add('order-item');
@@ -506,30 +498,11 @@
             });
         }
 
-        // --- Datos de simulación (si no hay datos guardados) ---
-        if (products.length === 0) {
-            products = [
-                { id: 'prod_1', name: 'Libro de Álgebra', description: 'Libro de texto en buen estado.', quantity: 2, cost: 150.00, image: 'https://placehold.co/80x80/38bdf8/0f172a?text=Libro' },
-                { id: 'prod_2', name: 'Calculadora Científica', description: 'Calculadora Casio fx-82 usada.', quantity: 1, cost: 250.50, image: 'https://placehold.co/80x80/22c55e/0f172a?text=Calc' }
-            ];
-            localStorage.setItem('products', JSON.stringify(products));
-        }
-
-        if (orders.length === 0) {
-            orders = [
-                { id: 'ord_1', status: 'pending', product: 'Libro de Álgebra', buyerName: 'Ana García', buyerContact: '55 9876 5432', deliveryDate: 'Martes, 28/11/2023', deliveryTime: 'Matutino', deliveryLocation: 'Biblioteca' },
-                { id: 'ord_2', status: 'completed', product: 'Libro de Cálculo', buyerName: 'Luis Pérez', buyerContact: '55 1122 3344', deliveryDate: 'Lunes, 27/11/2023', deliveryTime: 'Vespertino', deliveryLocation: 'Torniquetes' }
-            ];
-            localStorage.setItem('orders', JSON.stringify(orders));
-        }
-
-        // Inicializar la página
+        // Inicializar página
         window.onload = function() {
             showSection('add-product');
-            // Cargar datos en el inicio
             renderProductList();
-            renderOrderList('pending');
-            renderOrderList('completed');
+            fetchOrders();
         };
     </script>
 </body>

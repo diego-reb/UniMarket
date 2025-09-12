@@ -7,12 +7,25 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models.Usuario import Usuario
 from models.Rol import Rol
 from models.Producto import Producto
+from models.Pedido import Pedido, DetallePedido
 from models import Categoria
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__) ##iniciar proyecto
 app.secret_key = 'contraseña_secreta'
 init_app(app)
 
+##---------------------------------------------------foto------------------------------------------------------------------------------------------
+
+UPLOAD_FOLDER = 'staric/uploads/productos'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
+
+##---------------------------------------------------fin_foto--------------------------------------------------------------------------------------
 ##---------------------------------------------------test------------------------------------------------------------------------------------------
 @app.route('/test')
 def test_db():
@@ -122,12 +135,12 @@ def registro_administrador():
 
         if password != confirmar:
             flash("Las contraseñas no coinciden")
-            return redirect(url_for('RA'))
+            return redirect(url_for('registro_administrador'))
         
         existente = Usuario.query.filter_by(correo=correo).first()
         if existente:
             flash("El correo ya esta en uso")
-            return redirect(url_for('RA'))
+            return redirect(url_for('registro_administrador'))
         
         nuevo_admin = Usuario(
             nombre=nombre,
@@ -140,7 +153,7 @@ def registro_administrador():
         db.session.add(nuevo_admin)
         db.session.commit()
         flash("Administrador registrado con exito")
-        return redirect(url_for('Admin'))
+        return redirect(url_for('inicio_sesion'))
     return render_template('registroadministrador.html')
 ##-------------------------------------------------------------carrito-------------------------------------------------------------------------------------
 @app.route('/carrito')
@@ -150,22 +163,73 @@ def carrito():
 ##-------------------------------------------------------------fin_carrito------------------------------------------------------------------
 ##-------------------------------------------------------------Admin-------------------------------------------------------------------------------------
 @app.route('/admin')
+@login_required
 def Admin():
+    
     usuarios = Usuario.query.options(joinedload(Usuario.rol)).all()
     productos = Producto.query.all()
-    return render_template('usuariosadmin.html', usuarios=usuarios, productos=productos)
+    vendedores = Usuario.query.filter_by(id_rol=2).all() 
+    rol = Rol.query.all()
+    return render_template('usuariosadmin.html',
+                           usuarios=usuarios,
+                           productos=productos,
+                           rol=rol, vendedores=vendedores)
+
+@app.route('/usuario/crear', methods=['POST'])
+@login_required
+def crear_usuario():
+    nombre = request.form['nombre']
+    correo = request.form['correo']
+    password = request.form['password']
+    confirmar = request.form['confirmar']
+    telefono = request.form.get('telefono')
+    id_rol = request.form['id_rol']
+
+    if password != confirmar:
+        flash("Las contraseñas no coinciden", "error")
+        return redirect(url_for('Admin'))
+    
+    existente = Usuario.query.filter_by(correo=correo).first()
+    if existente:
+        flash("El correo ya está en uso", "error")
+        return redirect(url_for('Admin'))
+    
+    nuevo_usuario = Usuario(
+        nombre=nombre,
+        correo=correo,
+        telefono=telefono,
+        id_rol=id_rol,
+        estado=True
+    )
+    nuevo_usuario.set_password(password)
+    db.session.add(nuevo_usuario)
+    db.session.commit()
+
+    flash(f"Usuario {nombre} creado correctamente", "success")
+    return redirect(url_for('Admin'))
 
 @app.route('/usuario/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
 def editar_usuario(id):
     usuario = Usuario.query.get_or_404(id)
     if request.method == 'POST':
         usuario.nombre = request.form['nombre']
-        usuario.email = request.form['email']
-        usuario.rol = int(request.form['rol'])
+        usuario.correo = request.form['correo']
+        usuario.id_rol = request.form['id_rol']  # importante usar id_rol
         db.session.commit()
         flash('Usuario actualizado correctamente', 'success')
-        return redirect(url_for('admin_panel'))
-    return render_template('editar_usuario.html', usuario=usuario)
+        return redirect(url_for('Admin'))
+    # si es GET mostramos la misma plantilla con el formulario abierto
+    usuarios = Usuario.query.options(joinedload(Usuario.rol)).all()
+    productos = Producto.query.all()
+    rol = Rol.query.all()
+    return render_template(
+        'usuariosadmin.html',
+        usuarios=usuarios,
+        productos=productos,
+        usuario_editar=usuario,
+        rol=rol
+    )
 
 @app.route('/usuario/eliminar/<int:id>', methods=['POST'])
 def eliminar_usuario(id):
@@ -173,34 +237,107 @@ def eliminar_usuario(id):
     db.session.delete(usuario)
     db.session.commit()
     flash('Usuario eliminado correctamente', 'success')
-    return redirect(url_for('admin_panel'))
+    return redirect(url_for('Admin'))
 
-# Similar para productos:
-@app.route('/producto/editar/<int:id>', methods=['GET', 'POST'])
-def editar_producto(id):
-    producto = Producto.query.get_or_404(id)
-    if request.method == 'POST':
-        producto.nombre = request.form['nombre']
-        producto.precio = float(request.form['precio'])
-        producto.estado = request.form['estado'] == 'published'
-        db.session.commit()
-        flash('Producto actualizado correctamente', 'success')
-        return redirect(url_for('admin_panel'))
-    return render_template('editar_producto.html', producto=producto)
+@app.route('/producto/crear', methods=['POST'])
+@login_required
+def crear_producto_post():
+    nombre = request.form['nombre']
+    descripcion = request.form['descripcion']
+    precio = float(request.form['precio'])
+    stock = int(request.form['stock'])
+    id_vendedor = int(request.form['id_vendedor'])
+    
+    # Manejo de archivo
+    foto_file = request.files.get('foto')
+    filename = None
+    if foto_file:
+        filename = secure_filename(foto_file.filename)
+        foto_file.save(os.path.join('static/uploads', filename))
 
-@app.route('/producto/eliminar/<int:id>', methods=['POST'])
-def eliminar_producto(id):
-    producto = Producto.query.get_or_404(id)
-    db.session.delete(producto)
+    nuevo_producto = Producto(
+        nombre=nombre,
+        descripcion=descripcion,
+        precio=precio,
+        stock=stock,
+        id_vendedor=id_vendedor,
+        foto=filename,
+        estado=True
+    )
+    db.session.add(nuevo_producto)
     db.session.commit()
-    flash('Producto eliminado correctamente', 'success')
-    return redirect(url_for('admin_panel'))
+    flash(f'Producto {nombre} creado correctamente', 'success')
+    return redirect(url_for('Admin'))
+
+
+
 ##-------------------------------------------------------------fin_Admin------------------------------------------------------------------
 ##-------------------------------------------------------------vendedor-------------------------------------------------------------------------------------
 @app.route('/vendedor')
 @login_required
 def vendedor():
-    return render_template('usuariovendedor.html')
+   productos = Producto.query.filter_by(id_vendedor=current_user.id_usuario).all()
+   #pedidos = Pedido.query.join(Producto).filter(Producto.id_vendedor==current_user.id_usuario).all()
+   return render_template('usuariovendedor.html', productos=productos) #pedidos=pedidos)
+
+@app.route('/producto/crear', methods=['POST'])
+@login_required
+def crear_producto():
+    nombre = request.form['nombre']
+    descripcion = request.form.get('descripcion')
+    precio = float(request.form['precio'])
+    stock = int(request.form['stock'])
+    id_categoria = int(request.form['id_categoria'])
+    id_vendedor = current_user.id_usuario
+
+    foto = request.file.get('foto')
+    if foto and allowed_file(foto.filename):
+        filename = secure_filename(f"{current_user.id_usuario}_{foto.filename}")
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        foto.save(filepath)
+        foto_path = filepath
+    else:
+        foto_path = None
+
+    producto = Producto(
+        nombre=nombre,
+        descripcion=descripcion,
+        precio=precio,
+        stock=stock,
+        foto=foto_path,
+        id_categoria=1,  # ejemplo
+        id_vendedor=current_user.id_usuario
+    )
+
+    db.session.add(producto)
+    db.session.commit()
+    flash('Producto creado correctamente', 'success')
+    return redirect(url_for('vendedor'))
+
+@app.route('/vendedor/pedidos')
+@login_required
+def pedidos_vendedor():
+    pedidos = (
+         db.session.query(Pedido)
+        .join(DetallePedido, DetallePedido.id_pedido == Pedido.id_pedido)
+        .join(Producto, Producto.id_producto == DetallePedido.id_producto)
+        .filter(Producto.id_vendedor == current_user.id_usuario)
+        .all()
+    )
+
+    pedidos_list = []
+    for pedido in pedidos:
+        for detalle in pedido.detalles:
+            pedidos_list.append({
+                "id_pedido": pedido.id_pedido,
+                "producto": detalle.producto.nombre,
+                "cantidad": detalle.cantidad,
+                "precio_unitario": float(detalle.precio_unitario),
+                "subtotal": float(detalle.subtotal)
+        })
+
+    return jsonify(pedidos_list)
+
 ##-------------------------------------------------------------fin_vendedor------------------------------------------------------------------
 ##-------------------------------------------------------------comprador-------------------------------------------------------------------------------------
 @app.route('/comprador')
