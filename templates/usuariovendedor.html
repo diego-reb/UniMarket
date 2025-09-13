@@ -10,15 +10,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f172a;           
-            --card: #111827;         
-            --muted: #94a3b8;        
-            --text: #e5e7eb;         
-            --brand: #22c55e;        
-            --brand-2: #38bdf8;      
-            --accent: #fde047;       
-            --error: #ef4444;        
-            --ok: #10b981;           
+            --bg: #0f172a;
+            --card: #111827;
+            --muted: #94a3b8;
+            --text: #e5e7eb;
+            --brand: #22c55e;
+            --brand-2: #38bdf8;
+            --accent: #fde047;
+            --error: #ef4444;
+            --ok: #10b981;
             --shadow: 0 10px 30px rgba(0, 0, 0, .35);
             --radius: 16px;
         }
@@ -35,306 +35,172 @@
         }
         a { color: inherit; text-decoration: none }
         .container { max-width: 1200px; margin: auto; padding: 20px }
-
-        /* Header */
-        header {
-            position: sticky; top: 0; z-index: 50; backdrop-filter: blur(10px);
-            background: linear-gradient(180deg, rgba(15,23,42,.85), rgba(15,23,42,.65));
-            border-bottom: 1px solid rgba(148,163,184,.15);
-        }
+        header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(10px);
+                 background: linear-gradient(180deg, rgba(15,23,42,.85), rgba(15,23,42,.65));
+                 border-bottom: 1px solid rgba(148,163,184,.15); }
         .header-wrap { display: flex; align-items: center; gap: 16px; padding: 14px 20px }
         .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: .2px }
-        .logo-badge {
-            width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
-            background: linear-gradient(135deg, var(--brand), var(--brand-2));
-            box-shadow: var(--shadow);
-        }
-        .logo svg { filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .35)) }
+        .logo-badge { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
+                      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+                      box-shadow: var(--shadow); }
         .brand { font-size: 1.35rem }
         .tagline { font-size: .9rem; color: var(--muted) }
         .actions { margin-left: auto; }
-        .icon-btn {
-            width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; border: 1px solid rgba(148,163,184,.25);
-            background: rgba(2,6,23,.6); cursor: pointer; transition: transform .06s ease, border .2s;
-        }
+        .icon-btn { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; border: 1px solid rgba(148,163,184,.25);
+                    background: rgba(2,6,23,.6); cursor: pointer; transition: transform .06s ease, border .2s; }
         .icon-btn:hover { border-color: var(--brand-2) }
         .icon-btn:active { transform: translateY(1px) }
-        
-        /* Main content & Card view */
-        main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .card {
-            background: rgba(2,6,23,.55);
-            border: 1px solid rgba(148,163,184,.20);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 32px;
-            width: 100%;
-            max-width: 900px;
-            margin-bottom: 20px;
-        }
-        .card h1 {
-            font-size: 2rem;
-            margin: 0 0 8px;
-            text-align: center;
-        }
-        .card p {
-            margin: 0 0 24px;
-            color: var(--muted);
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: 24px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(148,163,184,.25);
-            background: rgba(2,6,23,.6);
-            color: var(--text);
-            outline: none;
-            transition: border .2s ease;
-        }
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--brand-2);
-        }
-        .flex-row {
-            display: flex;
-            gap: 20px;
-        }
-        .flex-row > div {
-            flex: 1;
-        }
-        .btn-group {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 30px;
-        }
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 12px;
-            background: rgba(148,163,184,.1);
-            color: var(--text);
-            font-weight: 600;
-            cursor: pointer;
-            transition: background .2s, transform .06s;
-        }
-        .btn:hover {
-            background: rgba(148,163,184,.2);
-        }
-        .btn.active {
-            background: var(--brand-2);
-            color: white;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, var(--brand), var(--brand-2));
-            color: white;
-            font-weight: 800;
-            border: none;
-        }
-        .btn-primary:hover {
-            filter: brightness(1.05);
-            background: linear-gradient(135deg, var(--brand), var(--brand-2));
-        }
-        
-        /* Secciones del Dashboard */
-        .content-section {
-            display: none;
-        }
-        .content-section.active {
-            display: block;
-        }
-        
-        /* Lista de Productos */
-        .product-list {
-            display: grid;
-            gap: 20px;
-        }
-        .product-item {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            padding: 16px;
-            background: rgba(148,163,184,.05);
-            border-radius: 12px;
-            border: 1px solid rgba(148,163,184,.1);
-        }
-        .product-item img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 8px;
-            background: var(--card);
-        }
-        .product-details {
-            flex: 1;
-        }
-        .product-details h3 {
-            margin: 0 0 4px;
-            font-size: 1.2rem;
-        }
-        .product-details p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 0.9rem;
-        }
-        .product-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        /* Lista de Pedidos */
-        .order-list {
-            display: grid;
-            gap: 20px;
-        }
-        .order-item {
-            padding: 16px;
-            background: rgba(148,163,184,.05);
-            border-radius: 12px;
-            border: 1px solid rgba(148,163,184,.1);
-        }
-        .order-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .order-header h3 {
-            margin: 0;
-            font-size: 1.1rem;
-        }
-        .order-status {
-            font-weight: bold;
-        }
-        .order-status.pending {
-            color: var(--accent);
-        }
-        .order-status.completed {
-            color: var(--ok);
-        }
-        .order-details p {
-            margin: 0 0 8px;
-            font-size: 0.95rem;
-        }
-        
-        /* Footer */
-        footer {
-            padding: 20px;
-            color: var(--muted);
-            text-align: center;
-        }
-        
+        main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .card { background: rgba(2,6,23,.55); border: 1px solid rgba(148,163,184,.20); border-radius: var(--radius);
+                box-shadow: var(--shadow); padding: 32px; width: 100%; max-width: 900px; margin-bottom: 20px; }
+        .card h1 { font-size: 2rem; margin: 0 0 8px; text-align: center; }
+        .card p { margin: 0 0 24px; color: var(--muted); text-align: center; }
+        .form-group { margin-bottom: 24px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; }
+        input, select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(148,163,184,.25);
+                                   background: rgba(2,6,23,.6); color: var(--text); outline: none; transition: border .2s ease; }
+        input:focus, select:focus, textarea:focus { border-color: var(--brand-2); }
+        .flex-row { display: flex; gap: 20px; }
+        .flex-row > div { flex: 1; }
+        .btn-group { display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; margin-bottom: 30px; }
+        .btn { padding: 12px 24px; border: none; border-radius: 12px; background: rgba(148,163,184,.1); color: var(--text); font-weight: 600; cursor: pointer; transition: background .2s, transform .06s; }
+        .btn:hover { background: rgba(148,163,184,.2); }
+        .btn.active { background: var(--brand-2); color: white; }
+        .btn-primary { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: white; font-weight: 800; border: none; }
+        .btn-primary:hover { filter: brightness(1.05); }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .product-list, .order-list { display: grid; gap: 20px; }
+        .product-item, .order-item { padding: 16px; background: rgba(148,163,184,.05); border-radius: 12px; border: 1px solid rgba(148,163,184,.1); display: flex; align-items: center; gap: 20px; }
+        .product-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; background: var(--card); }
+        .product-details { flex: 1; }
+        .product-details h3 { margin: 0 0 4px; font-size: 1.2rem; }
+        .product-details p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+        .product-actions { display: flex; gap: 10px; }
+        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .order-header h3 { margin: 0; font-size: 1.1rem; }
+        .order-status.pending { color: var(--accent); font-weight: bold; }
+        .order-status.completed { color: var(--ok); font-weight: bold; }
+        .order-details p { margin: 0 0 8px; font-size: 0.95rem; }
+        footer { padding: 20px; color: var(--muted); text-align: center; }
     </style>
 </head>
 <body>
     <header>
         <div class="header-wrap container">
             <a class="logo" href="/vendedor">
-                <div class="logo-badge" aria-hidden="true">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo UniMarket">
-                        <path d="M7 8V7a5 5 0 0 1 10 0v1" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
-                        <rect x="4" y="8" width="16" height="12" rx="3" fill="rgba(255,255,255,.90)"/>
-                        <path d="M7 13h10" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
-                        <circle cx="10" cy="19" r="1.6" fill="#0b1020"/>
-                        <circle cx="16" cy="19" r="1.6" fill="#0b1020"/>
-                    </svg>
-                </div>
+                <div class="logo-badge"></div>
                 <div>
                     <div class="brand">UniMarket</div>
                     <div class="tagline">Dashboard de Vendedor</div>
                 </div>
             </a>
             <div class="actions">
-                <a href="#" class="icon-btn" title="Cerrar sesión" aria-label="Cerrar sesión">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M15 4h1a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-1M12 8l4 4m-4 4l4-4M12 12H4" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </a>
+                <a href="{{ url_for('logout') }}" class="icon-btn" title="Cerrar sesión" aria-label="Cerrar sesión">Salir</a>
             </div>
         </div>
     </header>
 
     <main>
         <div class="card">
-            <h1>Bienvenid@, {{current_user.nombre}}</h1>
+            <h1>Bienvenid@, {{ current_user.nombre }}</h1>
             <p>Gestiona tus productos y pedidos desde tu panel de control.</p>
 
-            <!-- Menú de navegación del dashboard -->
+            <!-- Menú del dashboard -->
             <div class="btn-group">
                 <button class="btn active" onclick="showSection('add-product', this)">Agregar productos</button>
                 <button class="btn" onclick="showSection('product-list', this)">Lista de productos</button>
-                <button class="btn" onclick="showSection('new-orders', this)">Nuevos pedidos</button>
-                <button class="btn" onclick="showSection('order-history', this)">Historial de pedidos</button>
+                <button class="btn" onclick="showSection('order-history', this)">Historial</button>
             </div>
 
-            <!-- Sección: Agregar productos -->
+            <!-- Agregar producto -->
             <div id="add-product" class="content-section active">
-                <h2 style="text-align: center; margin-bottom: 24px;">Agregar Nuevo Producto</h2>
-                <form id="add-product-form">
-                    <input type="hidden" id="product-id" value="">
+                <h2 style="text-align:center;margin-bottom:24px;">Agregar Nuevo Producto</h2>
+                <form action="{{ url_for('crear_producto') }}" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="product-name">Nombre del producto</label>
-                        <input type="text" id="product-name" required placeholder="Ej. Libro de cálculo">
+                        <input type="text" name="nombre" id="product-name" required placeholder="Ej. Libro de cálculo">
                     </div>
                     <div class="form-group">
                         <label for="product-description">Descripción</label>
-                        <textarea id="product-description" rows="4" required placeholder="Describe tu producto para que los compradores sepan qué es."></textarea>
+                        <textarea name="descripcion" id="product-description" rows="4" required placeholder="Describe tu producto."></textarea>
                     </div>
                     <div class="flex-row">
                         <div class="form-group">
                             <label for="product-quantity">Cantidad disponible</label>
-                            <input type="number" id="product-quantity" min="1" required value="1">
+                            <input type="number" name="stock" id="product-quantity" min="1" required value="1">
                         </div>
                         <div class="form-group">
                             <label for="product-cost">Costo ($)</label>
-                            <input type="number" id="product-cost" min="0" step="0.01" required value="0.00">
+                            <input type="number" name="precio" id="product-cost" min="0" step="0.01" required value="0.00">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="product-image">Imagen del producto</label>
-                        <input type="file" id="product-image" accept="image/*" class="btn">
+                        <input type="file" name="foto" id="product-image" accept="image/*" class="btn">
                     </div>
-                    <button type="submit" class="btn-primary" style="margin-top: 20px;">Guardar Producto</button>
+                    <div class="form-group">
+                        <label for="product-category">Categoría</label>
+                        <select name="id_categoria" id="product-category" required>
+                            <option value="" disabled selected>Selecciona una categoría</option>
+                            {% for cat in categorias %}
+                                <option value="{{ cat.id_categoria }}">{{ cat.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary" style="margin-top:20px;">Guardar Producto</button>
                 </form>
             </div>
 
-            <!-- Sección: Lista de productos -->
+            <!-- Lista de productos -->
             <div id="product-list" class="content-section">
-                <h2 style="text-align: center; margin-bottom: 24px;">Mis Productos</h2>
-                <div id="product-list-container" class="product-list">
-                    <p style="text-align: center; color: var(--muted);">No hay productos registrados.</p>
-                </div>
-            </div>
-            
-            <!-- Sección: Nuevos pedidos -->
-            <div id="new-orders" class="content-section">
-                <h2 style="text-align: center; margin-bottom: 24px;">Nuevos Pedidos</h2>
-                <div id="new-orders-container" class="order-list">
-                    <p style="text-align: center; color: var(--muted);">No hay nuevos pedidos.</p>
+                <h2 style="text-align:center;margin-bottom:24px;">Mis Productos</h2>
+                <div class="product-list">
+                    {% if productos %}
+                        {% for p in productos %}
+                        {% if not p.entregado %}
+                        <div class="product-item" id="producto-{{ p.id_producto }}">
+                            <img src="{{ url_for('static', filename=p.foto) if p.foto else url_for('static', filename='placeholders/product.png') }}" alt="{{ p.nombre }}">
+                                                        <div class="product-details">
+                                <h3>{{ p.nombre }}</h3>
+                                <p>{{ p.descripcion }}</p>
+                                <p>Cantidad: {{ p.stock }} • ${{ "%.2f"|format(p.precio) }}</p>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn" onclick="editarProducto({{ p.id_producto }})">Editar</button>
+                                <button class="btn" onclick="eliminarProducto({{ p.id_producto }})">Eliminar</button>
+                                <button class="btn btn-primary" onclick="marcarEntregado({{ p.id_producto }})">Marcar como entregado</button>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p style="text-align:center;color:var(--muted)">No hay productos registrados.</p>
+                    {% endif %}
                 </div>
             </div>
 
-            <!-- Sección: Historial de pedidos -->
+            <!-- Historial de productos entregados -->
             <div id="order-history" class="content-section">
-                <h2 style="text-align: center; margin-bottom: 24px;">Historial de Pedidos</h2>
-                <div id="order-history-container" class="order-list">
-                    <p style="text-align: center; color: var(--muted);">No hay historial de pedidos.</p>
+                <h2 style="text-align:center;margin-bottom:24px;">Historial de Productos Entregados</h2>
+                <div class="product-list">
+                    {% if productos %}
+                        {% for p in productos %}
+                        {% if p.entregado %}
+                        <div class="product-item">
+                            <img src="{{ url_for('static', filename=p.foto) if p.foto else url_for('static', filename='placeholders/product.png') }}" alt="{{ p.nombre }}">
+                            <div class="product-details">
+                                <h3>{{ p.nombre }}</h3>
+                                <p>{{ p.descripcion }}</p>
+                                <p>Cantidad: {{ p.stock }} • ${{ "%.2f"|format(p.precio) }}</p>
+                                <span class="order-status completed">Entregado</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p style="text-align:center;color:var(--muted)">No hay productos entregados.</p>
+                    {% endif %}
                 </div>
             </div>
 
@@ -342,168 +208,54 @@
     </main>
 
     <footer>
-        <div class="container">
-            © <span id="year"></span> UniMarket • Hecho por estudiantes para estudiantes.
-        </div>
+        <div class="container">© <span id="year"></span> UniMarket • Hecho por estudiantes para estudiantes.</div>
     </footer>
 
     <script>
-        // Año dinámico
         document.getElementById('year').textContent = new Date().getFullYear();
 
-        // Variables de estado
-        let products = JSON.parse(localStorage.getItem('products')) || [];
-        let orders = [];
-
-        // Funciones del dashboard
-        function showSection(sectionId, clickedButton) {
-            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+        function showSection(sectionId, btn) {
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
-
-            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
-            if (clickedButton) clickedButton.classList.add('active');
-
-            if (sectionId === 'product-list') renderProductList();
-            if (sectionId === 'new-orders') renderOrderList('pending');
-            if (sectionId === 'order-history') renderOrderList('completed');
+            document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
         }
 
-        // --- Gestión de Productos ---
-        document.getElementById('add-product-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const id = document.getElementById('product-id').value;
-            const name = document.getElementById('product-name').value;
-            const description = document.getElementById('product-description').value;
-            const quantity = parseInt(document.getElementById('product-quantity').value);
-            const cost = parseFloat(document.getElementById('product-cost').value);
-            const image = document.getElementById('product-image').files[0];
+        function editarProducto(id) {
+            alert("Funcionalidad de editar producto: " + id);
+            // Aquí puedes abrir un modal o redirigir a la ruta de edición
+        }
 
-            if (id) {
-                const productIndex = products.findIndex(p => p.id === id);
-                if (productIndex !== -1) {
-                    products[productIndex] = { ...products[productIndex], name, description, quantity, cost };
-                    if (image) products[productIndex].image = URL.createObjectURL(image);
-                }
-            } else {
-                const newProduct = {
-                    id: 'prod_' + Date.now(),
-                    name,
-                    description,
-                    quantity,
-                    cost,
-                    image: image ? URL.createObjectURL(image) : 'https://placehold.co/80x80/1f2937/d1d5db?text=Producto'
-                };
-                products.push(newProduct);
-            }
-
-            localStorage.setItem('products', JSON.stringify(products));
-            resetForm();
-            showSection('product-list', document.querySelector('button[onclick*="product-list"]'));
-            renderProductList();
-        });
-
-        function editProduct(id) {
-            const product = products.find(p => p.id === id);
-            if (product) {
-                document.getElementById('product-id').value = product.id;
-                document.getElementById('product-name').value = product.name;
-                document.getElementById('product-description').value = product.description;
-                document.getElementById('product-quantity').value = product.quantity;
-                document.getElementById('product-cost').value = product.cost;
-                showSection('add-product', document.querySelector('button[onclick*="add-product"]'));
+        function eliminarProducto(id) {
+            if(confirm("¿Estás seguro de eliminar este producto?")) {
+                fetch(`/producto/eliminar/${id}`, { method: 'DELETE' })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            document.getElementById(`producto-${id}`).remove();
+                        } else {
+                            alert("Error al eliminar el producto");
+                        }
+                    });
             }
         }
 
-        function deleteProduct(id) {
-            products = products.filter(p => p.id !== id);
-            localStorage.setItem('products', JSON.stringify(products));
-            renderProductList();
-        }
-
-        function renderProductList() {
-            const container = document.getElementById('product-list-container');
-            container.innerHTML = '';
-            if (products.length === 0) {
-                container.innerHTML = '<p style="text-align:center;color:var(--muted)">No hay productos registrados.</p>';
-                return;
+        function marcarEntregado(id) {
+            if(confirm("Marcar este producto como entregado?")) {
+                fetch(`/producto/entregado/${id}`, { method: 'POST' })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            // Mover el producto a historial
+                            document.getElementById(`producto-${id}`).remove();
+                            location.reload(); // recarga para ver historial
+                        } else {
+                            alert("Error al marcar como entregado");
+                        }
+                    });
             }
-            products.forEach(product => {
-                const div = document.createElement('div');
-                div.classList.add('product-item');
-                div.innerHTML = `
-                    <img src="${product.image}" alt="${product.name}">
-                    <div class="product-details">
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
-                        <p>Cantidad: ${product.quantity} • $${product.cost.toFixed(2)}</p>
-                    </div>
-                    <div class="product-actions">
-                        <button class="btn" onclick="editProduct('${product.id}')">Editar</button>
-                        <button class="btn" onclick="deleteProduct('${product.id}')">Eliminar</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
         }
-
-        function resetForm() {
-            document.getElementById('add-product-form').reset();
-            document.getElementById('product-id').value = '';
-        }
-
-        // --- Gestión de Pedidos con datos reales de Flask ---
-        function fetchOrders() {
-            fetch('/vendedor/pedidos')
-                .then(response => response.json())
-                .then(data => {
-                    orders = data.map(o => ({
-                        id: 'ord_' + o.id_pedido + '_' + o.producto,
-                        status: o.estado || 'pending', // Ajusta si tienes estado real en la BD
-                        product: o.producto,
-                        buyerName: o.comprador || 'Cliente',
-                        buyerContact: o.contacto || 'N/A',
-                        deliveryDate: o.fecha || 'No definida',
-                        deliveryTime: o.hora || '',
-                        deliveryLocation: o.ubicacion || ''
-                    }));
-                    renderOrderList('pending');
-                    renderOrderList('completed');
-                })
-                .catch(err => console.error('Error al cargar pedidos:', err));
-        }
-
-        function renderOrderList(status) {
-            const container = status === 'pending' ? document.getElementById('new-orders-container') : document.getElementById('order-history-container');
-            container.innerHTML = '';
-            const filteredOrders = orders.filter(o => o.status === status);
-            if (filteredOrders.length === 0) {
-                container.innerHTML = `<p style="text-align: center; color: var(--muted);">No hay ${status === 'pending' ? 'nuevos pedidos' : 'historial de pedidos'}.</p>`;
-                return;
-            }
-            filteredOrders.forEach(order => {
-                const orderItem = document.createElement('div');
-                orderItem.classList.add('order-item');
-                orderItem.innerHTML = `
-                    <div class="order-header">
-                        <h3>Pedido #${order.id.slice(-6)}</h3>
-                        <span class="order-status ${order.status}">${order.status === 'pending' ? 'Pendiente' : 'Completado'}</span>
-                    </div>
-                    <div class="order-details">
-                        <p><strong>Producto:</strong> ${order.product}</p>
-                        <p><strong>Comprador:</strong> ${order.buyerName} (${order.buyerContact})</p>
-                        <p><strong>Entrega:</strong> ${order.deliveryDate} | ${order.deliveryTime} | ${order.deliveryLocation}</p>
-                    </div>
-                `;
-                container.appendChild(orderItem);
-            });
-        }
-
-        // Inicializar página
-        window.onload = function() {
-            showSection('add-product');
-            renderProductList();
-            fetchOrders();
-        };
     </script>
 </body>
 </html>
+

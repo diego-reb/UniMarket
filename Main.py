@@ -8,8 +8,8 @@ from models.Usuario import Usuario
 from models.Rol import Rol
 from models.Producto import Producto
 from models.Pedido import Pedido, DetallePedido
-from models import Categoria
-import os
+from models.Categoria import Categoria
+import os 
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__) ##iniciar proyecto
@@ -18,9 +18,11 @@ init_app(app)
 
 ##---------------------------------------------------foto------------------------------------------------------------------------------------------
 
-UPLOAD_FOLDER = 'staric/uploads/productos'
+UPLOAD_FOLDER = 'static/uploads/productos'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
@@ -63,7 +65,7 @@ def inicio_sesion():
         if usuario and usuario.check_password(password):
             if usuario.estado:
                 login_user(usuario)
-                flash("Inicio de sesion exitoso")
+                flash("Inicio de sesion exitoso", "login")
 
                 if usuario.id_rol==1:
                     return redirect(url_for('Admin'))
@@ -75,10 +77,10 @@ def inicio_sesion():
                     return redirect(url_for('index'))
               
             else:
-                flash("Cuenta deshabilitada, contactanos")
+                flash("Cuenta deshabilitada, contactanos", "login")
                 
         else:
-            flash("Correo o contraseña incorrectos")
+            flash("Correo o contraseña incorrectos", "login")
             
     return render_template('iniciosesion.html')
 ##-----------------------------------fin_inicio_sesion-----------------------------------------------------------------------------------------------
@@ -170,10 +172,15 @@ def Admin():
     productos = Producto.query.all()
     vendedores = Usuario.query.filter_by(id_rol=2).all() 
     rol = Rol.query.all()
+    categorias = Categoria.query.all()
+
+    
+
     return render_template('usuariosadmin.html',
                            usuarios=usuarios,
                            productos=productos,
-                           rol=rol, vendedores=vendedores)
+                           rol=rol, vendedores=vendedores,
+                           categorias=categorias)
 
 @app.route('/usuario/crear', methods=['POST'])
 @login_required
@@ -215,11 +222,13 @@ def editar_usuario(id):
     if request.method == 'POST':
         usuario.nombre = request.form['nombre']
         usuario.correo = request.form['correo']
-        usuario.id_rol = request.form['id_rol']  # importante usar id_rol
+        usuario.telefono = request.form['telefono']
+        usuario.estado = request.form['estado'] == 'True'
+        usuario.id_rol = request.form['id_rol']  
         db.session.commit()
         flash('Usuario actualizado correctamente', 'success')
         return redirect(url_for('Admin'))
-    # si es GET mostramos la misma plantilla con el formulario abierto
+    
     usuarios = Usuario.query.options(joinedload(Usuario.rol)).all()
     productos = Producto.query.all()
     rol = Rol.query.all()
@@ -247,13 +256,15 @@ def crear_producto_post():
     precio = float(request.form['precio'])
     stock = int(request.form['stock'])
     id_vendedor = int(request.form['id_vendedor'])
+    id_categoria = int(request.form['id_categoria'])
     
-    # Manejo de archivo
     foto_file = request.files.get('foto')
     filename = None
     if foto_file:
-        filename = secure_filename(foto_file.filename)
-        foto_file.save(os.path.join('static/uploads', filename))
+       filename = secure_filename(foto_file.filename)
+       upload_folder = os.path.join(app.root_path, 'static', 'uploads')
+       os.makedirs(upload_folder, exist_ok=True)
+       foto_file.save(os.path.join(upload_folder, filename))
 
     nuevo_producto = Producto(
         nombre=nombre,
@@ -262,6 +273,7 @@ def crear_producto_post():
         stock=stock,
         id_vendedor=id_vendedor,
         foto=filename,
+        id_categoria=id_categoria, 
         estado=True
     )
     db.session.add(nuevo_producto)
@@ -269,6 +281,57 @@ def crear_producto_post():
     flash(f'Producto {nombre} creado correctamente', 'success')
     return redirect(url_for('Admin'))
 
+@app.route('/producto/editar/<int:id>', methods=['POST'])
+@login_required
+def editar_producto(id):
+    # Obtener el producto a editar
+    producto = Producto.query.get_or_404(id)
+
+    if request.method == 'POST':
+        # Actualizar los campos del producto
+        producto.nombre = request.form['nombre']
+        producto.descripcion = request.form['descripcion']
+        producto.precio = float(request.form['precio'])
+        producto.stock = int(request.form['stock'])
+        producto.id_vendedor = int(request.form['id_vendedor'])
+        producto.id_categoria = int(request.form['id_categoria'])
+
+        # Actualizar foto si se cargó una nueva
+        foto_file = request.files.get('foto')
+        if foto_file and foto_file.filename != '':
+            filename = secure_filename(foto_file.filename)
+            upload_folder = os.path.join(app.root_path, 'static', 'uploads')
+            os.makedirs(upload_folder, exist_ok=True)
+            foto_file.save(os.path.join(upload_folder, filename))
+            producto.foto = filename
+
+        db.session.commit()
+        flash('Producto actualizado correctamente', 'success')
+        return redirect(url_for('Admin'))
+
+    # Para GET: enviar todas las listas que usa la plantilla
+    usuarios = Usuario.query.all()
+    rol = Rol.query.all()
+    productos = Producto.query.all()
+    vendedores = Usuario.query.filter_by(id_rol=2).all()  # Suponiendo rol 2 = vendedor
+    categorias = Categoria.query.all()
+
+    return render_template('usuariosadmin.html',
+                           usuarios=usuarios,
+                           rol=rol,
+                           productos=productos,
+                           vendedores=vendedores,
+                           categorias=categorias,
+                           producto_editar=producto)
+
+@app.route('/producto/eliminar/<int:id>', methods=['POST'])
+@login_required
+def eliminar_producto(id):
+    producto = Producto.query.get_or_404(id)
+    db.session.delete(producto)
+    db.session.commit()
+    flash(f'Producto {producto.nombre} eliminado correctamente', 'success')
+    return redirect(url_for('Admin'))
 
 
 ##-------------------------------------------------------------fin_Admin------------------------------------------------------------------
@@ -276,26 +339,33 @@ def crear_producto_post():
 @app.route('/vendedor')
 @login_required
 def vendedor():
+   categorias = Categoria.query.all()
    productos = Producto.query.filter_by(id_vendedor=current_user.id_usuario).all()
-   #pedidos = Pedido.query.join(Producto).filter(Producto.id_vendedor==current_user.id_usuario).all()
-   return render_template('usuariovendedor.html', productos=productos) #pedidos=pedidos)
+   
+   return render_template('usuariovendedor.html', productos=productos, categorias=categorias) 
 
-@app.route('/producto/crear', methods=['POST'])
+@app.route('/producto/crear/V', methods=['POST'])
 @login_required
 def crear_producto():
+    
     nombre = request.form['nombre']
     descripcion = request.form.get('descripcion')
     precio = float(request.form['precio'])
     stock = int(request.form['stock'])
-    id_categoria = int(request.form['id_categoria'])
-    id_vendedor = current_user.id_usuario
+    id_categoria = int(request.form['id_categoria'])  
 
-    foto = request.file.get('foto')
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads', 'productos')
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+    foto = request.files.get('foto')
     if foto and allowed_file(foto.filename):
         filename = secure_filename(f"{current_user.id_usuario}_{foto.filename}")
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
         foto.save(filepath)
-        foto_path = filepath
+
+       
+        foto_path = f'uploads/productos/{filename}'
     else:
         foto_path = None
 
@@ -305,14 +375,38 @@ def crear_producto():
         precio=precio,
         stock=stock,
         foto=foto_path,
-        id_categoria=1,  # ejemplo
-        id_vendedor=current_user.id_usuario
+        id_categoria=id_categoria,
+        id_vendedor=current_user.id_usuario,
+        estado=True
     )
 
     db.session.add(producto)
     db.session.commit()
+
     flash('Producto creado correctamente', 'success')
     return redirect(url_for('vendedor'))
+
+@app.route('/producto/eliminar/<int:id>', methods=['POST'])
+@login_required
+def eliminar_producto_vendedor(id):
+    producto = Producto.query.get_or_404(id)
+    if producto.id_vendedor != current_user.id_usuario:
+        return jsonify({'success': False})
+    
+    db.session.delete(producto)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/producto/entregado/<int:id>', methods=['POST'])
+@login_required
+def producto_entregado(id):
+    producto = Producto.query.get_or_404(id)
+    if producto.id_vendedor != current_user.id_usuario:
+        return jsonify({'success': False})
+
+    producto.estado = True  
+    db.session.commit()
+    return jsonify({'success': True})
 
 @app.route('/vendedor/pedidos')
 @login_required

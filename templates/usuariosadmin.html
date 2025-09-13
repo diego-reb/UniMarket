@@ -1,293 +1,291 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administrador – UniMarket</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* (aquí va exactamente tu CSS — lo mantuve igual) */
-        :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --brand:#22c55e; --brand-2:#38bdf8; --accent:#fde047; --error:#ef4444; --ok:#10b981; --shadow:0 10px 30px rgba(0,0,0,.35); --radius:12px; }
-        * { box-sizing: border-box }
-        html, body { height: 100%; margin: 0; font-family:'Inter', sans-serif; color: var(--text); background-color: var(--bg); }
-        .dashboard-container { display:flex; height:100%; padding:20px; gap:20px; }
-        .sidebar { flex:0 0 250px; background:rgba(2,6,23,.55); border:1px solid rgba(148,163,184,.20); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; display:flex; flex-direction:column; gap:10px; }
-        .sidebar-logo { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px; margin-bottom:20px; padding:10px; }
-        .sidebar-logo-badge { width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,var(--brand),var(--brand-2)); display:grid; place-items:center; }
-        .sidebar-logo-badge svg { width:16px; height:16px; }
-        .sidebar-nav a { display:block; padding:12px; border-radius:8px; color:var(--text); text-decoration:none; transition:background-color .2s; }
-        .sidebar-nav a:hover, .sidebar-nav a.active { background-color: rgba(56,189,248,.1); }
-        .main-content { flex:1; background:rgba(2,6,23,.55); border:1px solid rgba(148,163,184,.20); border-radius:var(--radius); box-shadow:var(--shadow); padding:30px; display:flex; flex-direction:column; }
-        .main-content h1 { margin:0 0 20px; font-size:2rem; text-align:center; color:var(--text); }
-        .content-section { display:none; }
-        .content-section.active { display:block; }
-        .user-list, .product-list { display:grid; gap:20px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-        .user-card, .product-card { background:var(--card); border-radius:var(--radius); padding:20px; display:flex; flex-direction:column; border:1px solid rgba(148,163,184,.20); transition:transform .2s ease; }
-        .user-card:hover, .product-card:hover { transform: translateY(-5px); box-shadow: 0 5px 20px rgba(0,0,0,.2); }
-        .user-card h3, .product-card h3 { margin:0 0 5px; color:var(--brand); font-size:1.2rem; }
-        .user-card p, .product-card p { margin:0; font-size:.9rem; color:var(--muted); }
-        .user-card p strong, .product-card p strong { color:var(--text); }
-        .user-actions, .product-actions { margin-top:15px; display:flex; gap:10px; }
-        .user-actions .edit-btn, .product-actions .edit-btn { background-color:var(--brand-2); padding:8px 12px; color:white; border-radius:6px; text-decoration:none; display:inline-block; }
-        .user-actions .delete-btn, .product-actions .delete-btn { background-color:var(--error); padding:8px 12px; color:white; border-radius:6px; border:none; cursor:pointer; }
-        .message-box { padding:15px; border-radius:8px; margin-bottom:20px; text-align:center; display:none; }
-        .message-box.success { background-color:var(--ok); color:white; }
-        .message-box.error { background-color:var(--error); color:white; }
-        .edit-form-container { display:none; margin-top:20px; padding:20px; border:1px solid rgba(148,163,184,.20); border-radius:var(--radius); background:rgba(2,6,23,.55); max-width:500px; margin-left:auto; margin-right:auto; }
-        .filter-buttons { display:flex; justify-content:center; gap:10px; margin-bottom:20px; }
-        .filter-buttons button { background:var(--card); border:1px solid rgba(148,163,184,.20); color:var(--text); padding:8px 16px; border-radius:6px; cursor:pointer; }
-        .filter-buttons button.active { background-color:var(--brand-2); color:white; }
-        @media (max-width:768px) { .dashboard-container { flex-direction:column; padding:10px; } .sidebar { flex:none; width:100%; } .main-content { padding:20px; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Administrador – UniMarket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb;
+    --brand:#22c55e; --brand-2:#38bdf8; --accent:#fde047;
+    --error:#ef4444; --ok:#10b981; --shadow:0 10px 30px rgba(0,0,0,.35);
+    --radius:12px;
+}
+* { box-sizing:border-box; }
+html,body { height:100%; margin:0; font-family:'Inter',sans-serif; color:var(--text); background:var(--bg);}
+.dashboard-container { display:flex; height:100%; padding:20px; gap:20px; }
+.sidebar { flex:0 0 250px; background:rgba(2,6,23,.55); border:1px solid rgba(148,163,184,.2); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; display:flex; flex-direction:column; gap:10px; }
+.sidebar-logo { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px; margin-bottom:20px; padding:10px; }
+.sidebar-logo-badge { width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,var(--brand),var(--brand-2)); display:grid; place-items:center; }
+.sidebar-logo-badge svg { width:16px; height:16px; }
+.sidebar-nav a { display:block; padding:12px; border-radius:8px; color:var(--text); text-decoration:none; transition:background-color .2s; }
+.sidebar-nav a:hover, .sidebar-nav a.active { background-color: rgba(56,189,248,.1); }
+.main-content { flex:1; background:rgba(2,6,23,.55); border:1px solid rgba(148,163,184,.20); border-radius:var(--radius); box-shadow:var(--shadow); padding:30px; display:flex; flex-direction:column; }
+.main-content h1 { margin:0 0 20px; font-size:2rem; text-align:center; color:var(--text); }
+.content-section { display:none; }
+.content-section.active { display:block; }
+.user-list, .product-list { display:grid; gap:20px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.user-card, .product-card { background:var(--card); border-radius:var(--radius); padding:20px; display:flex; flex-direction:column; border:1px solid rgba(148,163,184,.20); transition:transform .2s ease; }
+.user-card:hover, .product-card:hover { transform: translateY(-5px); box-shadow:0 5px 20px rgba(0,0,0,.2); }
+.user-card h3, .product-card h3 { margin:0 0 5px; color:var(--brand); font-size:1.2rem; }
+.user-card p, .product-card p { margin:0; font-size:.9rem; color:var(--muted); }
+.user-card p strong, .product-card p strong { color:var(--text); }
+.user-actions, .product-actions { margin-top:15px; display:flex; gap:10px; }
+.edit-btn { background-color:var(--brand-2); padding:10px 16px; color:white; border-radius:8px; border:none; cursor:pointer; transition: transform .2s; }
+.edit-btn:hover { transform:scale(1.05); }
+.delete-btn { background-color:var(--error); padding:10px 16px; color:white; border-radius:8px; border:none; cursor:pointer; transition: transform .2s; }
+.delete-btn:hover { transform:scale(1.05); }
+.message-box { padding:15px; border-radius:8px; margin-bottom:20px; text-align:center; display:none; }
+.message-box.success { background-color:var(--ok); color:white; }
+.message-box.error { background-color:var(--error); color:white; }
+.edit-form-container { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:1000; width:500px; background:rgba(2,6,23,.95); box-shadow:var(--shadow); border-radius:var(--radius); padding:20px; }
+.modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.5); z-index:999; }
+.filter-buttons { display:flex; justify-content:center; gap:10px; margin-bottom:20px; }
+.filter-buttons button { background:var(--card); border:1px solid rgba(148,163,184,.20); color:var(--text); padding:8px 16px; border-radius:6px; cursor:pointer; }
+.filter-buttons button.active { background-color:var(--brand-2); color:white; }
+@media (max-width:768px) { .dashboard-container { flex-direction:column; padding:10px; } .sidebar { flex:none; width:100%; } .main-content { padding:20px; } }
+</style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="sidebar-logo">
-                <div class="sidebar-logo-badge" aria-hidden="true">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7 8V7a5 5 0 0 1 10 0v1" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
-                        <rect x="4" y="8" width="16" height="12" rx="3" fill="rgba(255,255,255,.90)"/>
-                        <path d="M7 13h10" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
-                        <circle cx="10" cy="19" r="1.6" fill="#0b1020"/>
-                        <circle cx="16" cy="19" r="1.6" fill="#0b1020"/>
-                    </svg>
-                </div>
-                UniMarket
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-badge" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 8V7a5 5 0 0 1 10 0v1" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/><rect x="4" y="8" width="16" height="12" rx="3" fill="rgba(255,255,255,.90)"/><path d="M7 13h10" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="19" r="1.6" fill="#0b1020"/><circle cx="16" cy="19" r="1.6" fill="#0b1020"/></svg>
             </div>
-            <nav class="sidebar-nav">
-                <a href="#" id="nav-users" class="active">Usuarios</a>
-                <a href="#" id="nav-products">Productos</a>
-                <a href="{{ url_for('logout') }}" style="margin-top: auto; color: var(--error); font-weight: bold;">Cerrar sesión</a>
-            </nav>
+            UniMarket
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" id="nav-users" class="active">Usuarios</a>
+            <a href="#" id="nav-products">Productos</a>
+            <a href="{{ url_for('logout') }}" style="margin-top:auto; color:var(--error); font-weight:bold;">Cerrar sesión</a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1>Bienvenid@ de nuevo {{current_user.nombre}}</h1>
+        <div id="message-box" class="message-box"></div>
+
+        <!-- Users Section -->
+        <div id="users-section" class="content-section active">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">Todos</button>
+                <button class="filter-btn" data-filter="vendedor">Vendedores</button>
+                <button class="filter-btn" data-filter="comprador">Compradores</button>
+                <button class="filter-btn" data-filter="administrador">Administrador</button>
+                <button class="crear-btn" style="margin-left:auto;" onclick="abrirModal('crear-usuario-modal')">Crear Usuario</button>
+            </div>
+            <div id="user-list" class="user-list">
+                {% for u in usuarios %}
+                <div class="user-card" data-role="{{ u.rol.nombre|lower }}">
+                    <h3>{{ u.nombre }}</h3>
+                    <p><strong>Rol:</strong> {{ u.rol.nombre if u.rol else 'Sin rol' }}</p>
+                    <p><strong>Correo:</strong> {{ u.correo }}</p>
+                    <p><strong>Telefono:</strong> {{ u.telefono }}</p>
+                    <div class="user-actions">
+                        <button class="edit-btn"
+                            onclick="abrirEditarUsuario({{ u.id_usuario }}, '{{ u.nombre }}', '{{ u.correo }}', '{{ u.telefono }}', {{ u.id_rol }}, '{{ 'True' if u.estado else 'False' }}')">
+                            Editar
+                        </button>
+                        <form method="POST" action="{{ url_for('eliminar_usuario', id=u.id_usuario) }}" style="display:inline;" onsubmit="return confirm('¿Seguro que quieres eliminar a {{ u.nombre }}?');">
+                            {% if csrf_token is defined %}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            {% endif %}
+                            <button type="submit" class="delete-btn">Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <p style="text-align:center; color:var(--muted);">No hay usuarios registrados.</p>
+                {% endfor %}
+            </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <h1 id="main-title">Panel de Administrador</h1>
-            <h1>Bienvenid@ de nuevo {{current_user.nombre}}</h1>
-            <div id="message-box" class="message-box"></div>
+        <!-- Products Section -->
+        <div id="products-section" class="content-section">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">Todos</button>
+                <button class="filter-btn" data-filter="published">Publicados</button>
+                <button class="filter-btn" data-filter="pending">Pendientes</button>
+                <button class="crear-btn" style="margin-left:auto;" onclick="abrirModal('crear-producto-form')">Agregar Producto</button>
+            </div>
+            <div id="product-list" class="product-list">
+                {% for p in productos %}
+                <div class="product-card" data-id="{{ p.id_producto }}" data-categoria="{{ p.id_categoria }}" data-status="{{ 'published' if p.estado else 'pending' }}">
+                    <h3>{{ p.nombre }}</h3>
+                    <p><strong>Descripción:</strong> {{ p.descripcion }}</p>
+                    <p><strong>Precio:</strong> ${{ '%.2f'|format(p.precio) }}</p>
+                    <p><strong>Stock:</strong> {{ p.stock }}</p>
+                    <p><strong>Vendedor:</strong> {{ p.vendedor.nombre }}</p>
+                    <p><strong>Estado:</strong> {{ 'Publicado' if p.estado else 'Pendiente' }}</p>
+                    {% if p.foto %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ p.foto) }}" alt="{{ p.nombre }}" style="max-width:100%; border-radius:8px;">
+                    {% endif %}
+                    <div class="product-actions">
+                        <button class="edit-btn" onclick="abrirEditarProducto({{ p.id_producto }}, '{{ p.nombre }}', '{{ p.descripcion }}', {{ p.stock }}, {{ p.precio }}, {{ p.id_vendedor }}, {{ p.id_categoria }})">Editar</button>
+                        <form method="POST" action="{{ url_for('eliminar_producto', id=p.id_producto) }}" style="display:inline;" onsubmit="return confirm('¿Seguro que quieres eliminar el producto \"{{ p.nombre }}\"?');">
+                            {% if csrf_token is defined %}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            {% endif %}
+                            <button type="submit" class="delete-btn">Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <p style="text-align:center; color:var(--muted);">No hay productos.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Users Section -->
-            <div id="users-section" class="content-section active">
-  <div class="filter-buttons">
-    <button class="filter-btn active" data-filter="all">Todos</button>
-    <button class="filter-btn" data-filter="vendedor">Vendedores</button>
-    <button class="filter-btn" data-filter="comprador">Compradores</button>
-    <button class="filter-btn" data-filter="administrador">Administrador</button>
-    <button clas="crear-btn" style="margin-left:auto; background-color:var(--ok); color:white; padding:8px 16px; border-radius:6px; text-decoration:none;" onclick="document.getElementById('crear-usuario-form').style.display='block'">Crear Usuario</button>
-    <div id="crear-usuario-form" class="edit-form-container" style="display:none;">
+<!-- Modals -->
+<div id="modal-overlay" class="modal-overlay" onclick="cerrarModal()"></div>
+
+<!-- Crear Usuario -->
+<div id="crear-usuario-modal" class="edit-form-container">
     <h3>Crear Nuevo Usuario</h3>
     <form method="POST" action="{{ url_for('crear_usuario') }}">
         {% if csrf_token is defined %}
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% endif %}
-
-        <label>Nombre:</label>
-        <input type="text" name="nombre" required><br><br>
-
-        <label>Correo:</label>
-        <input type="email" name="correo" required><br><br>
-
-        <label>Contraseña:</label>
-        <input type="password" name="password" required><br><br>
-
-        <label>Confirmar contraseña:</label>
-<input type="password" name="confirmar" required><br><br>
-
-        <label>Teléfono:</label>
-        <input type="text" name="telefono"><br><br>
-
+        <label>Nombre:</label><input type="text" name="nombre" required><br><br>
+        <label>Correo:</label><input type="email" name="correo" required><br><br>
+        <label>Contraseña:</label><input type="password" name="password" ><br><br>
+        <label>Confirmar contraseña:</label><input type="password" name="confirmar"><br><br>
+        <label>Teléfono:</label><input type="text" name="telefono"><br><br>
         <label>Rol:</label>
         <select name="id_rol" required>
             {% for r in rol %}
             <option value="{{ r.id_rol }}">{{ r.nombre }}</option>
             {% endfor %}
         </select><br><br>
-
-        <button type="submit" class="edit-btn" style="background-color:var(--ok);">Crear Usuario</button>
-        <button type="button" class="delete-btn" onclick="document.getElementById('crear-usuario-form').style.display='none'">Cancelar</button>
+        <label>Estado:</label>
+        <select name="estado" required>
+            <option value="True">Activo</option>
+            <option value="False">Inactivo</option>
+        </select><br><br>
+        <button type="submit" class="edit-btn">Crear Usuario</button>
+        <button type="button" class="delete-btn" onclick="cerrarModal()">Cancelar</button>
     </form>
 </div>
-  </div>
 
-  <!-- SOLO UNA lista de usuarios -->
-  <div id="user-list" class="user-list">
-    {% for u in usuarios %}
-    <div class="user-card" data-role="{{ u.rol.nombre|lower }}">
-      <h3>{{ u.nombre }}</h3>
-      <p><strong>Rol:</strong> {{ u.rol.nombre if u.rol else 'Sin rol' }}</p>
-
-      <p><strong>Correo:</strong> {{ u.correo }}</p>
-      <div class="user-actions">
-        <a class="edit-btn" href="{{ url_for('editar_usuario', id=u.id_usuario) }}">Editar</a>
-        <form method="POST" action="{{ url_for('eliminar_usuario', id=u.id_usuario) }}" style="display:inline;" onsubmit="return confirm('¿Seguro que quieres eliminar a {{ u.nombre }}?');">
-          {% if csrf_token is defined %}
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          {% endif %}
-          <button type="submit" class="delete-btn">Eliminar</button>
-        </form>
-      </div>
-    </div>
-    {% else %}
-    <p style="text-align:center; color:var(--muted);">No hay usuarios registrados.</p>
-    {% endfor %}
-  </div>
-
-  <!-- Formulario de edición embebido -->
-  {% if usuario_editar %}
-  <div class="edit-form-container" style="display:block;">
-    <h3>Editar Usuario: {{ usuario_editar.nombre }}</h3>
-    <form method="POST" action="{{ url_for('editar_usuario', id=usuario_editar.id_usuario) }}">
-      {% if csrf_token is defined %}
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      {% endif %}
-      <label>Nombre:</label>
-      <input type="text" name="nombre" value="{{ usuario_editar.nombre }}" required><br><br>
-
-      <label>Correo:</label>
-      <input type="email" name="correo" value="{{ usuario_editar.correo }}" required><br><br>
-
-      <label>Rol:</label>
-<select name="id_rol" required>
-    {% for r in rol %}
-        <option value="{{ r.id_rol }}" {% if usuario_editar and r.id_rol == usuario_editar.id_rol %}selected{% endif %}>
-            {{ r.nombre }}
-        </option>
-    {% endfor %}
-</select>
-<br><br>
-
-      <button type="submit" class="edit-btn">Guardar cambios</button>
-    </form>
-  </div>
-  {% endif %}
-</div>
-
-
-                <div id="edit-user-form-container" class="edit-form-container">
-                    
-                </div>
-            </div>
-
-          
-            <div id="products-section" class="content-section">
-    <div class="filter-buttons">
-        <button class="filter-btn active" data-filter="all">Todos</button>
-        <button class="filter-btn" data-filter="published">Publicados</button>
-        <button class="filter-btn" data-filter="pending">Pendientes</button>
-        <button class="crear-btn" style="margin-left:auto; background-color:var(--ok); color:white; padding:8px 16px; border-radius:6px; text-decoration:none;" onclick="document.getElementById('crear-producto-form').style.display='block'">Agregar Producto</button>
-    </div>
-    <div id="crear-producto-form" class="edit-form-container" style="display:none;">
-        <h3>Agregar Nuevo Producto</h3>
-        <form method="POST" action="{{ url_for('crear_producto') }}" enctype="multipart/form-data">
-            {% if csrf_token is defined %}
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            {% endif %}
-
-            <label>Nombre del producto:</label>
-            <input type="text" name="nombre" required><br><br>
-
-            <label>Descripción:</label>
-            <textarea name="descripcion" rows="4" required></textarea><br><br>
-
-            <label>Cantidad:</label>
-            <input type="number" name="cantidad" min="1" value="1" required><br><br>
-
-            <label>Precio ($):</label>
-            <input type="number" name="precio" min="0" step="0.01" value="0.00" required><br><br>
-
-            <label>Foto:</label>
-            <input type="file" name="foto" accept="image/*" required><br><br>
-
-            <label>Vendedor:</label>
-            <select name="id_vendedor" required>
-                {% for v in vendedores %}
-                    <option value="{{ v.id_usuario }}">{{ v.nombre }}</option>
-                {% endfor %}
-            </select><br><br>
-
-            <button type="submit" class="edit-btn" style="background-color:var(--ok);">Crear Producto</button>
-            <button type="button" class="delete-btn" onclick="document.getElementById('crear-producto-form').style.display='none'">Cancelar</button>
-        </form>
-    </div>
-
-             <div id="product-list" class="product-list">
-    {% for p in productos %}
-    <div class="product-card" data-status="{{ 'published' if p.estado else 'pending' }}">
-        <h3>{{ p.nombre }}</h3>
-        <p><strong>Descripción:</strong> {{ p.descripcion }}</p>
-        <p><strong>Precio:</strong> ${{ '%.2f'|format(p.precio) }}</p>
-        <p><strong>Stock:</strong> {{ p.stock }}</p>
-        <p><strong>Vendedor:</strong> {{ p.vendedor.nombre }}</p>
-        {% if p.foto %}
-        <img src="{{ url_for('static', filename='uploads/' ~ p.foto) }}" alt="{{ p.nombre }}" style="max-width:100%; border-radius:8px;">
+<!-- Editar Usuario -->
+<div id="editar-usuario-modal" class="edit-form-container">
+    <h3>Editar Usuario</h3>
+    <form id="editar-usuario-form" method="POST">
+        {% if csrf_token is defined %}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% endif %}
-        <p><strong>Estado:</strong> {{ 'Publicado' if p.estado else 'Pendiente' }}</p>
-        <div class="product-actions">
-            <a class="edit-btn" href="{{ url_for('editar_producto', id=p.id_producto) }}">Editar</a>
-            <form method="POST" action="{{ url_for('eliminar_producto', id=p.id_producto) }}" style="display:inline;" onsubmit="return confirm('¿Seguro que quieres eliminar el producto \"{{ p.nombre }}\"?');">
-                {% if csrf_token is defined %}
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                {% endif %}
-                <button type="submit" class="delete-btn">Eliminar</button>
-            </form>
-        </div>
-    </div>
-    {% else %}
-    <p style="text-align:center; color:var(--muted);">No hay productos.</p>
-    {% endfor %}
+        <label>Nombre:</label><input type="text" name="nombre" id="editar-nombre" required><br><br>
+        <label>Correo:</label><input type="email" name="correo" id="editar-correo" required><br><br>
+        <label>Teléfono:</label><input type="text" name="telefono" id="editar-telefono"><br><br>
+        
+        <!-- Nueva sección de contraseña -->
+        <label>Contraseña:</label>
+        <input type="password" name="password" id="editar-password" placeholder="dejala en blanco si no quieres cambiar tu contraseña"><br><br>
+        <label>Confirmar Contraseña:</label>
+        <input type="password" name="confirmar" id="editar-confirmar" placeholder="dejala en blanco si no quieres cambiar tu contraseña"><br><br>
+        
+        <label>Rol:</label>
+        <select name="id_rol" id="editar-rol" required>
+            {% for r in rol %}
+            <option value="{{ r.id_rol }}">{{ r.nombre }}</option>
+            {% endfor %}
+        </select><br><br>
+        <label>Estado:</label>
+        <select name="estado" id="editar-estado" required>
+            <option value="True">Activo</option>
+            <option value="False">Inactivo</option>
+        </select><br><br>
+        <button type="submit" class="edit-btn">Guardar Cambios</button>
+        <button type="button" class="delete-btn" onclick="cerrarModal()">Cancelar</button>
+    </form>
 </div>
 
-    <script>
-    // JS mínimo: navegación entre secciones y filtros (no reconstruye nada, sólo muestra/oculta)
-    document.addEventListener('DOMContentLoaded', () => {
-        const navUsers = document.getElementById('nav-users');
-        const navProducts = document.getElementById('nav-products');
 
-        function showSection(id) {
-            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
-            if (id === 'users-section') navUsers.classList.add('active'); else navProducts.classList.add('active');
-        }
+<!-- Crear Producto -->
+<div id="crear-producto-form" class="edit-form-container">
+    <h3>Agregar Nuevo Producto</h3>
+    <form method="POST" action="{{ url_for('crear_producto_post') }}" enctype="multipart/form-data">
+        {% if csrf_token is defined %}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% endif %}
+        <label>Nombre:</label><input type="text" name="nombre" required><br><br>
+        <label>Descripción:</label><textarea name="descripcion" rows="4" required></textarea><br><br>
+        <label>Cantidad:</label><input type="number" name="stock" min="1" value="1" required><br><br>
+        <label>Precio ($):</label><input type="number" name="precio" min="0" step="0.01" value="0.00" required><br><br>
+        <label>Foto:</label><input type="file" name="foto" accept="image/*" required><br><br>
+        <label>Vendedor:</label>
+        <select name="id_vendedor" required>
+            {% for v in vendedores %}
+            <option value="{{ v.id_usuario }}">{{ v.nombre }}</option>
+            {% endfor %}
+        </select><br><br>
+        <label>Categoría:</label>
+        <select name="id_categoria" required>
+            {% for c in categorias %}
+            <option value="{{ c.id_categoria }}">{{ c.nombre }}</option>
+            {% endfor %}
+        </select><br><br>
+        <button type="submit" class="edit-btn">Agregar Producto</button>
+        <button type="button" class="delete-btn" onclick="cerrarModal()">Cancelar</button>
+    </form>
+</div>
 
-        navUsers.addEventListener('click', e => { e.preventDefault(); showSection('users-section'); });
-        navProducts.addEventListener('click', e => { e.preventDefault(); showSection('products-section'); });
+<script>
+function abrirModal(id){
+    document.getElementById(id).style.display='block';
+    document.getElementById('modal-overlay').style.display='block';
+}
+function cerrarModal(){
+    document.querySelectorAll('.edit-form-container').forEach(m => m.style.display='none');
+    document.getElementById('modal-overlay').style.display='none';
+}
 
-        // FILTROS USUARIOS (usa data-role en las tarjetas)
-        document.querySelectorAll('#users-section .filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('#users-section .filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const filter = btn.dataset.filter; // 'all' | 'vendedor' | 'comprador' | 'administrador'
-                document.querySelectorAll('#user-list .user-card').forEach(card => {
-                    if (filter === 'all' || card.dataset.role === filter) {
-                        card.style.display = '';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            });
-        });
+// Editar usuario
+function abrirEditarUsuario(id, nombre, correo, telefono, rol, estado){
+    abrirModal('editar-usuario-modal');
+    const form = document.getElementById('editar-usuario-form');
+    form.action = `/usuario/editar/${id}`;
+    document.getElementById('editar-nombre').value = nombre;
+    document.getElementById('editar-correo').value = correo;
+    document.getElementById('editar-telefono').value = telefono;
+    document.getElementById('editar-rol').value = rol;
+    document.getElementById('editar-estado').value = estado;
+}
 
-        // FILTROS PRODUCTOS (usa data-status)
-        document.querySelectorAll('#products-section .filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('#products-section .filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const filter = btn.dataset.filter; // all | published | pending
-                document.querySelectorAll('#product-list .product-card').forEach(card => {
-                    if (filter === 'all' || card.dataset.status === filter) card.style.display = '';
-                    else card.style.display = 'none';
-                });
-            });
-        });
-    });
-    </script>
+// Editar producto
+function abrirEditarProducto(id,nombre,descripcion,stock,precio,vendedor,categoria){
+    abrirModal('crear-producto-form');
+    const form = document.querySelector('#crear-producto-form form');
+    form.action=`/producto/editar/${id}`;
+    form.nombre.value=nombre;
+    form.descripcion.value=descripcion;
+    form.stock.value=stock;
+    form.precio.value=precio;
+    form.id_vendedor.value=vendedor;
+    form.id_categoria.value=categoria;
+}
+
+// Navegación secciones
+document.addEventListener('DOMContentLoaded',()=>{
+    const navUsers=document.getElementById('nav-users');
+    const navProducts=document.getElementById('nav-products');
+    function showSection(id){
+        document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.sidebar-nav a').forEach(a=>a.classList.remove('active'));
+        if(id==='users-section') navUsers.classList.add('active'); else navProducts.classList.add('active');
+    }
+    navUsers.addEventListener('click',e=>{e.preventDefault(); showSection('users-section');});
+    navProducts.addEventListener('click',e=>{e.preventDefault(); showSection('products-section');});
+});
+</script>
 </body>
 </html>

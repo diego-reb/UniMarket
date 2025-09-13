@@ -241,13 +241,23 @@
 
     <button type="submit" class="btn-primary">Continuar</button>
             </form>
-            {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <p style="color: red;">{{ message }}</p>
-        {% endfor %}
+            <div id="login-message-box" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 20px; color: white; background-color: #ef4444;">
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      {% if category == 'login' %}
+        <script>
+          const msgBox = document.getElementById('login-message-box');
+          msgBox.innerText = "{{ message }}";
+          msgBox.style.display = "block";
+        </script>
       {% endif %}
-    {% endwith %}
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
             <div class="separator">o</div>
 
             <button id="guest-login-btn" class="btn-primary" style="background: var(--card); border: 1px solid rgba(148,163,184,.25); width: 100%; max-width: 400px;">Registrate</button>
