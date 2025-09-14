@@ -189,14 +189,45 @@
     </style>
 </head>
 <body>
+    
     <div class="container">
         <!-- Panel de la marca (visible en desktop) -->
         <div class="brand-panel">
+            
             <div>
+                
                 <h1>UniMarket</h1>
                 <p>Tu plataforma para comprar y vender productos universitarios. ¡Conéctate con tu comunidad!</p>
+
             </div>
         </div>
+
+        <div class="form-panel">
+    <!-- Botón circular de regreso al index -->
+    <button type="button" onclick="window.location.href='/'" 
+            style="
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                border: none;
+                background: var(--brand-2);
+                color: white;
+                font-size: 1.5rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: var(--shadow);
+                transition: transform .1s;
+            "
+            title="Volver al inicio"
+            onmouseover="this.style.transform='scale(1.1)';"
+            onmouseout="this.style.transform='scale(1)';">
+        &#8592; <!-- flecha hacia la izquierda -->
+    </button>
 
         <!-- Panel del formulario -->
         <div class="form-panel">

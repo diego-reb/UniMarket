@@ -226,186 +226,91 @@
       </div>
       <div class="tabs" role="tablist" aria-label="Categorías de productos">
         <button class="tab active" data-filter="todos" role="tab" aria-selected="true">Todos</button>
-        <button class="tab" data-filter="ropa" role="tab">Ropa</button>
-        <button class="tab" data-filter="maquillaje" role="tab">Maquillaje</button>
-        <button class="tab" data-filter="comida" role="tab">Comida</button>
-        <button class="tab" data-filter="papeleria" role="tab">Papelería</button>
+        {% for cat in categorias %}
+          <button class="tab" data-filter="{{ cat.id }}" role="tab">{{ cat.nombre }}</button>
+        {% endfor %}
       </div>
     </section>
 
     <section aria-label="Listado de productos" id="productList" class="grid">
-      <article class="card" data-cat="ropa" data-name="Sudadera ITIZ Verde">
-        <div class="thumb"><span>🧥</span></div>
-        <div class="card-body">
-          <h3 class="title">Sudadera ITIZ Verde</h3>
-          <p class="meta">Tallas S–XL • Algodón</p>
-          <div class="buy">
-            <div class="price">$249</div>
-            <button class="btn primary" data-add>Agregar</button>
-          </div>
-        </div>
-      </article>
+  {% for p in productos %}
+    <article class="card"  data-name="{{ p.nombre }}">
+      <div class="thumb">
+        <div class="thumb">
+    <img src="{{ url_for('static', filename='uploads/' ~ p.foto) }}" alt="{{ p.nombre }}" style="max-width:100%; border-radius:8px;">
+</div>
 
-      <article class="card" data-cat="maquillaje" data-name="Kit delineador + labial mate">
-        <div class="thumb"><span>💄</span></div>
-        <div class="card-body">
-          <h3 class="title">Kit delineador + labial mate</h3>
-          <p class="meta">Colores ITIZ friendly</p>
-          <div class="buy">
-            <div class="price">$159</div>
-            <button class="btn primary" data-add>Agregar</button>
-          </div>
+      </div>
+      <div class="card-body">
+        <h3 class="title">{{ p.nombre }}</h3>
+        <p class="meta">Vendedor: {{ p.vendedor }}</p>
+        <p class="meta">{{p.descripcion}}</p>
+        <div class="buy">
+          <div class="price">${{ "%.2f"|format(p.precio) }}</div>
+          <button class="btn primary" data-add 
+                  data-id="{{ p.id }}" data-name="{{ p.nombre }}" 
+                  data-price="{{ p.precio }}" data-vendedor="{{ p.vendedor }}" data-descripcion = "{{p.descripcion}}"  data-image="{{ url_for('static', filename='uploads/' ~ p.foto) }}">
+            Agregar
+          </button>
         </div>
-      </article>
+      </div>
+    </article>
+  {% endfor %}
+</section>
 
-      <article class="card" data-cat="comida" data-name="Bento saludable de la cafetería">
-        <div class="thumb"><span>🍱</span></div>
-        <div class="card-body">
-          <h3 class="title">Bento saludable</h3>
-          <p class="meta">Pollo teriyaki • Incluye bebida</p>
-          <div class="buy">
-            <div class="price">$89</div>
-            <button class="btn primary" data-add>Agregar</button>
-          </div>
-        </div>
-      </article>
 
-      <article class="card" data-cat="papeleria" data-name="Cuaderno cuadriculado A5">
-        <div class="thumb"><span>📓</span></div>
-        <div class="card-body">
-          <h3 class="title">Cuaderno cuadriculado A5</h3>
-          <p class="meta">80 hojas • Pasta dura</p>
-          <div class="buy">
-            <div class="price">$39</div>
-            <button class="btn primary" data-add>Agregar</button>
-          </div>
-        </div>
-      </article>
-
-      <article class="card" data-cat="ropa" data-name="Playera edición ITIZ">
-        <div class="thumb"><span>👕</span></div>
-        <div class="card-body">
-          <h3 class="title">Playera edición ITIZ</h3>
-          <p class="meta">Respirable • Unisex</p>
-          <div class="buy">
-            <div class="price">$149</div>
-            <button class="btn primary" data-add>Agregar</button>
-          </div>
-        </div>
-      </article>
-
-      <article class="card" data-cat="maquillaje" data-name="Iluminador compact">
-        <div class="thumb"><span>✨</span></div>
-        <div class="card-body">
-          <h3 class="title">Iluminador compact</h3>
-          <p class="meta">Acabado natural</p>
-          <div class="buy">
-            <div class="price">$109</div>
-            <button class="btn primary" data-add>Agregar</button>
-          </div>
-        </div>
-      </article>
-
-      <article class="card" data-cat="comida" data-name="Café frío 500 ml">
-        <div class="thumb"><span>🥤</span></div>
-        <div class="card-body">
-          <h3 class="title">Café frío 500 ml</h3>
-          <p class="meta">Hecho en el ITIZ</p>
-          <div class="buy">
-            <div class="price">$39</div>
-            <button class="btn primary" data-add>Agregar</button>
-          </div>
-        </div>
-      </article>
-
-      <article class="card" data-cat="papeleria" data-name="Plumines punta fina (set 6)">
-        <div class="thumb"><span>🖊️</span></div>
-        <div class="card-body">
-          <h3 class="title">Plumines punta fina (x6)</h3>
-          <p class="meta">Tinta resistente</p>
-          <div class="buy">
-            <div class="price">$59</div>
-            <button class="btn primary" data-add>Agregar</button>
-          </div>
-        </div>
-      </article>
-    </section>
-  </main>
+        </main>
 
   <footer class="container">
     © <span id="year"></span> UniMarket • Hecho por estudiantes para estudiantes.
   </footer>
+<script>
+  // Carrito con localStorage
+  let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-  <script>
-    // Año dinámico
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Carrusel automático
-    const carouselTrack = document.getElementById('carouselTrack');
-    let carouselIndex = 0;
-    const carouselSlides = carouselTrack.children.length;
-
-    setInterval(() => {
-      carouselIndex = (carouselIndex + 1) % carouselSlides;
-      carouselTrack.style.transform = `translateX(-${carouselIndex * 100}%)`;
-    }, 4000); // Cambia cada 4 segundos
-
-    // Filtro por pestañas (categorías)
-    const tabs = document.querySelectorAll('.tab');
-    const cards = document.querySelectorAll('.card');
-    tabs.forEach(t => t.addEventListener('click', () => {
-      tabs.forEach(x => x.classList.remove('active'));
-      t.classList.add('active');
-      const filter = t.dataset.filter;
-      cards.forEach(c => {
-        c.style.display = (filter === 'todos' || c.dataset.cat === filter) ? '' : 'none';
-      });
-      // Limpia búsqueda al cambiar tab
-      document.getElementById('search').value='';
-    }));
-
-    // Búsqueda por nombre/categoría
-    const search = document.getElementById('search');
-    search.addEventListener('input', () => {
-      const q = search.value.trim().toLowerCase();
-      cards.forEach(c => {
-        const match = (c.dataset.name + ' ' + c.dataset.cat).toLowerCase().includes(q);
-        c.style.display = match ? '' : 'none';
-      });
-      // Activar tab "Todos" al buscar
-      tabs.forEach(x => x.classList.remove('active'));
-      document.querySelector('.tab[data-filter="todos"]').classList.add('active');
-    });
-
-    // Carrito simple (contador)
-    let count = 0;
+  function updateBadge() {
     const badge = document.getElementById('cartBadge');
-    document.querySelectorAll('[data-add]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        count++;
-        badge.textContent = count;
-        badge.hidden = count === 0;
-        btn.textContent = 'Agregado ✓';
-        setTimeout(() => btn.textContent = 'Agregar', 900);
-      });
-    });
+    const totalQuantity = cart.reduce((sum, p) => sum + p.quantity, 0);
+    badge.textContent = totalQuantity;
+    badge.hidden = totalQuantity === 0;
+  }
 
-    // Simulación de login rápido
-    document.getElementById('userBtn').addEventListener('click', () => {
-      window.location.href="/inicio_sesion";
-    });
+  document.querySelectorAll('[data-add]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const productId = parseInt(btn.dataset.id);
+      const existing = cart.find(p => p.id === productId);
 
-    // Carrito demo
-    document.getElementById('cartBtn').addEventListener('click', () => {
-      alert(`Tienes ${count} producto(s) en tu carrito.`);
-      window.location.href="/carrito";
-    });
+      if (existing) {
+        existing.quantity += 1; 
+      } else {
+        cart.push({
+          id: productId,
+          name: btn.dataset.name,
+          price: parseFloat(btn.dataset.price),
+          vendor: btn.dataset.vendedor,
+          quantity: 1,
+          image: btn.dataset.image,
+          description: btn.dataset.descripcion || ""
+        });
+      }
 
-    // Clase para ocultar visualmente elementos, pero mantenerlos para lectores de pantalla
-    const styleSheet = document.createElement("style");
-    styleSheet.type = "text/css";
-    styleSheet.innerText = ".sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }";
-    document.head.appendChild(styleSheet);
-  </script>
+      localStorage.setItem('cart', JSON.stringify(cart));
+      updateBadge();
+
+      btn.textContent = 'Agregado ✓';
+      setTimeout(() => btn.textContent = 'Agregar', 900);
+    });
+  });
+
+  // Redireccionar a la vista carrito
+  document.getElementById('cartBtn').addEventListener('click', () => {
+    window.location.href = '/carrito';
+  });
+
+  // Inicializa contador al cargar
+  updateBadge();
+</script>
+
+
 </body>
 </html>

@@ -220,7 +220,7 @@ html,body { height:100%; margin:0; font-family:'Inter',sans-serif; color:var(--t
         <label>Descripción:</label><textarea name="descripcion" rows="4" required></textarea><br><br>
         <label>Cantidad:</label><input type="number" name="stock" min="1" value="1" required><br><br>
         <label>Precio ($):</label><input type="number" name="precio" min="0" step="0.01" value="0.00" required><br><br>
-        <label>Foto:</label><input type="file" name="foto" accept="image/*" required><br><br>
+        <label>Foto:</label><input type="file" name="foto" accept="image/*" ><br><br>
         <label>Vendedor:</label>
         <select name="id_vendedor" required>
             {% for v in vendedores %}

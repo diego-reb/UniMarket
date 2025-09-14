@@ -1,6 +1,9 @@
 from flask import Flask, render_template, flash, request, redirect, url_for, Blueprint, jsonify 
 from flask_sqlalchemy import SQLAlchemy 
 from sqlalchemy.orm import joinedload
+import smtplib
+from email.mime.text import MIMEText
+import json
 from src.conn import db, init_app
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user 
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -18,7 +21,7 @@ init_app(app)
 
 ##---------------------------------------------------foto------------------------------------------------------------------------------------------
 
-UPLOAD_FOLDER = 'static/uploads/productos'
+UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -41,7 +44,22 @@ def test_db():
 ##-----------------------------------index-----------------------------------------------------------------------------------------------------
 @app.route('/')
 def index():
-    return render_template('index.html')
+    categorias = Categoria.query.all()
+    productos = Producto.query.all()
+
+    productos_data = []
+    for p in productos:
+        productos_data.append({
+            'id': p.id_producto,
+            'nombre': p.nombre,
+            'descripcion': p.descripcion,
+            'precio':float(p.precio),
+            'foto':p.foto,
+            'vendedor': p.vendedor.nombre
+        })
+   
+
+    return render_template('index.html', categorias=categorias, productos = productos_data)
 
 ##-----------------------------------fin_index-----------------------------------------------------------------------------------------------
 ##-----------------------------------inicio_sesion-------------------------------------------------------------------------------------
@@ -72,7 +90,7 @@ def inicio_sesion():
                 elif usuario.id_rol==2:
                     return redirect(url_for('vendedor'))
                 elif usuario.id_rol==3:
-                    return redirect(url_for('comprador'))
+                    return redirect(url_for('index'))
                 else:
                     return redirect(url_for('index'))
               
@@ -284,11 +302,9 @@ def crear_producto_post():
 @app.route('/producto/editar/<int:id>', methods=['POST'])
 @login_required
 def editar_producto(id):
-    # Obtener el producto a editar
     producto = Producto.query.get_or_404(id)
 
     if request.method == 'POST':
-        # Actualizar los campos del producto
         producto.nombre = request.form['nombre']
         producto.descripcion = request.form['descripcion']
         producto.precio = float(request.form['precio'])
@@ -296,7 +312,6 @@ def editar_producto(id):
         producto.id_vendedor = int(request.form['id_vendedor'])
         producto.id_categoria = int(request.form['id_categoria'])
 
-        # Actualizar foto si se cargó una nueva
         foto_file = request.files.get('foto')
         if foto_file and foto_file.filename != '':
             filename = secure_filename(foto_file.filename)
@@ -309,11 +324,10 @@ def editar_producto(id):
         flash('Producto actualizado correctamente', 'success')
         return redirect(url_for('Admin'))
 
-    # Para GET: enviar todas las listas que usa la plantilla
     usuarios = Usuario.query.all()
     rol = Rol.query.all()
     productos = Producto.query.all()
-    vendedores = Usuario.query.filter_by(id_rol=2).all()  # Suponiendo rol 2 = vendedor
+    vendedores = Usuario.query.filter_by(id_rol=2).all()  
     categorias = Categoria.query.all()
 
     return render_template('usuariosadmin.html',
@@ -344,6 +358,50 @@ def vendedor():
    
    return render_template('usuariovendedor.html', productos=productos, categorias=categorias) 
 
+@app.route('/producto/<int:id>')
+@login_required
+def obtener_producto(id):
+    p = Producto.query.get_or_404(id)
+    return jsonify({
+        'id_producto': p.id_producto,
+        'nombre': p.nombre,
+        'descripcion': p.descripcion,
+        'stock': p.stock,
+        'precio': p.precio,
+        'id_categoria': p.id_categoria
+    })
+@app.route('/vendedor/producto/editar/<int:id>', methods=['POST'])
+@login_required
+def editar_producto_vendedor(id):
+    producto = Producto.query.get_or_404(id)
+
+    if producto.id_vendedor != current_user.id_usuario:
+        return jsonify({'success': False, 'error': 'No autorizado'}), 403
+
+    try:
+        
+        producto.nombre = request.form['nombre']
+        producto.descripcion = request.form['descripcion']
+        producto.stock = int(request.form['stock'])
+        producto.precio = float(request.form['precio'])
+        producto.id_categoria = int(request.form['id_categoria'])
+
+        
+        foto = request.files.get('foto')
+        if foto and foto.filename != '' and allowed_file(foto.filename):
+            filename = secure_filename(f"{current_user.id_usuario}_{foto.filename}")
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            foto.save(filepath)
+            
+            producto.foto = f'uploads/{filename}'
+
+        db.session.commit()
+        return jsonify({'success': True})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
 @app.route('/producto/crear/V', methods=['POST'])
 @login_required
 def crear_producto():
@@ -355,19 +413,18 @@ def crear_producto():
     id_categoria = int(request.form['id_categoria'])  
 
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads', 'productos')
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')  
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
     foto = request.files.get('foto')
     if foto and allowed_file(foto.filename):
         filename = secure_filename(f"{current_user.id_usuario}_{foto.filename}")
-        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        filepath = os.path.join(UPLOAD_FOLDER, filename)  
         foto.save(filepath)
-
-       
-        foto_path = f'uploads/productos/{filename}'
+        foto_path = filename  
     else:
         foto_path = None
+
 
     producto = Producto(
         nombre=nombre,
@@ -386,7 +443,7 @@ def crear_producto():
     flash('Producto creado correctamente', 'success')
     return redirect(url_for('vendedor'))
 
-@app.route('/producto/eliminar/<int:id>', methods=['POST'])
+@app.route('/producto/eliminar/<int:id>', methods=['POST', 'DELETE'])
 @login_required
 def eliminar_producto_vendedor(id):
     producto = Producto.query.get_or_404(id)
@@ -397,16 +454,13 @@ def eliminar_producto_vendedor(id):
     db.session.commit()
     return jsonify({'success': True})
 
-@app.route('/producto/entregado/<int:id>', methods=['POST'])
+@app.route('/pedido/entregado/<int:id>', methods=['POST'])
 @login_required
-def producto_entregado(id):
-    producto = Producto.query.get_or_404(id)
-    if producto.id_vendedor != current_user.id_usuario:
-        return jsonify({'success': False})
-
-    producto.estado = True  
+def pedido_entregado(id):
+    pedido = Pedido.query.get_or_404(id)
+    pedido.estado = 'entregado'
     db.session.commit()
-    return jsonify({'success': True})
+    return jsonify({"success": True})
 
 @app.route('/vendedor/pedidos')
 @login_required
@@ -440,7 +494,61 @@ def comprador():
     return render_template('usuariocomprador.html')
 ##-------------------------------------------------------------fin_comprador------------------------------------------------------------------
 
+##-------------------------------------------------------------compra-------------------------------------------------------------------------
+@app.route('/compra')
+@login_required
+def compra():
+    return render_template('compra.html')
 
+@app.route('/procesar_compra', methods=['POST'])
+def procesar_compra():
+    nombre = request.form['nombre']
+    correo = request.form['correo']
+    pago = request.form['pago']
+    turno = request.form['turno']
+    horas = request.form.getlist('horas')
+    cart = json.loads(request.form['cartData'])
+
+    total = sum(item['price'] * item['quantity'] for item in cart)
+
+    # Generar resumen para correo
+    detalles = ""
+    for item in cart:
+        detalles += f"{item['name']} x {item['quantity']} - ${item['price']*item['quantity']:.2f}\n"
+
+    mensaje = f"""
+Hola {nombre},
+
+Tu compra ha sido confirmada.
+
+Detalles de la compra:
+{detalles}
+Total: ${total:.2f}
+Método de pago: {pago}
+Turno: {turno}
+Horas seleccionadas: {', '.join(horas)}
+
+Gracias por comprar en UniMarket.
+    """
+
+    # Enviar correo (ejemplo con SMTP)
+    try:
+        msg = MIMEText(mensaje)
+        msg['Subject'] = 'Confirmación de Compra UniMarket'
+        msg['From'] = 'tucuenta@unimarket.com'
+        msg['To'] = correo
+
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login('tucuenta@unimarket.com','TU_CONTRASEÑA')
+            server.send_message(msg)
+    except Exception as e:
+        print("Error enviando correo:", e)
+
+    flash('Compra realizada con éxito! Revisa tu correo.')
+    return redirect(url_for('compra'))
+
+##-------------------------------------------------------------fin_compra------------------------------------------------------------------
 
 if __name__ == '__main__': ##depurar proyecto 
    with app.app_context():

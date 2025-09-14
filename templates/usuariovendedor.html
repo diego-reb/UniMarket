@@ -86,176 +86,303 @@
     </style>
 </head>
 <body>
-    <header>
-        <div class="header-wrap container">
-            <a class="logo" href="/vendedor">
-                <div class="logo-badge"></div>
-                <div>
-                    <div class="brand">UniMarket</div>
-                    <div class="tagline">Dashboard de Vendedor</div>
-                </div>
-            </a>
-            <div class="actions">
-                <a href="{{ url_for('logout') }}" class="icon-btn" title="Cerrar sesión" aria-label="Cerrar sesión">Salir</a>
+<header>
+    <div class="header-wrap container">
+        <a class="logo" href="/vendedor">
+            <div class="logo-badge"></div>
+            <div>
+                <div class="brand">UniMarket</div>
+                <div class="tagline">Dashboard de Vendedor</div>
             </div>
+        </a>
+        <div class="actions">
+            <a href="{{ url_for('logout') }}" class="icon-btn" title="Cerrar sesión" aria-label="Cerrar sesión">Salir</a>
         </div>
-    </header>
+    </div>
+</header>
 
-    <main>
-        <div class="card">
-            <h1>Bienvenid@, {{ current_user.nombre }}</h1>
-            <p>Gestiona tus productos y pedidos desde tu panel de control.</p>
+<main>
+<div class="card">
+    <h1>Bienvenid@, {{ current_user.nombre }}</h1>
+    <p>Gestiona tus productos y pedidos desde tu panel de control.</p>
 
-            <!-- Menú del dashboard -->
-            <div class="btn-group">
-                <button class="btn active" onclick="showSection('add-product', this)">Agregar productos</button>
-                <button class="btn" onclick="showSection('product-list', this)">Lista de productos</button>
-                <button class="btn" onclick="showSection('order-history', this)">Historial</button>
+    <!-- Menú del dashboard -->
+    <div class="btn-group">
+        <button class="btn active" onclick="showSection('add-product', this)">Agregar productos</button>
+        <button class="btn" onclick="showSection('product-list', this)">Lista de productos</button>
+        <button class="btn" onclick="showSection('orders', this)">Pedidos</button>
+        <button class="btn" onclick="showSection('order-history', this)">Historial</button>
+    </div>
+
+    <!-- Agregar producto -->
+    <div id="add-product" class="content-section active">
+        <h2 style="text-align:center;margin-bottom:24px;">Agregar Nuevo Producto</h2>
+        <form action="{{ url_for('crear_producto') }}" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="product-name">Nombre del producto</label>
+                <input type="text" name="nombre" id="product-name" required placeholder="Ej. Libro de cálculo">
             </div>
-
-            <!-- Agregar producto -->
-            <div id="add-product" class="content-section active">
-                <h2 style="text-align:center;margin-bottom:24px;">Agregar Nuevo Producto</h2>
-                <form action="{{ url_for('crear_producto') }}" method="POST" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="product-name">Nombre del producto</label>
-                        <input type="text" name="nombre" id="product-name" required placeholder="Ej. Libro de cálculo">
-                    </div>
-                    <div class="form-group">
-                        <label for="product-description">Descripción</label>
-                        <textarea name="descripcion" id="product-description" rows="4" required placeholder="Describe tu producto."></textarea>
-                    </div>
-                    <div class="flex-row">
-                        <div class="form-group">
-                            <label for="product-quantity">Cantidad disponible</label>
-                            <input type="number" name="stock" id="product-quantity" min="1" required value="1">
-                        </div>
-                        <div class="form-group">
-                            <label for="product-cost">Costo ($)</label>
-                            <input type="number" name="precio" id="product-cost" min="0" step="0.01" required value="0.00">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="product-image">Imagen del producto</label>
-                        <input type="file" name="foto" id="product-image" accept="image/*" class="btn">
-                    </div>
-                    <div class="form-group">
-                        <label for="product-category">Categoría</label>
-                        <select name="id_categoria" id="product-category" required>
-                            <option value="" disabled selected>Selecciona una categoría</option>
-                            {% for cat in categorias %}
-                                <option value="{{ cat.id_categoria }}">{{ cat.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="submit" class="btn-primary" style="margin-top:20px;">Guardar Producto</button>
-                </form>
+            <div class="form-group">
+                <label for="product-description">Descripción</label>
+                <textarea name="descripcion" id="product-description" rows="4" required placeholder="Describe tu producto."></textarea>
             </div>
-
-            <!-- Lista de productos -->
-            <div id="product-list" class="content-section">
-                <h2 style="text-align:center;margin-bottom:24px;">Mis Productos</h2>
-                <div class="product-list">
-                    {% if productos %}
-                        {% for p in productos %}
-                        {% if not p.entregado %}
-                        <div class="product-item" id="producto-{{ p.id_producto }}">
-                            <img src="{{ url_for('static', filename=p.foto) if p.foto else url_for('static', filename='placeholders/product.png') }}" alt="{{ p.nombre }}">
-                                                        <div class="product-details">
-                                <h3>{{ p.nombre }}</h3>
-                                <p>{{ p.descripcion }}</p>
-                                <p>Cantidad: {{ p.stock }} • ${{ "%.2f"|format(p.precio) }}</p>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn" onclick="editarProducto({{ p.id_producto }})">Editar</button>
-                                <button class="btn" onclick="eliminarProducto({{ p.id_producto }})">Eliminar</button>
-                                <button class="btn btn-primary" onclick="marcarEntregado({{ p.id_producto }})">Marcar como entregado</button>
-                            </div>
-                        </div>
-                        {% endif %}
-                        {% endfor %}
-                    {% else %}
-                        <p style="text-align:center;color:var(--muted)">No hay productos registrados.</p>
-                    {% endif %}
+            <div class="flex-row">
+                <div class="form-group">
+                    <label for="product-quantity">Cantidad disponible</label>
+                    <input type="number" name="stock" id="product-quantity" min="1" required value="1">
+                </div>
+                <div class="form-group">
+                    <label for="product-cost">Costo ($)</label>
+                    <input type="number" name="precio" id="product-cost" min="0" step="0.01" required value="0.00">
                 </div>
             </div>
-
-            <!-- Historial de productos entregados -->
-            <div id="order-history" class="content-section">
-                <h2 style="text-align:center;margin-bottom:24px;">Historial de Productos Entregados</h2>
-                <div class="product-list">
-                    {% if productos %}
-                        {% for p in productos %}
-                        {% if p.entregado %}
-                        <div class="product-item">
-                            <img src="{{ url_for('static', filename=p.foto) if p.foto else url_for('static', filename='placeholders/product.png') }}" alt="{{ p.nombre }}">
-                            <div class="product-details">
-                                <h3>{{ p.nombre }}</h3>
-                                <p>{{ p.descripcion }}</p>
-                                <p>Cantidad: {{ p.stock }} • ${{ "%.2f"|format(p.precio) }}</p>
-                                <span class="order-status completed">Entregado</span>
-                            </div>
-                        </div>
-                        {% endif %}
-                        {% endfor %}
-                    {% else %}
-                        <p style="text-align:center;color:var(--muted)">No hay productos entregados.</p>
-                    {% endif %}
-                </div>
+            <div class="form-group">
+                <label for="product-image">Imagen del producto</label>
+                <input type="file" name="foto" id="product-image" accept="image/*" class="btn">
             </div>
+            <div class="form-group">
+                <label for="product-category">Categoría</label>
+                <select name="id_categoria" id="product-category" required>
+                    <option value="" disabled selected>Selecciona una categoría</option>
+                    {% for cat in categorias %}
+                        <option value="{{ cat.id_categoria }}">{{ cat.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top:20px;">Guardar Producto</button>
+        </form>
+    </div>
 
+    <!-- Lista de productos -->
+    <div id="product-list" class="content-section">
+        <h2 style="text-align:center;margin-bottom:24px;">Mis Productos</h2>
+        <div class="product-list">
+            {% if productos %}
+                {% for p in productos %}
+                {% if not p.entregado %}
+                <div class="product-item" id="producto-{{ p.id_producto }}">
+                   <img src="{{ url_for('static', filename='uploads/' ~ p.foto) }}" alt="{{ p.nombre }}">
+
+                    <div class="product-details">
+                        <h3>{{ p.nombre }}</h3>
+                        <p>{{ p.descripcion }}</p>
+                        <p>Cantidad: {{ p.stock }} • ${{ "%.2f"|format(p.precio) }}</p>
+                    </div>
+
+                    <div class="product-actions">
+                        <button class="btn" onclick="editarProducto({{ p.id_producto }})">Editar</button>
+                        <button class="btn" onclick="eliminarProducto({{ p.id_producto }})">Eliminar</button>
+                        
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            {% else %}
+                <p style="text-align:center;color:var(--muted)">No hay productos registrados.</p>
+            {% endif %}
         </div>
-    </main>
+    </div>
 
-    <footer>
-        <div class="container">© <span id="year"></span> UniMarket • Hecho por estudiantes para estudiantes.</div>
-    </footer>
+    <!-- Pedidos pendientes -->
+<div id="orders" class="content-section">
+    <h2 style="text-align:center;margin-bottom:24px;">Pedidos Pendientes</h2>
+    <div class="product-list">
+        {% if pedidos %}
+            {% for pedido in pedidos %}
+                {% if pedido.estado == 'pendiente' %}
+                <div class="product-item" id="pedido-{{ pedido.id_pedido }}">
+                    <div class="product-details">
+                        <h3>Pedido #{{ pedido.id_pedido }}</h3>
+                        <p>Productos: {{ pedido.productos|join(', ') }}</p>
+                        <p>Total: ${{ "%.2f"|format(pedido.total) }}</p>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn btn-primary" onclick="marcarPedidoEntregado({{ pedido.id_pedido }})">Entregado</button>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <p style="text-align:center;color:var(--muted)">No hay pedidos pendientes.</p>
+        {% endif %}
+    </div>
+</div>
+    <!-- Historial de productos entregados -->
+    <div id="order-history" class="content-section">
+        <h2 style="text-align:center;margin-bottom:24px;">Historial de Productos Entregados</h2>
+        <div class="product-list">
+            {% if productos %}
+                {% for p in productos %}
+                {% if p.entregado %}
+                <div class="product-item">
+                    <img src="{{ url_for('static', filename=p.foto) if p.foto else url_for('static', filename='placeholders/product.png') }}" alt="{{ p.nombre }}">
+                    <div class="product-details">
+                        <h3>{{ p.nombre }}</h3>
+                        <p>{{ p.descripcion }}</p>
+                        <p>Cantidad: {{ p.stock }} • ${{ "%.2f"|format(p.precio) }}</p>
+                        <span class="order-status completed">Entregado</span>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            {% else %}
+                <p style="text-align:center;color:var(--muted)">No hay productos entregados.</p>
+            {% endif %}
+        </div>
+    </div>
 
-    <script>
-        document.getElementById('year').textContent = new Date().getFullYear();
+</div>
+</main>
 
-        function showSection(sectionId, btn) {
-            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
-            document.getElementById(sectionId).classList.add('active');
-            document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
-            if(btn) btn.classList.add('active');
-        }
+<footer>
+    <div class="container">© <span id="year"></span> UniMarket • Hecho por estudiantes para estudiantes.</div>
+</footer>
 
-        function editarProducto(id) {
-            alert("Funcionalidad de editar producto: " + id);
-            // Aquí puedes abrir un modal o redirigir a la ruta de edición
-        }
+<!-- Modal para editar producto -->
+<div id="editModal" style="
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.5);
+    align-items:center; justify-content:center; z-index:1000;">
+    <div style="
+        background:rgba(2,6,23,.95); padding:24px; border-radius:16px; width:90%; max-width:500px;">
+        <h2 style="margin-top:0;">Editar producto</h2>
+        <form id="editForm" enctype="multipart/form-data">
+            <input type="hidden" name="id" id="edit-id">
+            <div class="form-group">
+                <label for="edit-nombre">Nombre</label>
+                <input type="text" name="nombre" id="edit-nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-descripcion">Descripción</label>
+                <textarea name="descripcion" id="edit-descripcion" rows="3" required></textarea>
+            </div>
+            <div class="flex-row">
+                <div class="form-group">
+                    <label for="edit-stock">Cantidad</label>
+                    <input type="number" name="stock" id="edit-stock" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-precio">Precio</label>
+                    <input type="number" name="precio" id="edit-precio" step="0.01" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="edit-foto">Nueva imagen (opcional)</label>
+                <input type="file" name="foto" id="edit-foto" accept="image/*">
+            </div>
+            <div class="form-group">
+                <label for="edit-categoria">Categoría</label>
+                <select name="id_categoria" id="edit-categoria" required>
+                    {% for cat in categorias %}
+                        <option value="{{ cat.id_categoria }}">{{ cat.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="text-align:right;">
+                <button type="button" class="btn" onclick="cerrarModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-        function eliminarProducto(id) {
-            if(confirm("¿Estás seguro de eliminar este producto?")) {
-                fetch(`/producto/eliminar/${id}`, { method: 'DELETE' })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            document.getElementById(`producto-${id}`).remove();
-                        } else {
-                            alert("Error al eliminar el producto");
-                        }
-                    });
+<script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Cambiar de sección
+    function showSection(sectionId, btn) {
+        document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+        document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+        if(btn) btn.classList.add('active');
+    }
+
+    // Abrir modal y cargar datos del producto
+    function editarProducto(id) {
+        if(!id) return alert("ID de producto inválido");
+        fetch(`/producto/${id}`)
+            .then(res => res.json())
+            .then(p => {
+                if(!p || !p.id_producto) return alert("No se pudo cargar el producto");
+                document.getElementById('edit-id').value = p.id_producto;
+                document.getElementById('edit-nombre').value = p.nombre;
+                document.getElementById('edit-descripcion').value = p.descripcion;
+                document.getElementById('edit-stock').value = p.stock;
+                document.getElementById('edit-precio').value = p.precio;
+                document.getElementById('edit-categoria').value = p.id_categoria;
+                document.getElementById('editModal').style.display = 'flex';
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Error al obtener el producto");
+            });
+    }
+
+    // Cerrar modal
+    function cerrarModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    // Guardar cambios del producto
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const id = document.getElementById('edit-id').value;
+        if(!id) return alert("ID de producto inválido");
+
+        const formData = new FormData(this);
+
+        fetch(`/vendedor/producto/editar/${id}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success){
+                alert('Producto actualizado correctamente');
+                location.reload();
+            } else {
+                alert('Error al actualizar: ' + (data.error || ''));
             }
-        }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Error al actualizar el producto. Revisa la consola.");
+        });
+    });
 
-        function marcarEntregado(id) {
-            if(confirm("Marcar este producto como entregado?")) {
-                fetch(`/producto/entregado/${id}`, { method: 'POST' })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            // Mover el producto a historial
-                            document.getElementById(`producto-${id}`).remove();
-                            location.reload(); // recarga para ver historial
-                        } else {
-                            alert("Error al marcar como entregado");
-                        }
-                    });
-            }
+    // Eliminar producto
+    function eliminarProducto(id) {
+        if(confirm("¿Estás seguro de eliminar este producto?")) {
+            fetch(`/producto/eliminar/${id}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        document.getElementById(`producto-${id}`).remove();
+                    } else {
+                        alert("Error al eliminar el producto");
+                    }
+                });
         }
-    </script>
+    }
+
+    // Marcar como entregado
+    function marcarPedidoEntregado(id) {
+    if(confirm("Marcar este pedido como entregado?")) {
+        fetch(`/pedido/entregado/${id}`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    // Remover del listado de pedidos pendientes
+                    document.getElementById(`pedido-${id}`).remove();
+                    // Opcional: recargar historial
+                    showSection('order-history');
+                    location.reload();
+                } else {
+                    alert("Error al marcar como entregado");
+                }
+            });
+    }
+}
+</script>
+
 </body>
 </html>
-
