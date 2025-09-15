@@ -7,7 +7,7 @@ class Pedido(db.Model):
 
     id_pedido = db.Column(db.Integer, primary_key=True)
     id_comprador = db.Column(db.Integer, db.ForeignKey('usuario.id_usuario'), nullable=False)
-    id_vendedor = db.Column(db.Integer, db.ForeignKey('usuario.id_usuario'), nullable=False)  # agrega esto
+    id_vendedor = db.Column(db.Integer, db.ForeignKey('usuario.id_usuario'), nullable=False)  
     fecha = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     total = db.Column(db.Numeric(10,2), nullable=False)
     estado = db.Column(db.String(20), default='Pendiente')
@@ -20,7 +20,7 @@ class Pedido(db.Model):
     vendedor = db.relationship('Usuario', foreign_keys=[id_vendedor],
                                backref=db.backref('pedidos_vendedor', lazy=True))
     
-    detalles = db.relationship('DetallePedido', backref='pedido', lazy=True)
+    detalles = db.relationship('DetallePedido', backref='pedido', cascade='all,delete')
 
     def __repr__(self):
         return f'<Pedido {self.id_pedido} - Total: ${self.total} - Estado: {self.estado}>'
@@ -30,7 +30,7 @@ class DetallePedido(db.Model):
 
     id_detalle = db.Column(db.Integer, primary_key=True)
     id_pedido = db.Column(db.Integer, db.ForeignKey('pedido.id_pedido'), nullable=False)
-    id_producto = db.Column(db.Integer, db.ForeignKey('producto.id_producto'), nullable=False)
+    id_producto = db.Column(db.Integer, db.ForeignKey('producto.id_producto',ondelete='CASCADE'), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False)
     precio_unitario = db.Column(db.Numeric(10,2), nullable=False)
     subtotal = db.Column(db.Numeric(10,2), nullable=False)

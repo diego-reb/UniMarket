@@ -358,6 +358,7 @@ def editar_producto(id):
 @login_required
 def eliminar_producto(id):
     producto = Producto.query.get_or_404(id)
+    DetallePedido.query.filter_by(id_producto=id).delete()
     db.session.delete(producto)
     db.session.commit()
     flash(f'Producto {producto.nombre} eliminado correctamente', 'success')
