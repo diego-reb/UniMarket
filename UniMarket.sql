@@ -61,3 +61,20 @@ create table DetallePedido (
 );
 
 select * from Usuario
+
+
+CREATE TABLE Notificacion (
+    id_notificacion SERIAL PRIMARY KEY,
+    id_vendedor INT NOT NULL,
+    id_pedido INT NOT NULL,
+    visto BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (id_vendedor) REFERENCES Usuario(id_usuario),
+    FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido)
+);
+
+ALTER TABLE pedido ADD COLUMN id_vendedor INTEGER;
+ALTER TABLE pedido
+ADD CONSTRAINT fk_pedido_vendedor
+FOREIGN KEY (id_vendedor) REFERENCES usuario(id_usuario);
+
+

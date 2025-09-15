@@ -7,11 +7,19 @@ class Pedido(db.Model):
 
     id_pedido = db.Column(db.Integer, primary_key=True)
     id_comprador = db.Column(db.Integer, db.ForeignKey('usuario.id_usuario'), nullable=False)
+    id_vendedor = db.Column(db.Integer, db.ForeignKey('usuario.id_usuario'), nullable=False)  # agrega esto
     fecha = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     total = db.Column(db.Numeric(10,2), nullable=False)
     estado = db.Column(db.String(20), default='Pendiente')
 
-    comprador = db.relationship('Usuario', backref=db.backref('pedidos', lazy=True))
+    # Relación comprador
+    comprador = db.relationship('Usuario', foreign_keys=[id_comprador],
+                                backref=db.backref('pedidos_comprador', lazy=True))
+    
+    # Relación vendedor
+    vendedor = db.relationship('Usuario', foreign_keys=[id_vendedor],
+                               backref=db.backref('pedidos_vendedor', lazy=True))
+    
     detalles = db.relationship('DetallePedido', backref='pedido', lazy=True)
 
     def __repr__(self):

@@ -1,8 +1,10 @@
 from flask import Flask, render_template, flash, request, redirect, url_for, Blueprint, jsonify 
 from flask_sqlalchemy import SQLAlchemy 
 from sqlalchemy.orm import joinedload
+from flask_mail import Mail, Message
 import smtplib
 from email.mime.text import MIMEText
+from collections import defaultdict
 import json
 from src.conn import db, init_app
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user 
@@ -12,6 +14,7 @@ from models.Rol import Rol
 from models.Producto import Producto
 from models.Pedido import Pedido, DetallePedido
 from models.Categoria import Categoria
+from models.Notificaciones import Notificacion
 import os 
 from werkzeug.utils import secure_filename
 
@@ -31,6 +34,18 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
 
 ##---------------------------------------------------fin_foto--------------------------------------------------------------------------------------
+
+##----------------------------------------------------correo----------------------------------------------------------------------------------------
+
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USERNAME'] = 'dzgarcia10@gmail.com'
+app.config['MAIL_PASSWORD'] = 'zxbi yzge pbjn onkq'
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+mail = Mail(app)
+##----------------------------------------------------fin_correo-----------------------------------------------------------------------------------
+
 ##---------------------------------------------------test------------------------------------------------------------------------------------------
 @app.route('/test')
 def test_db():
@@ -55,7 +70,8 @@ def index():
             'descripcion': p.descripcion,
             'precio':float(p.precio),
             'foto':p.foto,
-            'vendedor': p.vendedor.nombre
+            'vendedor': p.vendedor.nombre,
+            'categoria_id':p.categoria.id_categoria
         })
    
 
@@ -353,10 +369,47 @@ def eliminar_producto(id):
 @app.route('/vendedor')
 @login_required
 def vendedor():
-   categorias = Categoria.query.all()
-   productos = Producto.query.filter_by(id_vendedor=current_user.id_usuario).all()
-   
-   return render_template('usuariovendedor.html', productos=productos, categorias=categorias) 
+    pedidos_raw = Pedido.query.filter_by(id_vendedor=current_user.id_usuario).all()
+    categorias = Categoria.query.all()
+    productos = Producto.query.filter_by(id_vendedor=current_user.id_usuario).all()
+
+    pedidos_pendientes = []
+    pedidos_entregados = []
+
+    for p in pedidos_raw:
+        comprador = Usuario.query.get(p.id_comprador)
+
+        detalles = DetallePedido.query.filter_by(id_pedido=p.id_pedido).all()
+        lista_productos = []
+        for d in detalles:
+            prod = Producto.query.get(d.id_producto)
+            if prod:
+                lista_productos.append(f"{prod.nombre} x {d.cantidad}")
+
+        pedido_dict = {
+            'id_pedido': p.id_pedido,
+            'fecha': p.fecha,
+            'total': p.total,
+            'estado': p.estado,
+            'comprador_nombre': comprador.nombre if comprador else "Desconocido",
+            'comprador_correo': comprador.correo if comprador else "Desconocido",
+            'comprador_telefono': comprador.telefono if comprador else "Desconocido",
+            'productos': lista_productos
+        }
+
+        if p.estado.lower() == 'pendiente':
+            pedidos_pendientes.append(pedido_dict)
+        else:
+            pedidos_entregados.append(pedido_dict)
+
+    return render_template(
+        'usuariovendedor.html',
+        productos=productos,
+        categorias=categorias,
+        pedidos=pedidos_pendientes,
+        historial=pedidos_entregados  
+    )
+
 
 @app.route('/producto/<int:id>')
 @login_required
@@ -456,11 +509,41 @@ def eliminar_producto_vendedor(id):
 
 @app.route('/pedido/entregado/<int:id>', methods=['POST'])
 @login_required
-def pedido_entregado(id):
+def marcar_entregado(id):
     pedido = Pedido.query.get_or_404(id)
-    pedido.estado = 'entregado'
+    
+    detalles = DetallePedido.query.join(Producto).filter(
+        DetallePedido.id_pedido == id,
+        Producto.id_vendedor == current_user.id_usuario
+    ).all()
+    if not detalles:
+        return jsonify({'success': False, 'error': 'No autorizado'}), 403
+
+    pedido.estado = 'Entregado'
     db.session.commit()
-    return jsonify({"success": True})
+
+    comprador = Usuario.query.get(pedido.id_comprador)  
+    
+    lista_productos = []
+    for d in detalles:
+        prod = Producto.query.get(d.id_producto)
+        if prod:
+            lista_productos.append(f"{prod.nombre} x {d.cantidad}")
+
+    return jsonify({
+        'success': True,
+        'pedido': {
+            'id_pedido': pedido.id_pedido,
+            'fecha': pedido.fecha.strftime('%d/%m/%Y %H:%M'),
+            'total': pedido.total,
+            'comprador_nombre': comprador.nombre,
+            'comprador_correo': comprador.correo,
+            'comprador_telefono': comprador.telefono,
+            'productos': lista_productos
+        }
+    })
+
+
 
 @app.route('/vendedor/pedidos')
 @login_required
@@ -498,55 +581,64 @@ def comprador():
 @app.route('/compra')
 @login_required
 def compra():
-    return render_template('compra.html')
+
+    return render_template('compra.html', user=current_user)
 
 @app.route('/procesar_compra', methods=['POST'])
+@login_required
 def procesar_compra():
-    nombre = request.form['nombre']
-    correo = request.form['correo']
+    cart = json.loads(request.form['cartData'])
     pago = request.form['pago']
     turno = request.form['turno']
     horas = request.form.getlist('horas')
-    cart = json.loads(request.form['cartData'])
 
-    total = sum(item['price'] * item['quantity'] for item in cart)
-
-    # Generar resumen para correo
-    detalles = ""
+    # Agrupar productos por vendedor
+    productos_por_vendedor = defaultdict(list)
     for item in cart:
-        detalles += f"{item['name']} x {item['quantity']} - ${item['price']*item['quantity']:.2f}\n"
+        vendedor_id = db.session.query(Producto.id_vendedor).filter_by(id_producto=item['id']).scalar()
+        productos_por_vendedor[vendedor_id].append(item)
 
-    mensaje = f"""
-Hola {nombre},
+    # Crear un pedido por cada vendedor
+    for vendedor_id, items in productos_por_vendedor.items():
+        total = sum(item['price']*item['quantity'] for item in items)
+        pedido = Pedido(
+            id_comprador=current_user.id_usuario,
+            id_vendedor=vendedor_id,
+            total=total
+        )
+        db.session.add(pedido)
+        db.session.flush()  # obtener id_pedido
 
-Tu compra ha sido confirmada.
+        for item in items:
+            detalle = DetallePedido(
+                id_pedido=pedido.id_pedido,
+                id_producto=item['id'],
+                cantidad=item['quantity'],
+                precio_unitario=item['price'],
+                subtotal=item['price'] * item['quantity']
+            )
+            db.session.add(detalle)
 
-Detalles de la compra:
-{detalles}
-Total: ${total:.2f}
-Método de pago: {pago}
-Turno: {turno}
-Horas seleccionadas: {', '.join(horas)}
+            # Notificación para el vendedor
+            notificacion = Notificacion(id_vendedor=vendedor_id, id_pedido=pedido.id_pedido)
+            db.session.add(notificacion)
 
-Gracias por comprar en UniMarket.
-    """
+    db.session.commit()
 
-    # Enviar correo (ejemplo con SMTP)
-    try:
-        msg = MIMEText(mensaje)
-        msg['Subject'] = 'Confirmación de Compra UniMarket'
-        msg['From'] = 'tucuenta@unimarket.com'
-        msg['To'] = correo
+    # Enviar correo al comprador
+    msg = Message(
+        "Confirmación de compra",
+        sender="UniMarket@gmail.com",
+        recipients=[current_user.correo]
+    )
+    body = f"Hola {current_user.nombre},\nGracias por tu compra en UniMarket.\n\n"
+    for item in cart:
+        body += f"{item['name']} x {item['quantity']} = ${item['price'] * item['quantity']: .2f}\n"
+    body += f"\nTotal: ${sum(item['price']*item['quantity'] for item in cart): .2f}\nTurno: {turno}\nHoras: {','.join(horas)}\n\nGracias por tu compra."
+    msg.body = body
+    mail.send(msg)
 
-        with smtplib.SMTP('smtp.gmail.com', 587) as server:
-            server.starttls()
-            server.login('tucuenta@unimarket.com','TU_CONTRASEÑA')
-            server.send_message(msg)
-    except Exception as e:
-        print("Error enviando correo:", e)
-
-    flash('Compra realizada con éxito! Revisa tu correo.')
-    return redirect(url_for('compra'))
+    return "<h1>Compra finalizada con éxito</h1><p>Revisa tu correo para la confirmación de la compra.</p><a href='/'>Volver al inicio</a>"
 
 ##-------------------------------------------------------------fin_compra------------------------------------------------------------------
 

@@ -239,6 +239,33 @@ html,body { height:100%; margin:0; font-family:'Inter',sans-serif; color:var(--t
 </div>
 
 <script>
+// Filtrado de usuarios por rol
+document.addEventListener('DOMContentLoaded', () => {
+    const filterBtns = document.querySelectorAll('#users-section .filter-btn');
+    const userCards = document.querySelectorAll('#user-list .user-card');
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remover clase active de todos los botones
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const filter = btn.getAttribute('data-filter');
+
+            userCards.forEach(card => {
+                const role = card.getAttribute('data-role'); // vendedor, comprador, administrador
+                if (filter === 'all' || role === filter) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+});
+</script>
+
+<script>
 function abrirModal(id){
     document.getElementById(id).style.display='block';
     document.getElementById('modal-overlay').style.display='block';

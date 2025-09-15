@@ -183,21 +183,28 @@
         </div>
     </div>
 
-    <!-- Pedidos pendientes -->
+ <!-- Pedidos pendientes -->
 <div id="orders" class="content-section">
     <h2 style="text-align:center;margin-bottom:24px;">Pedidos Pendientes</h2>
     <div class="product-list">
         {% if pedidos %}
             {% for pedido in pedidos %}
-                {% if pedido.estado == 'pendiente' %}
+                {% if pedido.estado|lower == 'pendiente' %}
                 <div class="product-item" id="pedido-{{ pedido.id_pedido }}">
                     <div class="product-details">
                         <h3>Pedido #{{ pedido.id_pedido }}</h3>
-                        <p>Productos: {{ pedido.productos|join(', ') }}</p>
-                        <p>Total: ${{ "%.2f"|format(pedido.total) }}</p>
+                        <p><strong>Comprador:</strong> {{ pedido.comprador_nombre }} ({{ pedido.comprador_correo }})</p>
+                        <p><strong>Fecha:</strong> {{ pedido.fecha.strftime('%d/%m/%Y %H:%M') }}</p>
+                        <p><strong>Productos:</strong> {{ pedido.productos|join(', ') }}</p>
+                        <p><strong>Total:</strong> ${{ "%.2f"|format(pedido.total) }}</p>
+                        <p><strong>Teléfono:</strong> {{ pedido.comprador_telefono or "No disponible" }}</p>
+
+
                     </div>
                     <div class="product-actions">
-                        <button class="btn btn-primary" onclick="marcarPedidoEntregado({{ pedido.id_pedido }})">Entregado</button>
+                        <button class="btn btn-primary" onclick="marcarPedidoEntregado({{ pedido.id_pedido }})">
+                            Marcar como Entregado
+                        </button>
                     </div>
                 </div>
                 {% endif %}
@@ -207,29 +214,30 @@
         {% endif %}
     </div>
 </div>
-    <!-- Historial de productos entregados -->
-    <div id="order-history" class="content-section">
-        <h2 style="text-align:center;margin-bottom:24px;">Historial de Productos Entregados</h2>
-        <div class="product-list">
-            {% if productos %}
-                {% for p in productos %}
-                {% if p.entregado %}
-                <div class="product-item">
-                    <img src="{{ url_for('static', filename=p.foto) if p.foto else url_for('static', filename='placeholders/product.png') }}" alt="{{ p.nombre }}">
-                    <div class="product-details">
-                        <h3>{{ p.nombre }}</h3>
-                        <p>{{ p.descripcion }}</p>
-                        <p>Cantidad: {{ p.stock }} • ${{ "%.2f"|format(p.precio) }}</p>
-                        <span class="order-status completed">Entregado</span>
-                    </div>
+
+   <div id="order-history" class="content-section">
+    <h2 style="text-align:center;margin-bottom:24px;">Historial de Productos Entregados</h2>
+    <div class="product-list">
+        {% if historial %}
+            {% for pedido in historial %}
+            <div class="product-item">
+                <div class="product-details">
+                    <h3>Pedido #{{ pedido.id_pedido }}</h3>
+                    <p><strong>Comprador:</strong> {{ pedido.comprador_nombre }} ({{ pedido.comprador_correo }})</p>
+                    <p><strong>Teléfono:</strong> {{ pedido.comprador_telefono or "No disponible" }}</p>
+                    <p><strong>Fecha:</strong> {{ pedido.fecha.strftime('%d/%m/%Y %H:%M') }}</p>
+                    <p><strong>Productos:</strong> {{ pedido.productos|join(', ') }}</p>
+                    <p><strong>Total:</strong> ${{ "%.2f"|format(pedido.total) }}</p>
+                    <span class="order-status completed">Entregado</span>
                 </div>
-                {% endif %}
-                {% endfor %}
-            {% else %}
-                <p style="text-align:center;color:var(--muted)">No hay productos entregados.</p>
-            {% endif %}
-        </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align:center;color:var(--muted)">No hay productos entregados.</p>
+        {% endif %}
     </div>
+</div>
+
 
 </div>
 </main>
@@ -364,24 +372,48 @@
         }
     }
 
-    // Marcar como entregado
-    function marcarPedidoEntregado(id) {
-    if(confirm("Marcar este pedido como entregado?")) {
-        fetch(`/pedido/entregado/${id}`, { method: 'POST' })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    // Remover del listado de pedidos pendientes
-                    document.getElementById(`pedido-${id}`).remove();
-                    // Opcional: recargar historial
-                    showSection('order-history');
-                    location.reload();
-                } else {
-                    alert("Error al marcar como entregado");
-                }
-            });
-    }
+   function marcarPedidoEntregado(id) {
+    if (!confirm("Marcar este pedido como entregado?")) return;
+
+    fetch(`/pedido/entregado/${id}`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const pedidoElem = document.getElementById(`pedido-${id}`);
+                if (pedidoElem) pedidoElem.remove();
+
+                const historial = document.querySelector('#order-history .product-list');
+                const pedidoHist = document.createElement('div');
+                pedidoHist.classList.add('product-item');
+
+                let productosHtml = data.pedido.productos.join(', ');
+
+                pedidoHist.innerHTML = `
+                    <div class="product-details">
+                        <h3>Pedido #${data.pedido.id_pedido}</h3>
+                        <p><strong>Comprador:</strong> ${data.pedido.comprador_nombre} (${data.pedido.comprador_correo})</p>
+                        <p><strong>Teléfono:</strong> ${data.pedido.comprador_telefono || 'No disponible'}</p>
+                        <p><strong>Fecha:</strong> ${data.pedido.fecha}</p>
+                        <p><strong>Productos:</strong> ${productosHtml}</p>
+                        <p><strong>Total:</strong> $${parseFloat(data.pedido.total).toFixed(2)}</p>
+                        <span class="order-status completed">Entregado</span>
+                    </div>
+                `;
+
+                historial.prepend(pedidoHist);
+
+                showSection('order-history');
+            } else {
+                alert("Error: " + (data.error || "No se pudo marcar como entregado"));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Error al actualizar el pedido. Revisa la consola.");
+        });
 }
+
+
 </script>
 
 </body>
