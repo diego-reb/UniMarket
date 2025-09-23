@@ -34,6 +34,17 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
 
 ##---------------------------------------------------fin_foto--------------------------------------------------------------------------------------
+##---------------------------------------------------no cache--------------------------------------------------------------------------------------
+
+@app.after_request
+def add_header(response):
+    response.headers['cache-control']='no-store, no-cache, must-revalidate'
+    response.headers['Pragma']='no-cache'
+    response.headers['Expires']='0'
+    return response
+
+##---------------------------------------------------fin_no_cache-----------------------------------------------------------------------------------
+
 
 ##----------------------------------------------------correo----------------------------------------------------------------------------------------
 
@@ -593,13 +604,11 @@ def procesar_compra():
     turno = request.form['turno']
     horas = request.form.getlist('horas')
 
-    # Agrupar productos por vendedor
     productos_por_vendedor = defaultdict(list)
     for item in cart:
         vendedor_id = db.session.query(Producto.id_vendedor).filter_by(id_producto=item['id']).scalar()
         productos_por_vendedor[vendedor_id].append(item)
 
-    # Crear un pedido por cada vendedor
     for vendedor_id, items in productos_por_vendedor.items():
         total = sum(item['price']*item['quantity'] for item in items)
         pedido = Pedido(
@@ -608,7 +617,7 @@ def procesar_compra():
             total=total
         )
         db.session.add(pedido)
-        db.session.flush()  # obtener id_pedido
+        db.session.flush() 
 
         for item in items:
             detalle = DetallePedido(
@@ -620,13 +629,11 @@ def procesar_compra():
             )
             db.session.add(detalle)
 
-            # Notificación para el vendedor
             notificacion = Notificacion(id_vendedor=vendedor_id, id_pedido=pedido.id_pedido)
             db.session.add(notificacion)
 
     db.session.commit()
 
-    # Enviar correo al comprador
     msg = Message(
         "Confirmación de compra",
         sender="UniMarket@gmail.com",
@@ -642,8 +649,14 @@ def procesar_compra():
     return "<h1>Compra finalizada con éxito</h1><p>Revisa tu correo para la confirmación de la compra.</p><a href='/'>Volver al inicio</a>"
 
 ##-------------------------------------------------------------fin_compra------------------------------------------------------------------
+##-------------------------------------------------------------error_404------------------------------------------------------------------
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'),404
+##-------------------------------------------------------------fin_error_404------------------------------------------------------------------
 
-if __name__ == '__main__': ##depurar proyecto 
+
+if __name__ == '__main__': # depurar proyecto 
    with app.app_context():
         db.create_all()  # Crea las tablas si no existen
    app.run(debug=True)
