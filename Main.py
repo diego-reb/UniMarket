@@ -1,4 +1,4 @@
-from flask import Flask, render_template, flash, request, redirect, url_for, Blueprint, jsonify 
+from flask import Flask, render_template, flash, request, redirect, url_for, Blueprint, jsonify, session
 from flask_sqlalchemy import SQLAlchemy 
 from sqlalchemy.orm import joinedload
 from flask_mail import Mail, Message
@@ -14,9 +14,13 @@ from models.Rol import Rol
 from models.Producto import Producto
 from models.Pedido import Pedido, DetallePedido
 from models.Categoria import Categoria
-from models.Notificaciones import Notificacion
+from models.Notificaciones import Notificacion  
 import os 
 from werkzeug.utils import secure_filename
+from oauthlib.oauth2 import WebApplicationClient
+import requests
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+
 
 app = Flask(__name__) ##iniciar proyecto
 app.secret_key = 'contraseña_secreta'
@@ -55,8 +59,16 @@ app.config['MAIL_PASSWORD'] = 'zxbi yzge pbjn onkq'
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 mail = Mail(app)
-##----------------------------------------------------fin_correo-----------------------------------------------------------------------------------
 
+##----------------------------------------------------fin_correo-----------------------------------------------------------------------------------
+##-----------------------------------------------------google----------------------------------------------------------------------------------------
+app.config['GOOGLE_CLIENT_ID'] = "460522583219-pg00bvtl0i6biecghpor9sh1qite5f6a.apps.googleusercontent.com"
+app.config['GOOGLE_CLIENT_SECRET'] = "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"
+app.config['GOOGLE_DISCOVERY_URL'] = "https://accounts.google.com/.well-known/openid-configuration"
+client = WebApplicationClient(app.config['GOOGLE_CLIENT_ID'])
+REDIRECT_URI = "http://127.0.0.1:5000/login/google/callback"
+
+##-----------------------------------------------------fin_google------------------------------------------------------------------------------------
 ##---------------------------------------------------test------------------------------------------------------------------------------------------
 @app.route('/test')
 def test_db():
@@ -89,6 +101,103 @@ def index():
     return render_template('index.html', categorias=categorias, productos = productos_data)
 
 ##-----------------------------------fin_index-----------------------------------------------------------------------------------------------
+
+##-------------------------------------inicio_sesion google--------------------------------------------------------------------------------
+@app.route('/login/google')
+def google_login():
+    google_provider_cfg = requests.get(app.config['GOOGLE_DISCOVERY_URL']).json()
+    authorization_endpoint = google_provider_cfg["authorization_endpoint"]
+
+    request_uri = client.prepare_request_uri(
+        authorization_endpoint,
+        redirect_uri="http://127.0.0.1:5000/login/google/callback",  
+        scope=["openid", "email", "profile"],
+    )
+    return redirect(request_uri)
+
+@app.route('/login/google/callback')
+def google_callback():
+    code = request.args.get("code")
+    session.clear()
+
+    google_provider_cfg = requests.get(app.config['GOOGLE_DISCOVERY_URL']).json()
+    token_endpoint = google_provider_cfg["token_endpoint"]
+
+    token_url, headers, body = client.prepare_token_request(
+        token_endpoint,
+        authorization_response=request.url,
+        redirect_url="http://127.0.0.1:5000/login/google/callback",
+        code=code
+    )
+
+    token_response = requests.post(
+        token_url,
+        headers=headers,
+        data=body,
+        auth=(app.config['GOOGLE_CLIENT_ID'], app.config['GOOGLE_CLIENT_SECRET']),
+    )
+
+    client.parse_request_body_response(token_response.text)
+
+    userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
+    uri, headers, body = client.add_token(userinfo_endpoint)
+    userinfo_response = requests.get(uri, headers=headers, data=body)
+    userinfo = userinfo_response.json()
+
+    correo = userinfo.get("email")
+    nombre = userinfo.get("name", "")
+
+    usuario = Usuario.query.filter_by(correo=correo).first()
+    if not usuario:
+        session['nuevo_usuario']={
+            "nombre":nombre,
+            "correo":correo,
+            "telefono":'',
+            }
+        return redirect(url_for('choose_role'))
+
+    login_user(usuario)
+    flash("Inicio de sesión exitoso con Google", "login")
+
+    if usuario.id_rol == 1:
+        return redirect(url_for('Admin'))
+    elif usuario.id_rol == 2:
+        return redirect(url_for('vendedor'))
+    else:
+        return redirect(url_for('index'))
+    
+@app.route('/complete_registration')
+def complete_registration():
+    if 'nuevo_usuario' not in session or 'rol_elegido' not in session:
+        return redirect(url_for('index'))  
+
+    datos = session['nuevo_usuario']
+    rol = session['rol_elegido']
+
+    usuario = Usuario(
+        nombre=datos['nombre'],
+        correo=datos['correo'],
+        telefono=datos['telefono'],
+        id_rol=rol,
+        estado=True
+    )
+    usuario.password = generate_password_hash('google_login')
+    db.session.add(usuario)
+    db.session.commit()
+
+    login_user(usuario)
+
+    session.pop('nuevo_usuario')
+    session.pop('rol_elegido')
+
+    flash("Registro completado y sesión iniciada", "login")
+    if rol == 2:
+        return redirect(url_for('vendedor'))
+    else:
+        return redirect(url_for('index'))
+
+
+##-------------------------------------fin_inicio_sesion google-------------------------------------------------------------------------------
 ##-----------------------------------inicio_sesion-------------------------------------------------------------------------------------
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -288,6 +397,16 @@ def editar_usuario(id):
 @app.route('/usuario/eliminar/<int:id>', methods=['POST'])
 def eliminar_usuario(id):
     usuario = Usuario.query.get_or_404(id)
+
+    if usuario.pedidos_comprador or usuario.pedidos_vendedor:
+        flash ("No se puede eliminar el usuario con pedidos asocidos","error")
+        return redirect(url_for('Admin'))
+    
+    if usuario.productos:
+        flash("No se puede eliminar el usuario con productos asosociados", "error")
+        return redirect(url_for('Admin'))
+
+
     db.session.delete(usuario)
     db.session.commit()
     flash('Usuario eliminado correctamente', 'success')
@@ -654,6 +773,21 @@ def procesar_compra():
 def page_not_found(e):
     return render_template('404.html'),404
 ##-------------------------------------------------------------fin_error_404------------------------------------------------------------------
+##-------------------------------------------------------------Rol-------------------------------------------------------------------------------------
+@app.route('/choose_role')
+def choose_role():
+    
+    return render_template("Rol.html")
+@app.route('/set_rol', methods=['POST'])
+def set_rol():
+    rol_elegido = int(request.form.get("rol"))
+    
+    session['rol_elegido'] = rol_elegido
+    
+    return redirect(url_for('complete_registration'))
+
+##-------------------------------------------------------------fin_Rol------------------------------------------------------------------
+
 
 
 if __name__ == '__main__': # depurar proyecto 

@@ -283,8 +283,18 @@
 {% endwith %}
 
             <div class="separator">o</div>
+        <div style="text-align:center; margin-top:20px;">
+  <a href="{{ url_for('google_login') }}" 
+     style="display:inline-flex; align-items:center; 
+            padding:10px 50px; border:1px solid #ccc; border-radius:8px;
+            text-decoration:none; color:#ccc; font-weight:500;">
+    <img src="https://developers.google.com/identity/images/g-logo.png" 
+         alt="Google" width="20" style="margin-right:8px;">
+    Iniciar sesión con Google
+  </a>
+</div>
 
-            <button id="guest-login-btn" class="btn-primary" style="background: var(--card); border: 1px solid rgba(148,163,184,.25); width: 100%; max-width: 400px;">Registrate</button>
+            <button id="guest-login-btn" class="btn-primary" style="background: var(--card); border: 1px solid rgba(148,163,184,.25); width: 100%; max-width: 400px; margin-top: 15px;">Registrate</button>
         </div>
     </div>
 <script>
