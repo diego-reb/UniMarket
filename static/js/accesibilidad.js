@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <button id="toggle-font">Tipografía accesible</button>
         <button id="toggle-size">Aumentar tamaño</button>
         <button id="toggle-grayscale">Escala de grises</button>
-        <button id="toggle-guide">Guía de lectura</button>
+        <button id="toggle-guide">Guia de lectura</button>
         <button id="toggle-read">Lectura en voz alta</button>
     `;
     document.body.appendChild(panel);

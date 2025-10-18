@@ -43,9 +43,10 @@ body.alt-font {
   transition: top 0.1s ease; 
 }
 
-body.reading-guide-active .reading-guide-mask {
+body.reading-guide-active .reading-guide-mask{
   display: block;
 }
+
 
 /* === Botón flotante de accesibilidad === */
 #accesibility-toggle {
