@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
+    <script src="{{ url_for('static', filename='js/accesibilidad.js')}}"></script>
     <style>
         :root {
             --bg: #0f172a;           /* slate-900 */
@@ -160,6 +162,7 @@
     </style>
 </head>
 <body id="Registro">
+        <div class="reading-guide" id="reading-guide-mask"></div>
     <header>
         <div class="header-wrap container">
             <a class="logo" href="/inicio_sesion">
