@@ -21,6 +21,7 @@ body.high-contrast a {
 }
 
 /* === Aumento de tamaño de fuente === */
+
 body.large-text {
   font-size: 1.25em !important;
 }

@@ -12,8 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
     panel.innerHTML = `
         <button id="toggle-dark">Modo Oscuro/Claro</button>
         <button id="toggle-contrast">Alto contraste</button>
+
         <button id="toggle-font">Tipografía accesible</button>
-        <button id="toggle-size">Aumentar tamaño</button>
+        <button id= "toggle-size"> Aumentar tamaño </button>
+
         <button id="toggle-grayscale">Escala de grises</button>
         <button id="toggle-guide">Guia de lectura</button>
         <button id="toggle-read">Lectura en voz alta</button>
@@ -35,7 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loadState('darkMode')) document.body.classList.add('dark-mode');
     if (loadState('lightMode')) document.body.classList.add('light-mode');
     
+    
     if (loadState('altFont')) document.body.classList.add('alt-font');
+
     if (loadState('grayscale')) document.body.classList.add('grayscale');
     if (loadState('readingGuide')) {
         document.body.classList.add('reading-guide-active');
@@ -57,8 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleClass('toggle-dark', 'dark-mode', 'darkMode');
     toggleClass('toggle-dark', 'light-mode', 'lightMode');
     toggleClass('toggle-contrast', 'high-contrast', 'highContrast');
+    toggleClass('toggle-contrast', 'high-contrast', 'highContrast');
     toggleClass('toggle-font', 'alt-font', 'altFont');
-    toggleClass('toggle-size', 'large-text', 'largeText');
     toggleClass('toggle-grayscale', 'grayscale', 'grayscale');
     toggleClass('toggle-guide', 'reading-guide-active', 'readingGuide');
 
