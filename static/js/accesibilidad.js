@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const panel = document.createElement('div');
     panel.id = 'accesibility-panel';
     panel.innerHTML = `
+        <button id="toggle-dark">Modo Oscuro/Claro</button>
+        <button id="toggle-guide">Guía de lectura</button>
+
         <button id="toggle-font">Tipografía accesible</button>
         <button id="toggle-grayscale">Escala de grises</button>
         
@@ -24,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     
-
+    const guia = document.getElementById('reading-guide');
     const saveState = (key, value) => localStorage.setItem(key, value);
     const loadState = key => localStorage.getItem(key) === 'true';
 
@@ -32,15 +35,35 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (loadState('altFont')) document.body.classList.add('alt-font');
     if (loadState('grayscale')) document.body.classList.add('grayscale');
-    
+    if (loadState('darkMode')) document.body.classList.add('dark-mode');
+    if (loadState('lightMode')) document.body.classList.add('light-mode');
 
+    if (loadState('readingGuide')) {
+        document.body.classList.add('reading-guide-active');
+        guia.style.display = 'block';
+    }
+    const toggleClass = (btnId, className, storageKey) => {
+        const btn = document.getElementById(btnId);
+        btn.addEventListener('click', () => {
+            document.body.classList.toggle(className);
+            saveState(storageKey, document.body.classList.contains(className));
+            
+            if (storageKey === 'readingGuide') {
+                guia.style.display = document.body.classList.contains(className) ? 'block' : 'none';
+            }
+        });
+    };
     
-
-    
-    
+    toggleClass('toggle-guide', 'reading-guide-active', 'readingGuide');
+    toggleClass('toggle-dark', 'dark-mode', 'darkMode');
+    toggleClass('toggle-dark', 'light-mode', 'lightMode');
     toggleClass('toggle-grayscale', 'grayscale', 'grayscale');
     
-
+    document.addEventListener('mousemove', e => {
+        if (document.body.classList.contains('reading-guide-active')) {
+            guia.style.top = `${e.clientY - 20}px`;
+        }
+    });
     
 
     let lecturaActiva = false;

@@ -6,7 +6,9 @@ db = SQLAlchemy()
 
 def init_app(app: Flask):
     app.config['SQLALCHEMY_DATABASE_URI'] = (
-        'postgresql://postgres:postgres@localhost:5432/UniMarket'
+        ##'postgresql://postgres:postgres@localhost:5432/UniMarket'
+        'postgresql://postgres:lenovoblue@localhost:5432/UniMarket'
+
     )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
