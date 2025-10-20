@@ -22,6 +22,7 @@ import requests
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 
+
 app = Flask(__name__) ##iniciar proyecto
 app.secret_key = 'contraseña_secreta'
 init_app(app)
