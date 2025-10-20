@@ -10,43 +10,12 @@ body.grayscale {
   filter: grayscale(100%);
 }
 
-/* === Alto contraste === */
-body.high-contrast {
-  background: #000 !important;
-  color: #fff !important;
-}
-
-body.high-contrast a {
-  color: yellow !important;
-}
-
-/* === Aumento de tamaño de fuente === */
-
-body.large-text {
-  font-size: 1.25em !important;
-}
-
 /* === Cambio de tipografía accesible === */
 body.alt-font {
   font-family: 'Arial Rounded MT Bold', Verdana, sans-serif !important;
 }
 
-/* === Guía de lectura === */
-.reading-guide-mask {
-  position: fixed;
-  left: 0;
-  width: 100%;
-  height: 40px;
-  background: rgba(255,255,0,0.15);
-  pointer-events: none;
-  display: none;
-  z-index: 9999;
-  transition: top 0.1s ease; 
-}
 
-body.reading-guide-active .reading-guide-mask{
-  display: block;
-}
 
 
 /* === Botón flotante de accesibilidad === */
@@ -113,12 +82,3 @@ body.reading-guide-active .reading-guide-mask{
   background: rgba(255,255,255,.25);
 }
 
-body.dark-mode {
-  background: #111827 !important;
-  color: #f9fafb !important;
-}
-
-body.light-mode {
-  background: #ffffff !important;
-  color: #000000 !important;
-}
