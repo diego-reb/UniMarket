@@ -84,6 +84,9 @@
         .order-status.pending { color: var(--accent); font-weight: bold; }
         .order-status.completed { color: var(--ok); font-weight: bold; }
         .order-details p { margin: 0 0 8px; font-size: 0.95rem; }
+        .guardar-btn {
+    padding: 12px 24px !important;border-radius: 12px !important;background: linear-gradient(135deg, var(--brand), var(--brand-2)) !important;color: white !important;font-weight: 800 !important;border: none !important;cursor: pointer;}
+
         footer { padding: 20px; color: var(--muted); text-align: center; }
     </style>
 </head>
@@ -152,7 +155,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <button type="submit" class="btn-primary" style="margin-top:20px;">Guardar Producto</button>
+            <button type="submit" class="btn btn-primary" style="margin-top:20px;">Guardar Producto</button>
         </form>
     </div>
 
@@ -290,7 +293,7 @@
             </div>
             <div style="text-align:right;">
                 <button type="button" class="btn" onclick="cerrarModal()">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                <button type="submit" class="btn btn-primary guardar-btn">Guardar Producto</button>
             </div>
         </form>
     </div>
