@@ -15,6 +15,46 @@ body.alt-font {
   font-family: 'Arial Rounded MT Bold', Verdana, sans-serif !important;
 }
 
+/* === Guía de lectura === */
+.reading-guide-mask {
+  position: fixed;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  background: rgba(87, 238, 28, 0.532);
+  pointer-events: none;
+  display: none;
+  z-index: 9999;
+  transition: top 0.1s ease; 
+}
+
+body.reading-guide-active .reading-guide-mask{
+  display: block;
+}
+body.dark-mode {
+  background: #111827 !important;
+  color: #f9fafb !important;
+}
+
+body.light-mode {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+/* === Alto contraste === */
+body.high-contrast {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+body.high-contrast a {
+  color: yellow !important;
+}
+
+/* === Aumento de tamaño de fuente === */
+
+body.large-text {
+  font-size: 1.25em !important;
+}
 
 
 
@@ -82,3 +122,45 @@ body.alt-font {
   background: rgba(255,255,255,.25);
 }
 
+/* 🌙 Modo oscuro (ya está por defecto con tus variables) */
+
+/* ☀️ Modo claro */
+body.light-mode {
+    --bg: #f4f4f9;              /* Fondo general */
+    --card: #ffffff;            /* Fondo del panel de login */
+    --muted: #475569;           /* Texto gris medio */
+    --text: #0f172a;            /* Texto principal oscuro */
+    --brand: #22c55e;           /* Verde consistente */
+    --brand-2: #38bdf8;         /* Azul consistente */
+    --accent: #eab308;          /* Amarillo */
+    --error: #ef4444;           /* Rojo */
+    --ok: #10b981;              /* Verde éxito */
+}
+
+/* Ajuste visual del panel del formulario en modo claro */
+body.light-mode .form-panel {
+    background: var(--card);
+    border: 1px solid rgba(148,163,184,.25);
+    color: var(--text);
+}
+
+/* Ajuste de inputs en modo claro */
+body.light-mode input[type="email"],
+body.light-mode input[type="password"] {
+    background: #f9fafb;
+    color: #111827;
+    border: 1px solid rgba(148,163,184,.4);
+}
+
+/* Hover de opciones radio en modo claro */
+body.light-mode .radio-option {
+    background: #f9fafb;
+    color: #0f172a;
+}
+body.light-mode .radio-option:hover {
+    background: #f3f4f6;
+}
+body.light-mode .radio-option.selected {
+    background: rgba(56,189,248,.15);
+    border-color: var(--brand-2);
+}
