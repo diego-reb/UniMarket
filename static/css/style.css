@@ -6,9 +6,7 @@
 }
 
 /* === Escala de grises === */
-body.grayscale {
-  filter: grayscale(100%);
-}
+body.grayscale { filter: grayscale(100%); background: #ffffff !important; color: #000000 !important; }
 
 /* === Cambio de tipografía accesible === */
 body.alt-font {
@@ -31,23 +29,17 @@ body.alt-font {
 body.reading-guide-active .reading-guide-mask{
   display: block;
 }
-body.dark-mode {
-  background: #111827 !important;
-  color: #f9fafb !important;
-}
+body.dark-mode { background: #111827; color: #f0f5f9; }
 
-body.light-mode {
-  background: #ffffff !important;
-  color: #000000 !important;
-}
+body.light-mode { background: #ffffff; color: #0f0e0e; }
 /* === Alto contraste === */
 body.high-contrast {
   background: #000 !important;
-  color: #fff !important;
+  color: #1f10ab !important;
 }
 
 body.high-contrast a {
-  color: yellow !important;
+  color: rgb(8, 205, 100) !important;
 }
 
 /* TAMAÑO NORMAL (Punto de inicio y fin de disminución) */
@@ -146,7 +138,7 @@ body.text-size-5 {
 body.light-mode {
     --bg: #f4f4f9;              /* Fondo general */
     --card: #ffffff;            /* Fondo del panel de login */
-    --muted: #475569;           /* Texto gris medio */
+    --muted: #5c687a;           /* Texto gris medio */
     --text: #0f172a;            /* Texto principal oscuro */
     --brand: #22c55e;           /* Verde consistente */
     --brand-2: #38bdf8;         /* Azul consistente */
