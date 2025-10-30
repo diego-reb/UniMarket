@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set "VIRTUAL_ENV=C:\Users\Ximena\UniMarket\env"
+set "VIRTUAL_ENV=C:\Users\dzgar\UniMarket\env"
 
 if not defined PROMPT set PROMPT=$P$G
 

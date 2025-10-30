@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', () => {
   // Crear botón flotante
   const toggleBtn = document.createElement('button');
@@ -13,7 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
     <button id="toggle-dark">Modo Claro</button>
     <button id="toggle-contrast">Alto contraste</button>
     <button id="toggle-font">Tipografía accesible</button>
-    <button id="toggle-size">Aumentar tamaño</button>
+    <div id="font-size-controls">
+      <button id="toggle-size">Tamaño de texto</button>
+      <div id="font-size-options" style="display:none; flex-direction:row; gap:6px; margin-top:5px;">
+        <button id="decrease-font" title="Reducir tamaño">−</button>
+        <button id="increase-font" title="Aumentar tamaño">+</button>
+      </div>
+    </div>
     <button id="toggle-grayscale">Escala de grises</button>
     <button id="toggle-guide">Guía de lectura</button>
     <button id="toggle-read">Lectura en voz alta</button>
@@ -47,13 +54,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('toggle-dark').innerText = 'Modo Claro';
   }
   if (loadState('highContrast')) document.body.classList.add('high-contrast');
-  if (loadState('largeText')) document.body.classList.add('large-text');
   if (loadState('altFont')) document.body.classList.add('alt-font');
   if (loadState('grayscale')) document.body.classList.add('grayscale');
   if (loadState('readingGuide')) {
     document.body.classList.add('reading-guide-active');
     guia.style.display = 'block';
   }
+
+  // Guardar tamaño base
+  let currentFontSize = parseFloat(localStorage.getItem('fontSize')) || 1;
+  document.body.style.fontSize = `${currentFontSize}em`;
 
   // Toggle modo oscuro/diurno
   const darkBtn = document.getElementById('toggle-dark');
@@ -77,7 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       document.body.classList.toggle(className);
       saveState(storageKey, document.body.classList.contains(className));
-
       if (storageKey === 'readingGuide') {
         guia.style.display = document.body.classList.contains(className) ? 'block' : 'none';
       }
@@ -86,9 +95,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   toggleClass('toggle-contrast', 'high-contrast', 'highContrast');
   toggleClass('toggle-font', 'alt-font', 'altFont');
-  toggleClass('toggle-size', 'large-text', 'largeText');
   toggleClass('toggle-grayscale', 'grayscale', 'grayscale');
   toggleClass('toggle-guide', 'reading-guide-active', 'readingGuide');
+
+  // Mostrar controles de tamaño
+  const sizeBtn = document.getElementById('toggle-size');
+  const sizeOptions = document.getElementById('font-size-options');
+
+  sizeBtn.addEventListener('click', () => {
+    sizeOptions.style.display = sizeOptions.style.display === 'none' ? 'flex' : 'none';
+  });
+
+  // Aumentar y disminuir tamaño
+  const increaseBtn = document.getElementById('increase-font');
+  const decreaseBtn = document.getElementById('decrease-font');
+
+  increaseBtn.addEventListener('click', () => {
+    currentFontSize = Math.min(currentFontSize + 0.1, 2); // Máximo 2x
+    document.body.style.fontSize = `${currentFontSize}em`;
+    localStorage.setItem('fontSize', currentFontSize);
+  });
+
+  decreaseBtn.addEventListener('click', () => {
+    currentFontSize = Math.max(currentFontSize - 0.1, 0.8); // Mínimo 0.8x
+    document.body.style.fontSize = `${currentFontSize}em`;
+    localStorage.setItem('fontSize', currentFontSize);
+  });
 
   // Movimiento de la guía de lectura
   document.addEventListener('mousemove', e => {
@@ -117,3 +149,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
