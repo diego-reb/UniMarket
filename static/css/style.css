@@ -50,12 +50,30 @@ body.high-contrast a {
   color: yellow !important;
 }
 
-/* === Aumento de tamaño de fuente === */
+/* TAMAÑO NORMAL (Punto de inicio y fin de disminución) */
+body.text-size-1 { 
+  font-size: 1em !important; 
+}
 
-body.large-text {
+/* Aumento 1 */
+body.text-size-2 {
   font-size: 1.25em !important;
 }
 
+/* Aumento 2 */
+body.text-size-3 {
+  font-size: 1.5em !important;
+}
+
+/* Aumento 3 */
+body.text-size-4 {
+  font-size: 1.75em !important;
+}
+
+/* Aumento 4 (Máximo) */
+body.text-size-5 {
+  font-size: 2em !important;
+}
 
 
 /* === Botón flotante de accesibilidad === */
