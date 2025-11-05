@@ -10,6 +10,7 @@ class Usuario(db.Model, UserMixin):
     telefono = db.Column(db.String(20))
     id_rol = db.Column(db.Integer, db.ForeignKey('rol.id_rol'), nullable=False)
     estado = db.Column(db.Boolean, default=True)
+    email_confirmado = db.Column(db.Boolean, default=False)
 
     rol = db.relationship('Rol', backref= db.backref('usuarios',lazy=True))
 

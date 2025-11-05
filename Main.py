@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, render_template, flash, request, redirect, url_for, Blueprint, jsonify, session
 from flask_sqlalchemy import SQLAlchemy 
 from sqlalchemy.orm import joinedload
@@ -19,6 +22,7 @@ import os
 from werkzeug.utils import secure_filename
 from oauthlib.oauth2 import WebApplicationClient
 import requests
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 
@@ -52,6 +56,7 @@ def add_header(response):
 
 
 ##----------------------------------------------------correo----------------------------------------------------------------------------------------
+s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 app.config['MAIL_SERVER']='smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
@@ -180,7 +185,8 @@ def complete_registration():
         correo=datos['correo'],
         telefono=datos['telefono'],
         id_rol=rol,
-        estado=True
+        estado=True, 
+        email_confirmado=True
     )
     usuario.password = generate_password_hash('google_login')
     db.session.add(usuario)
@@ -218,6 +224,9 @@ def inicio_sesion():
         
 
         if usuario and usuario.check_password(password):
+            if not usuario.email_confirmado:
+                flash("Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja o solicita reenvío.", "error")
+                return redirect(url_for('inicio_sesion'))
             if usuario.estado:
                 login_user(usuario)
                 flash("Inicio de sesion exitoso", "login")
@@ -230,7 +239,6 @@ def inicio_sesion():
                     return redirect(url_for('index'))
                 else:
                     return redirect(url_for('index'))
-              
             else:
                 flash("Cuenta deshabilitada, contactanos", "login")
                 
@@ -263,23 +271,94 @@ def registro():
             flash("Las contraseñas no coinciden")
             return redirect(url_for('registro'))
 
-        nuevo_usuario = Usuario(
-            nombre=nombre,
-            correo=correo,
-            telefono=telefono,
-            id_rol=2 if tipo_cuenta == 'vendedor' else 3
+        usuario_existente = db.session.scalar(
+            db.select(Usuario).where(Usuario.correo == correo)
         )
-        nuevo_usuario.set_password(password)
 
-        db.session.add(nuevo_usuario)
-        db.session.commit()
+        if usuario_existente:
+            flash("Ese correo electrónico ya está en uso. Por favor, inicia sesión.", "error")
+            return redirect(url_for('registro'))
+        try:
+            nuevo_usuario = Usuario(
+                nombre=nombre,
+                correo=correo,
+                telefono=telefono,
+                id_rol=2 if tipo_cuenta == 'vendedor' else 3
+            )
+            nuevo_usuario.set_password(password)
 
-        flash("Usuario registrado con éxito")
-        return redirect(url_for('inicio_sesion'))
+            db.session.add(nuevo_usuario)
+            db.session.commit()
 
+            token = s.dumps(correo, salt='email-confirm')
+            confirm_url = url_for('confirmar_correo', token = token, _external=True)
+            msg = Message("Confirma tu correo - UniMarket",
+                sender=app.config.get('MAIL_USERNAME'),
+                recipients=[correo])
+            msg.body = f"Hola {nombre}, \n\nGracias por registrarte en Unimarket. \n\nPor favor confirma tu correo haciendo clic aquí:\n{confirm_url}\n\nSi el enlace expira, puedes solicitar uno nuevo desde la pagina de inicio de sesión."
+            mail.send(msg)
+
+            flash("Registro creado. Revisa tu correo para confirmar la cuenta.")
+            return redirect(url_for('inicio_sesion'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error al crear la cuenta: {e}. Por favor, inténtalo de nuevo.", "error")
+            return redirect(url_for('registro'))
     return render_template('registro.html')
 
 ##-------------------------------------------------------------fin_registro------------------------------------------------------------------
+
+##-------------------------------------------------------------Confirmar correo---------------------------------------------------------------------
+@app.route('/confirmar/<token>')
+def confirmar_correo(token):
+    try:
+        correo = s.loads(token, salt='email-confirm', max_age= 60*60*24)
+    except SignatureExpired:
+        flash("El enlace ha expirado. Solicita uno nuevo", "error")
+        return redirect(url_for('reenviar_confirmacion'))
+    except BadSignature:
+        flash("Enlace inválido.", "error")
+        return redirect(url_for('inicio_sesion'))
+
+    usuario= Usuario.query.filter_by(correo=correo).first()
+    if not usuario:
+        flash("Usuario no encontrado.", "error")
+        return redirect(url_for('registro'))
+
+    if usuario.email_confirmado:
+        flash("Correo ya confirmado.", "info")
+    else:
+        usuario.email_confirmado = True
+        db.session.commit()
+        flash("Correo confirmado con éxito. Ya puedes iniciar sesión.", "success")
+    
+    return redirect(url_for('inicio_sesion'))
+
+
+@app.route('/reenviar_confirmacion', methods=['GET', 'POST'])
+def reenviar_confirmacion():
+    if request.method == 'POST':
+        correo = request.form.get('email')
+        usuario = Usuario.query.filter_by(corre=correo).first()
+        if not usuario:
+            flash("No existe usuario con ese correo", "error")
+            return redirect(url_for('reenviar_confirmacion'))
+        if usuario.email_confirmado:
+            flash("El correo ya está confirmado", "info")
+            return redirect(url_for('inicio_sesion'))
+
+        token = s.dumps(correo, salt='email-confirm')
+        confirm_url = url_for('confirmar_correo', token=token, _external=True)
+        msg = Message("Reenvio: confirma tu correo - UniMarket",
+            sender=app.config.get('MAIL_USERNAME'),
+            recipients=[correo])
+        msg.body = f"Hola {usuario.nombre}, \n\nHaz clic  aquí para confirmar tu correo:\n{confirm_url}\n\nSi no solicitaste esto, ignora el correo."
+        mail.send(msg)
+        flash("Se ha reenviado el correo de confirmación.", "error")
+        return redirect(url_for('inicio_sesion'))
+    
+    return render_template('reenviar_confirmacion.html')
+
 ##--------------------------------------------------------------registro_administrador--------------------------------------------------------------
 @app.route('/RA', methods=['GET','POST'])
 
@@ -304,7 +383,8 @@ def registro_administrador():
             correo=correo,
             password=generate_password_hash(password),
             id_rol=1,
-            estado=True
+            estado=True,
+            email_confirmado=True
 
         )
         db.session.add(nuevo_admin)
