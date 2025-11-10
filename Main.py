@@ -326,20 +326,20 @@ def confirmar_correo(token):
         return redirect(url_for('registro'))
 
     if usuario.email_confirmado:
-        flash("Correo ya confirmado.", "info")
+        mensaje = "El correo ya se confirmo. Redirigiendo al inicio de sesion"
     else:
         usuario.email_confirmado = True
         db.session.commit()
-        flash("Correo confirmado con éxito. Ya puedes iniciar sesión.", "success")
+        mensaje = "Correo confirmado con éxito. Ya puedes iniciar sesión."
     
-    return redirect(url_for('inicio_sesion'))
+    return render_template('correo_confirmacion.html', mensaje=mensaje)
 
 
 @app.route('/reenviar_confirmacion', methods=['GET', 'POST'])
 def reenviar_confirmacion():
     if request.method == 'POST':
         correo = request.form.get('email')
-        usuario = Usuario.query.filter_by(corre=correo).first()
+        usuario = Usuario.query.filter_by(correo=correo).first()
         if not usuario:
             flash("No existe usuario con ese correo", "error")
             return redirect(url_for('reenviar_confirmacion'))
