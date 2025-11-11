@@ -216,6 +216,17 @@ def load_user(user_id):
 @app.route('/inicio_sesion', methods=['GET','POST'])
 def inicio_sesion():
     if request.method == 'POST':
+        recaptcha_response = request.form.get('g-recatcha-response')
+        secret_key = "6LfABAksAAAAAFmP6QGGr1-D_LKmAoYFjjQR-ZRP"
+        verify_url = "https://www.google.com/recaptcha/api/siteverify"
+
+        payload = {'secret' : secret_key, 'response' : recaptcha_response}
+        r = requests.post(verify_url, data=payload)
+        result = r.json()
+
+        if not result.get("success"):
+            flash ("Por favor verifica que no eres un roboy.", "login")
+            return redirect(url_for('inicio_sesion'))
        
         correo = request.form['correo']
         password = request.form['password']

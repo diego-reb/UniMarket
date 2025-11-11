@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
     <script src="{{ url_for('static', filename='js/accesibilidad.js')}}"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         :root {
             --bg: #0f172a;           /* slate-900 */
@@ -68,9 +69,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 40px;
-            background: rgba(2,6,23,.55);
-            border: 1px solid rgba(148,163,184,.20);
+            padding: 50px;
         }
 
         .logo-mobile {
@@ -140,10 +139,19 @@
             cursor: pointer;
             font-weight: 400;
         }
+        .g-recaptcha {
+            display: inline-block;
+            transform: scale(1.05);
+            transform-origin: center;
+            
+        }
+
 
         .btn-primary {
-            width: 100%;
-            padding: 12px 24px;
+           display: block;
+           margin:0 auto;
+            width: 50%;
+            padding: 12px 4px;
             border: none;
             border-radius: 12px;
             background: linear-gradient(135deg, var(--brand), var(--brand-2));
@@ -197,16 +205,7 @@
         <div class="brand-panel">
             
             <div>
-                
-                <h1>UniMarket</h1>
-                <p>Tu plataforma para comprar y vender productos universitarios. ¡Conéctate con tu comunidad!</p>
-
-            </div>
-        </div>
-
-        <div class="form-panel">
-   
-    <button type="button" onclick="window.location.href='/'" 
+                <button type="button" onclick="window.location.href='/'" 
             style="
                 position: absolute;
                 top: 20px;
@@ -230,6 +229,15 @@
             onmouseout="this.style.transform='scale(1)';">
         &#8592; 
     </button>
+                <h1>UniMarket</h1>
+                <p>Tu plataforma para comprar y vender productos universitarios. ¡Conéctate con tu comunidad!</p>
+
+            </div>
+        </div>
+
+        <div class="form-panel">
+   
+    
 
         
         <div class="form-panel">
@@ -247,7 +255,19 @@
             </div>
 
             <h2 style="margin-top: 0;">Iniciar Sesión</h2>
-            <p>Su cuenta ayudara a la venta dentro del plantel</p>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      {% if category == 'login' %}
+        <script>
+          const msgBox = document.getElementById('login-message-box');
+          msgBox.innerText = "{{ message }}";
+          msgBox.style.display = "block";
+        </script>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endwith %}
             
             <div id="message-box" role="alert"></div>
 
@@ -264,35 +284,26 @@
         <label for="password">Contraseña</label>
         <input type="password" id="password" name="password" required>
     </div>
+    <div class="form-group" style="text-align:center; margin-bottom: 20px;">
+    <div class="g-recaptcha" data-sitekey="6LfABAksAAAAAHgAewWNg3-fITOyQcwxF9RZDC7m"></div>
+</div>
 
     <button type="submit" class="btn-primary">Continuar</button>
             </form>
             <div id="login-message-box" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 20px; color: white; background-color: #ef4444;">
 </div>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      {% if category == 'login' %}
-        <script>
-          const msgBox = document.getElementById('login-message-box');
-          msgBox.innerText = "{{ message }}";
-          msgBox.style.display = "block";
-        </script>
-      {% endif %}
-    {% endfor %}
-  {% endif %}
-{% endwith %}
+
 
             <div class="separator">o</div>
-        <div style="text-align:center; margin-top:20px;">
+        <div style="text-align:center; ">
   <a href="{{ url_for('google_login') }}" 
      style="display:inline-flex; align-items:center; 
-            padding:10px 50px; border:1px solid #ccc; border-radius:8px;
+            padding:10px 20px; border:1px solid rgba(148,163,184,.25); border-radius:8px;
             text-decoration:none; color:#ccc; font-weight:500;">
     <img src="https://developers.google.com/identity/images/g-logo.png" 
          alt="Google" width="20" style="margin-right:8px;">
-    Iniciar sesión con Google
+    Google
   </a>
 </div>
 
