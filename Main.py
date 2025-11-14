@@ -215,6 +215,16 @@ def load_user(user_id):
     return Usuario.query.get(int(user_id))
 @app.route('/inicio_sesion', methods=['GET','POST'])
 def inicio_sesion():
+
+    if 'intentos' not in session:
+        session['intentos'] = 0
+        session['bloqueado_hasta'] = None
+    if session.get('bloqueo_hasta'):
+        if datetime.now() < session['bloqueado_hasta']:
+            tiempo_restante = (session['bloqueado_hasta'] - datetime.now()).seconds
+            flash(f"Demasiados intentos fallados. Intenta de nuevo en {tiempo_restante} segundos.")
+            return render_template('iniciosesion.html')
+
     if request.method == 'POST':
         recaptcha_response = request.form.get('g-recatcha-response')
         secret_key = "6LfABAksAAAAAFmP6QGGr1-D_LKmAoYFjjQR-ZRP"
@@ -225,7 +235,7 @@ def inicio_sesion():
         result = r.json()
 
         if not result.get("success"):
-            flash ("Por favor verifica que no eres un roboy.", "login")
+            flash ("Por favor verifica que no eres un robot.", "login")
             return redirect(url_for('inicio_sesion'))
        
         correo = request.form['correo']
@@ -239,6 +249,8 @@ def inicio_sesion():
                 flash("Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja o solicita reenvío.", "error")
                 return redirect(url_for('inicio_sesion'))
             if usuario.estado:
+                session['intentos']=0
+                session['bloqueado_hasta'] = None
                 login_user(usuario)
                 flash("Inicio de sesion exitoso", "login")
 
@@ -254,7 +266,14 @@ def inicio_sesion():
                 flash("Cuenta deshabilitada, contactanos", "login")
                 
         else:
-            flash("Correo o contraseña incorrectos", "login")
+            session['intentos'] +=1
+
+            if session['intentos'] >=3:
+                session['bloqueado_hasta'] = datetime.now + timedelta(minutes=1)
+                flash("Has excedio el número de intentos. Espera 1 minuto antes de volver a intentar.", "error")
+            else:
+                intentos_restantes = 3 - session['intentos']
+                flash("Correo o contraseña incorrectos. Intentos restantes: {intentos_restantes}", "login")
             
     return render_template('iniciosesion.html')
 ##-----------------------------------fin_inicio_sesion-----------------------------------------------------------------------------------------------

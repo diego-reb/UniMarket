@@ -11,6 +11,8 @@ class Usuario(db.Model, UserMixin):
     id_rol = db.Column(db.Integer, db.ForeignKey('rol.id_rol'), nullable=False)
     estado = db.Column(db.Boolean, default=True)
     email_confirmado = db.Column(db.Boolean, default=False)
+    bloqueo_hasta = db.Column(db.DateTime, nullable=False)
+    intentos = db.Column(db.Integer, default=0)
 
     rol = db.relationship('Rol', backref= db.backref('usuarios',lazy=True))
 
