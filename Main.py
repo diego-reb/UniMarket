@@ -107,9 +107,10 @@ def google_login():
 
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
-        redirect_uri="https://unimarket-620z.onrender.com/login/google/callback",  
+        redirect_uri=REDIRECT_URI,
         scope=["openid", "email", "profile"],
     )
+
     return redirect(request_uri)
 
 @app.route('/login/google/callback')
@@ -123,9 +124,10 @@ def google_callback():
     token_url, headers, body = client.prepare_token_request(
         token_endpoint,
         authorization_response=request.url,
-        redirect_url="https://unimarket-620z.onrender.com/login/google/callback",
+        redirect_uri=REDIRECT_URI,
         code=code
     )
+
 
     token_response = requests.post(
         token_url,
