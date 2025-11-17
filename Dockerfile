@@ -1,17 +1,29 @@
-# Usar imagen base
+# Usar imagen base de Python 3.11 slim
 FROM python:3.11-slim
+
+# Variables de entorno para evitar warnings y mejorar rendimiento
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Crear directorio de la app
 WORKDIR /app
 
-# Copiar todo el proyecto al contenedor
-COPY . .
+# Instalar dependencias del sistema necesarias
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Instalar dependencias
+# Copiar archivos de requerimientos e instalar dependencias
+COPY requirements.txt .
+RUN python -m pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Exponer puerto (Render usará $PORT)
+# Copiar el resto del proyecto
+COPY . .
+
+# Exponer puerto para Render
 EXPOSE 5000
 
-# Comando para correr la app con Gunicorn y puerto dinámico
-CMD ["sh", "-c", "gunicorn -b 0.0.0.0:$PORT -w 4 Main:app"]
+# Usar Gunicorn para producción con 4 workers
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "Main:app"]
