@@ -27,6 +27,8 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 
 app = Flask(__name__) ##iniciar proyecto
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'contraseña_secreta'
 init_app(app)
 
@@ -916,6 +918,7 @@ def set_rol():
 if __name__ == '__main__': # depurar proyecto 
    with app.app_context():
         db.create_all()  
-        app.run()
+        app.run(host='0.0.0.0', port=5000)
+
 
 

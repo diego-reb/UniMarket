@@ -9,4 +9,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 #Expone el puerto de flask 
 EXPOSE 5000
 #Ejecutar la app
-CMD ["python", "Main.py"]
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "Main:app"]
+
