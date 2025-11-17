@@ -73,7 +73,7 @@ app.config['GOOGLE_CLIENT_ID'] = "460522583219-pg00bvtl0i6biecghpor9sh1qite5f6a.
 app.config['GOOGLE_CLIENT_SECRET'] = "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"
 app.config['GOOGLE_DISCOVERY_URL'] = "https://accounts.google.com/.well-known/openid-configuration"
 client = WebApplicationClient(app.config['GOOGLE_CLIENT_ID'])
-REDIRECT_URI = "http://127.0.0.1:5000/login/google/callback"
+REDIRECT_URI = "https://unimarket-620z.onrender.com/login/google/callback"
 
 ##-----------------------------------------------------fin_google------------------------------------------------------------------------------------
 ##-----------------------------------index-----------------------------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ def google_login():
 
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
-        redirect_uri="http://127.0.0.1:5000/login/google/callback",  
+        redirect_uri="https://unimarket-620z.onrender.com/login/google/callback",  
         scope=["openid", "email", "profile"],
     )
     return redirect(request_uri)
@@ -123,7 +123,7 @@ def google_callback():
     token_url, headers, body = client.prepare_token_request(
         token_endpoint,
         authorization_response=request.url,
-        redirect_url="http://127.0.0.1:5000/login/google/callback",
+        redirect_url="https://unimarket-620z.onrender.com/login/google/callback",
         code=code
     )
 
