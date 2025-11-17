@@ -75,16 +75,6 @@ client = WebApplicationClient(app.config['GOOGLE_CLIENT_ID'])
 REDIRECT_URI = "http://127.0.0.1:5000/login/google/callback"
 
 ##-----------------------------------------------------fin_google------------------------------------------------------------------------------------
-##---------------------------------------------------test------------------------------------------------------------------------------------------
-@app.route('/test')
-def test_db():
-    try:
-        result = db.session.execute('SELECT 1')
-        return f"Conectada a la base de datos"
-    except Exception as e:
-        return f"Error de conexion: {e}"
-
-##-----------------------------------------------------fin_test--------------------------------------------------------------------------------
 ##-----------------------------------index-----------------------------------------------------------------------------------------------------
 @app.route('/')
 def index():
@@ -208,74 +198,97 @@ def complete_registration():
 ##-----------------------------------inicio_sesion-------------------------------------------------------------------------------------
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view= 'inicio_sesion'
+login_manager.login_view = 'inicio_sesion'
 
 @login_manager.user_loader
 def load_user(user_id):
     return Usuario.query.get(int(user_id))
-@app.route('/inicio_sesion', methods=['GET','POST'])
+
+@app.route('/inicio_sesion', methods=['GET', 'POST'])
 def inicio_sesion():
 
+    # Inicializar variables de sesión
     if 'intentos' not in session:
         session['intentos'] = 0
         session['bloqueado_hasta'] = None
-    if session.get('bloqueo_hasta'):
-        if datetime.now() < session['bloqueado_hasta']:
-            tiempo_restante = (session['bloqueado_hasta'] - datetime.now()).seconds
-            flash(f"Demasiados intentos fallados. Intenta de nuevo en {tiempo_restante} segundos.")
+
+    # ---- VERIFICAR BLOQUEO ----
+    if session.get('bloqueado_hasta'):
+        try:
+            bloqueado = datetime.fromisoformat(session['bloqueado_hasta'])
+        except:
+            bloqueado = None
+
+        if bloqueado and datetime.now() < bloqueado:
+            tiempo_restante = (bloqueado - datetime.now()).seconds
+            flash(f"Demasiados intentos fallados. Intenta de nuevo en {tiempo_restante} segundos.", "error")
             return render_template('iniciosesion.html')
 
+    # ---- PETICIÓN POST ----
     if request.method == 'POST':
-        recaptcha_response = request.form.get('g-recatcha-response')
+
+        # ---- VERIFICAR RECAPTCHA ----
+        recaptcha_response = request.form.get('g-recaptcha-response')
         secret_key = "6LfABAksAAAAAFmP6QGGr1-D_LKmAoYFjjQR-ZRP"
         verify_url = "https://www.google.com/recaptcha/api/siteverify"
 
-        payload = {'secret' : secret_key, 'response' : recaptcha_response}
+        payload = {'secret': secret_key, 'response': recaptcha_response}
         r = requests.post(verify_url, data=payload)
         result = r.json()
 
         if not result.get("success"):
-            flash ("Por favor verifica que no eres un robot.", "login")
+            flash("Por favor verifica que no eres un robot.", "error")
             return redirect(url_for('inicio_sesion'))
-       
-        correo = request.form['correo']
-        password = request.form['password']
+
+        correo = request.form.get('correo')
+        password = request.form.get('password')
 
         usuario = Usuario.query.filter_by(correo=correo).first()
-        
 
+        # ---- USUARIO CREADO POR GOOGLE ----
+        if usuario and not usuario.check_password(password):
+            flash("Tu cuenta fue creada con Google. Restablece tu contraseña para iniciar sesión manualmente.", "error")
+            return redirect(url_for('restablecer_contraseña'))
+
+        # ---- VALIDACIÓN DE CREDENCIALES ----
         if usuario and usuario.check_password(password):
+
+            # Validar correo confirmado
             if not usuario.email_confirmado:
-                flash("Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja o solicita reenvío.", "error")
+                flash("Debes confirmar tu correo antes de iniciar sesión.", "error")
                 return redirect(url_for('inicio_sesion'))
-            if usuario.estado:
-                session['intentos']=0
-                session['bloqueado_hasta'] = None
-                login_user(usuario)
-                flash("Inicio de sesion exitoso", "login")
 
-                if usuario.id_rol==1:
-                    return redirect(url_for('Admin'))
-                elif usuario.id_rol==2:
-                    return redirect(url_for('vendedor'))
-                elif usuario.id_rol==3:
-                    return redirect(url_for('index'))
-                else:
-                    return redirect(url_for('index'))
-            else:
-                flash("Cuenta deshabilitada, contactanos", "login")
-                
+            # Validar si cuenta está activa
+            if not usuario.estado:
+                flash("Tu cuenta está deshabilitada. Contáctanos para más información.", "error")
+                return redirect(url_for('inicio_sesion'))
+
+            # Inicio de sesión exitoso
+            session['intentos'] = 0
+            session['bloqueado_hasta'] = None
+            login_user(usuario)
+            flash("Inicio de sesión exitoso.", "success")
+
+            # Redirecciones por rol
+            if usuario.id_rol == 1:
+                return redirect(url_for('Admin'))
+            if usuario.id_rol == 2:
+                return redirect(url_for('vendedor'))
+            return redirect(url_for('index'))
+
         else:
-            session['intentos'] +=1
+            # ---- CREDENCIALES ERRÓNEAS ----
+            session['intentos'] += 1
 
-            if session['intentos'] >=3:
-                session['bloqueado_hasta'] = datetime.now + timedelta(minutes=1)
-                flash("Has excedio el número de intentos. Espera 1 minuto antes de volver a intentar.", "error")
+            if session['intentos'] >= 3:
+                session['bloqueado_hasta'] = (datetime.now() + timedelta(minutes=1)).isoformat()
+                flash("Has excedido el número de intentos. Espera 1 minuto antes de volver a intentar.", "error")
             else:
                 intentos_restantes = 3 - session['intentos']
-                flash("Correo o contraseña incorrectos. Intentos restantes: {intentos_restantes}", "login")
-            
+                flash(f"Correo o contraseña incorrectos. Intentos restantes: {intentos_restantes}", "error")
+
     return render_template('iniciosesion.html')
+
 ##-----------------------------------fin_inicio_sesion-----------------------------------------------------------------------------------------------
 
 ##-----------------------------------cerrar_sesion-------------------------------------------------------------------------------------
