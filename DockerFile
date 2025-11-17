@@ -9,4 +9,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 #Expone el puerto de flask 
 EXPOSE 5000
 #Ejecutar la app
-CDM ["python", "Main.py"]
+CMD ["python", "Main.py"]

@@ -1,6 +1,5 @@
 from dotenv import load_dotenv
 load_dotenv()
-
 from flask import Flask, render_template, flash, request, redirect, url_for, Blueprint, jsonify, session
 from flask_sqlalchemy import SQLAlchemy 
 from sqlalchemy.orm import joinedload
@@ -916,6 +915,7 @@ def set_rol():
 
 if __name__ == '__main__': # depurar proyecto 
    with app.app_context():
-        db.create_all()  # Crea las tablas si no existen
-   app.run(debug=True)
+        db.create_all()  
+        app.run()
+
 
