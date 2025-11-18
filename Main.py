@@ -332,11 +332,9 @@ def registro():
             db.session.add(nuevo_usuario)
             db.session.commit()
 
-            # Generar token y URL de confirmación
             token = s.dumps(correo, salt='email-confirm')
             confirm_url = url_for('confirmar_correo', token=token, _external=True)
 
-            # Enviar correo con Mailjet
             estado_envio = enviar_correo_confirmacion(
                 destinatario=correo, 
                 nombre_usuario=nombre, 
@@ -348,7 +346,9 @@ def registro():
             else:
                 flash("Registro creado, pero hubo un problema al enviar el correo de confirmación.", "error")
 
-            return redirect(url_for('inicio_sesion'))
+            session['usuario_temp_id'] = nuevo_usuario.id_usuario
+            return redirect(url_for('choose_role'))
+
 
         except Exception as e:
             db.session.rollback()

@@ -207,16 +207,7 @@
         {% endwith %}
 
         <form action="{{ url_for('registro') }}" method="POST">
-            <!-- Tipo de cuenta -->
-            <div class="form-group">
-                <label>Tipo de cuenta</label>
-                <div class="btn-group">
-                    <button type="button" class="btn active" onclick="setTipo('comprador')">Comprador</button>
-                    <button type="button" class="btn" onclick="setTipo('vendedor')">Vendedor</button>
-                </div>
-                <input type="hidden" name="tipo" id="tipo" value="comprador">
-            </div>
-
+            
             <div class="form-group">
                 <label for="name">Nombre completo</label>
                 <input type="text" id="name" name="name" required>
@@ -275,10 +266,8 @@ function setRol(rol) {
 }
 </script>
     <script>
-        // Año dinámico
         document.getElementById('year').textContent = new Date().getFullYear();
 
-        // Lógica de selección de tipo de cuenta
         document.querySelectorAll('.btn-group .btn').forEach(button => {
             button.addEventListener('click', () => {
                 document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));

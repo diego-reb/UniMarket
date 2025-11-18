@@ -196,6 +196,44 @@
             .form-panel { border-radius: 0 var(--radius) var(--radius) 0; }
             .container { border: 1px solid rgba(148,163,184,.20); }
         }
+        .flash-message {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .flash-error {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .flash-success {
+            background-color: #4caf50;
+            color: white;
+        }
+        .flash-error {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .flash-success {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        @keyframes fade-down {
+            0% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -237,9 +275,6 @@
 
         <div class="form-panel">
    
-    
-
-        
         <div class="form-panel">
             <div class="logo-mobile">
                 <div class="logo-badge" aria-hidden="true">
@@ -255,21 +290,19 @@
             </div>
 
             <h2 style="margin-top: 0;">Iniciar Sesión</h2>
+
             {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                    {% if category == 'login' %}
-                        <script>
-                        const msgBox = document.getElementById('login-message-box');
-                        msgBox.innerText = "{{ message }}";
-                        msgBox.style.display = "block";
-                        </script>
-                    {% endif %}
-                    {% endfor %}
-                {% endif %}
-                {% endwith %}
-            
-            <div id="message-box" role="alert"></div>
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message 
+                {% if category == 'error' %}flash-error
+                {% elif category == 'success' %}flash-success
+                {% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 
             <form id="login-form" method="POST" action="{{url_for('inicio_sesion')}}">
                 <div class="form-group user-type-group">
@@ -324,6 +357,46 @@
         });
     });
 </script>
+<script>
+function showAlert(message, color) {
+    const box = document.getElementById("message-box");
+    box.innerText = message;
+
+    box.style.backgroundColor = color;
+    box.style.display = "block";
+
+    // Animación
+    setTimeout(() => {
+        box.style.opacity = "1";
+        box.style.transform = "translateY(0)";
+    }, 10);
+
+    // Auto-cerrar después de 4s
+    setTimeout(() => {
+        closeAlert();
+    }, 4000);
+
+    // Agregar botón X
+    if (!document.getElementById("close-alert-btn")) {
+        const closeBtn = document.createElement("span");
+        closeBtn.id = "close-alert-btn";
+        closeBtn.innerHTML = "&times;";
+        closeBtn.classList.add("alert-close");
+        closeBtn.onclick = closeAlert;
+        box.appendChild(closeBtn);
+    }
+}
+
+function closeAlert() {
+    const box = document.getElementById("message-box");
+    box.style.opacity = "0";
+    box.style.transform = "translateY(-10px)";
+    setTimeout(() => {
+        box.style.display = "none";
+    }, 400);
+}
+</script>
+
     
 </body>
 </html>
