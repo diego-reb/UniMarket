@@ -364,10 +364,11 @@ def registro():
 
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
+API_KEY = os.getenv('MAILJET_API_KEY')
+API_SECRET = os.getenv('MAILJET_API_SECRET')
+MAILJET_SENDER = os.getenv('MAILJET_SENDER')
 
-API_KEY = '1702071fc3b62a1b32c6f74a66b7bc6d'       
-API_SECRET = '19b0b111b8ff934c3a4646cdc404f2d7' 
-MAILJET_SENDER = 'dzgarcia10@gmail.com' 
+mailjet = Client(auth=(API_KEY, API_SECRET), version='v3.1')
 
 mailjet = Client(auth=(API_KEY, API_SECRET), version='v3.1')
 def enviar_correo_confirmacion(destinatario, nombre_usuario, confirm_url):
