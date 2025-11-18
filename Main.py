@@ -124,6 +124,7 @@ def google_callback():
     token_url, headers, body = client.prepare_token_request(
         token_endpoint,
         authorization_response=request.url,
+        redirect_url=REDIRECT_URI,
         code=code
     )
 
