@@ -4,6 +4,8 @@ from flask import Flask, render_template, flash, request, redirect, url_for, Blu
 from flask_sqlalchemy import SQLAlchemy 
 from sqlalchemy.orm import joinedload
 from flask_mail import Mail, Message
+from mailjet_rest import Client
+from itsdangerous import URLSafeTimedSerializer
 import smtplib
 from email.mime.text import MIMEText
 from collections import defaultdict
@@ -26,7 +28,7 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 
 
-app = Flask(__name__) ##iniciar proyecto
+app = Flask(__name__) 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'contraseña_secreta'
@@ -59,13 +61,13 @@ def add_header(response):
 ##----------------------------------------------------correo----------------------------------------------------------------------------------------
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
-app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_SERVER']='in-v3.mailjet.com'
 app.config['MAIL_PORT'] = 587
-app.config['MAIL_USERNAME'] = 'dzgarcia10@gmail.com'
-app.config['MAIL_PASSWORD'] = 'zxbi yzge pbjn onkq'
+app.config['MAIL_USERNAME'] = '1702071fc3b62a1b32c6f74a66b7bc6d'
+app.config['MAIL_PASSWORD'] = '19b0b111b8ff934c3a4646cdc404f2d7'
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
-mail = Mail(app)
+
 
 ##----------------------------------------------------fin_correo-----------------------------------------------------------------------------------
 ##-----------------------------------------------------google----------------------------------------------------------------------------------------
@@ -227,10 +229,10 @@ def inicio_sesion():
             flash(f"Demasiados intentos fallados. Intenta de nuevo en {tiempo_restante} segundos.", "error")
             return render_template('iniciosesion.html')
 
-    # ---- PETICIÓN POST ----
+   
     if request.method == 'POST':
 
-        # ---- VERIFICAR RECAPTCHA ----
+        
         recaptcha_response = request.form.get('g-recaptcha-response')
         secret_key = "6LfABAksAAAAAFmP6QGGr1-D_LKmAoYFjjQR-ZRP"
         verify_url = "https://www.google.com/recaptcha/api/siteverify"
@@ -248,31 +250,25 @@ def inicio_sesion():
 
         usuario = Usuario.query.filter_by(correo=correo).first()
 
-        # ---- USUARIO CREADO POR GOOGLE ----
         if usuario and not usuario.check_password(password):
             flash("Tu cuenta fue creada con Google. Restablece tu contraseña para iniciar sesión manualmente.", "error")
             return redirect(url_for('restablecer_contraseña'))
 
-        # ---- VALIDACIÓN DE CREDENCIALES ----
         if usuario and usuario.check_password(password):
 
-            # Validar correo confirmado
             if not usuario.email_confirmado:
                 flash("Debes confirmar tu correo antes de iniciar sesión.", "error")
                 return redirect(url_for('inicio_sesion'))
 
-            # Validar si cuenta está activa
             if not usuario.estado:
                 flash("Tu cuenta está deshabilitada. Contáctanos para más información.", "error")
                 return redirect(url_for('inicio_sesion'))
 
-            # Inicio de sesión exitoso
             session['intentos'] = 0
             session['bloqueado_hasta'] = None
             login_user(usuario)
             flash("Inicio de sesión exitoso.", "success")
 
-            # Redirecciones por rol
             if usuario.id_rol == 1:
                 return redirect(url_for('Admin'))
             if usuario.id_rol == 2:
@@ -280,7 +276,6 @@ def inicio_sesion():
             return redirect(url_for('index'))
 
         else:
-            # ---- CREDENCIALES ERRÓNEAS ----
             session['intentos'] += 1
 
             if session['intentos'] >= 3:
@@ -314,7 +309,7 @@ def registro():
         tipo_cuenta = request.form.get('tipo')  
 
         if password != confirm_password:
-            flash("Las contraseñas no coinciden")
+            flash("Las contraseñas no coinciden", "error")
             return redirect(url_for('registro'))
 
         usuario_existente = db.session.scalar(
@@ -324,6 +319,7 @@ def registro():
         if usuario_existente:
             flash("Ese correo electrónico ya está en uso. Por favor, inicia sesión.", "error")
             return redirect(url_for('registro'))
+
         try:
             nuevo_usuario = Usuario(
                 nombre=nombre,
@@ -336,25 +332,76 @@ def registro():
             db.session.add(nuevo_usuario)
             db.session.commit()
 
+            # Generar token y URL de confirmación
             token = s.dumps(correo, salt='email-confirm')
-            confirm_url = url_for('confirmar_correo', token = token, _external=True)
-            msg = Message("Confirma tu correo - UniMarket",
-                sender=app.config.get('MAIL_USERNAME'),
-                recipients=[correo])
-            msg.body = f"Hola {nombre}, \n\nGracias por registrarte en Unimarket. \n\nPor favor confirma tu correo haciendo clic aquí:\n{confirm_url}\n\nSi el enlace expira, puedes solicitar uno nuevo desde la pagina de inicio de sesión."
-            mail.send(msg)
+            confirm_url = url_for('confirmar_correo', token=token, _external=True)
 
-            flash("Registro creado. Revisa tu correo para confirmar la cuenta.")
+            # Enviar correo con Mailjet
+            estado_envio = enviar_correo_confirmacion(
+                destinatario=correo, 
+                nombre_usuario=nombre, 
+                confirm_url=confirm_url
+            )
+
+            if estado_envio == 200:
+                flash("Registro creado. Revisa tu correo para confirmar la cuenta.", "success")
+            else:
+                flash("Registro creado, pero hubo un problema al enviar el correo de confirmación.", "error")
+
             return redirect(url_for('inicio_sesion'))
+
         except Exception as e:
             db.session.rollback()
             flash(f"Error al crear la cuenta: {e}. Por favor, inténtalo de nuevo.", "error")
             return redirect(url_for('registro'))
+
     return render_template('registro.html')
 
 ##-------------------------------------------------------------fin_registro------------------------------------------------------------------
 
 ##-------------------------------------------------------------Confirmar correo---------------------------------------------------------------------
+
+
+s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+
+API_KEY = '1702071fc3b62a1b32c6f74a66b7bc6d'       
+API_SECRET = '19b0b111b8ff934c3a4646cdc404f2d7' 
+MAILJET_SENDER = 'dzgarcia10@gmail.com' 
+
+mailjet = Client(auth=(API_KEY, API_SECRET), version='v3.1')
+def enviar_correo_confirmacion(destinatario, nombre_usuario, confirm_url):
+    data = {
+      'Messages': [
+        {
+          "From": {
+            "Email": MAILJET_SENDER,
+            "Name": "UniMarket Soporte"
+          },
+          "To": [
+            {
+              "Email": destinatario,
+              "Name": nombre_usuario
+            }
+          ],
+          "Subject": "Confirma tu correo - UniMarket",
+          "TextPart": f"Hola {nombre_usuario}, por favor confirma tu correo aquí: {confirm_url}",
+          "HTMLPart": f"""
+            <h3>Hola {nombre_usuario}!</h3>
+            <p>Haz clic en el siguiente enlace para confirmar tu cuenta en UniMarket:</p>
+            <a href="{confirm_url}">Confirmar mi cuenta</a>
+            <p>Si no solicitaste esto, ignora este correo.</p>
+          """
+        }
+      ]
+    }
+    try:
+        result = mailjet.send.create(data=data)
+        return result.status_code
+    except Exception as e:
+        print(f"Error enviando mailjet: {e}")
+        return 500
+
 @app.route('/confirmar/<token>')
 def confirmar_correo(token):
     try:
@@ -380,31 +427,37 @@ def confirmar_correo(token):
     
     return render_template('correo_confirmacion.html', mensaje=mensaje)
 
-
 @app.route('/reenviar_confirmacion', methods=['GET', 'POST'])
 def reenviar_confirmacion():
     if request.method == 'POST':
         correo = request.form.get('email')
         usuario = Usuario.query.filter_by(correo=correo).first()
+        
         if not usuario:
             flash("No existe usuario con ese correo", "error")
             return redirect(url_for('reenviar_confirmacion'))
+        
         if usuario.email_confirmado:
             flash("El correo ya está confirmado", "info")
             return redirect(url_for('inicio_sesion'))
 
         token = s.dumps(correo, salt='email-confirm')
         confirm_url = url_for('confirmar_correo', token=token, _external=True)
-        msg = Message("Reenvio: confirma tu correo - UniMarket",
-            sender=app.config.get('MAIL_USERNAME'),
-            recipients=[correo])
-        msg.body = f"Hola {usuario.nombre}, \n\nHaz clic  aquí para confirmar tu correo:\n{confirm_url}\n\nSi no solicitaste esto, ignora el correo."
-        mail.send(msg)
-        flash("Se ha reenviado el correo de confirmación.", "error")
+        
+        estado_envio = enviar_correo_confirmacion(
+            destinatario=correo, 
+            nombre_usuario=usuario.nombre, 
+            confirm_url=confirm_url
+        )
+
+        if estado_envio == 200:
+            flash("Se ha reenviado el correo de confirmación.", "success")
+        else:
+            flash("Hubo un problema al enviar el correo.", "error")
+
         return redirect(url_for('inicio_sesion'))
     
     return render_template('reenviar_confirmacion.html')
-
 ##--------------------------------------------------------------registro_administrador--------------------------------------------------------------
 @app.route('/RA', methods=['GET','POST'])
 
@@ -863,7 +916,7 @@ def procesar_compra():
             total=total
         )
         db.session.add(pedido)
-        db.session.flush() 
+        db.session.flush()
 
         for item in items:
             detalle = DetallePedido(
@@ -880,19 +933,21 @@ def procesar_compra():
 
     db.session.commit()
 
-    msg = Message(
-        "Confirmación de compra",
-        sender="UniMarket@gmail.com",
-        recipients=[current_user.correo]
+    # Enviar correo de confirmación de compra usando Mailjet
+    estado_envio = enviar_correo_compra(
+        destinatario=current_user.correo,
+        nombre_usuario=current_user.nombre,
+        cart=cart,
+        turno=turno,
+        horas=horas
     )
-    body = f"Hola {current_user.nombre},\nGracias por tu compra en UniMarket.\n\n"
-    for item in cart:
-        body += f"{item['name']} x {item['quantity']} = ${item['price'] * item['quantity']: .2f}\n"
-    body += f"\nTotal: ${sum(item['price']*item['quantity'] for item in cart): .2f}\nTurno: {turno}\nHoras: {','.join(horas)}\n\nGracias por tu compra."
-    msg.body = body
-    mail.send(msg)
 
-    return "<h1>Compra finalizada con éxito</h1><p>Revisa tu correo para la confirmación de la compra.</p><a href='/'>Volver al inicio</a>"
+    if estado_envio == 200:
+        mensaje_envio = "Se ha enviado la confirmación de compra a tu correo."
+    else:
+        mensaje_envio = "La compra se registró, pero hubo un problema al enviar el correo."
+
+    return f"<h1>Compra finalizada con éxito</h1><p>{mensaje_envio}</p><a href='/'>Volver al inicio</a>"
 
 ##-------------------------------------------------------------fin_compra------------------------------------------------------------------
 ##-------------------------------------------------------------error_404------------------------------------------------------------------
@@ -914,6 +969,19 @@ def set_rol():
     return redirect(url_for('complete_registration'))
 
 ##-------------------------------------------------------------fin_Rol------------------------------------------------------------------
+
+@app.route('/test_mailjet')
+def test_mailjet():
+    destinatario = 'dzgarcia10@gmail.com'  # tu correo personal para recibir la prueba
+    nombre_usuario = 'Prueba'
+    confirm_url = 'https://unimarket-620z.onrender.com/test_mailjet'  
+    
+    estado_envio = enviar_correo_confirmacion(destinatario, nombre_usuario, confirm_url)
+    
+    if estado_envio == 200:
+        return "Correo de prueba enviado correctamente"
+    else:
+        return f"Error enviando correo: {estado_envio}"
 
 
 
