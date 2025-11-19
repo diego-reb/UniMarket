@@ -23,6 +23,8 @@ import os
 from werkzeug.utils import secure_filename
 from oauthlib.oauth2 import WebApplicationClient
 import requests
+import mercadopago
+sdk = mercadopago.SDK(os.getenv('MP_ACCESS_TOKEN'))
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
@@ -564,6 +566,15 @@ def editar_usuario(id):
         usuario.telefono = request.form['telefono']
         usuario.estado = request.form['estado'] == 'True'
         usuario.id_rol = request.form['id_rol']  
+
+        password = request.form.get("password")
+        confirmar = request.form.get("confirmar")
+        if password.strip() != "":
+            if password != confirmar:
+                flash("Las contraseñas no coinciden", "error")
+                return redirect(url_for('Admin'))
+                usuario.set_password(password)
+
         db.session.commit()
         flash('Usuario actualizado correctamente', 'success')
         return redirect(url_for('Admin'))
@@ -893,31 +904,63 @@ def comprador():
     return render_template('usuariocomprador.html')
 ##-------------------------------------------------------------fin_comprador------------------------------------------------------------------
 ##-------------------------------------------------------------compra-------------------------------------------------------------------------
-@app.route('/compra')
-@login_required
-def compra():
-
-    return render_template('compra.html', user=current_user)
-
 @app.route('/procesar_compra', methods=['POST'])
 @login_required
 def procesar_compra():
-    cart = json.loads(request.form['cartData'])
-    pago = request.form['pago']
-    turno = request.form['turno']
-    horas = request.form.getlist('horas')
+    cart = json.loads(request.form["cartData"])
+    pago = request.form.get("pago")
+    turno = request.form.get("turno")
+    horas = request.form.getlist("horas")
+
+    if pago == "mercadopago":
+        sdk = mercadopago.SDK(os.getenv("MP_ACCESS_TOKEN"))
+
+        items_mp = [{
+            "title": item["name"],
+            "quantity": int(item["quantity"]),
+            "unit_price": float(item["price"])
+        } for item in cart]
+
+        preference = {
+            "items": items_mp,
+
+            "payer": {
+                "email": "test_user_123456@testuser.com"
+            },
+
+            "back_urls": {
+                "success": url_for("compra_exitosa_mp", _external=True),
+                "failure": url_for("compra_fallida_mp", _external=True)
+            },
+            "auto_return": "approved",
+
+            "metadata": {
+                "id_usuario": current_user.id_usuario,
+                "cart": json.dumps(cart),
+                "turno": turno,
+                "horas": json.dumps(horas)
+            }
+        }
+
+        respuesta = sdk.preference().create(preference)
+
+        init_point = respuesta["response"]["init_point"]
+        return redirect(init_point)
 
     productos_por_vendedor = defaultdict(list)
     for item in cart:
-        vendedor_id = db.session.query(Producto.id_vendedor).filter_by(id_producto=item['id']).scalar()
+        vendedor_id = db.session.query(Producto.id_vendedor)\
+                                .filter_by(id_producto=item['id']).scalar()
         productos_por_vendedor[vendedor_id].append(item)
 
     for vendedor_id, items in productos_por_vendedor.items():
-        total = sum(item['price']*item['quantity'] for item in items)
+        total = sum(item['price'] * item['quantity'] for item in items)
+
         pedido = Pedido(
             id_comprador=current_user.id_usuario,
             id_vendedor=vendedor_id,
-            total=total
+            total=total,
+            metodo_pago=pago
         )
         db.session.add(pedido)
         db.session.flush()
@@ -932,12 +975,14 @@ def procesar_compra():
             )
             db.session.add(detalle)
 
-            notificacion = Notificacion(id_vendedor=vendedor_id, id_pedido=pedido.id_pedido)
+            notificacion = Notificacion(
+                id_vendedor=vendedor_id,
+                id_pedido=pedido.id_pedido
+            )
             db.session.add(notificacion)
 
     db.session.commit()
 
-    # Enviar correo de confirmación de compra usando Mailjet
     estado_envio = enviar_correo_compra(
         destinatario=current_user.correo,
         nombre_usuario=current_user.nombre,
@@ -946,14 +991,20 @@ def procesar_compra():
         horas=horas
     )
 
-    if estado_envio == 200:
-        mensaje_envio = "Se ha enviado la confirmación de compra a tu correo."
-    else:
-        mensaje_envio = "La compra se registró, pero hubo un problema al enviar el correo."
+    mensaje_envio = "Correo enviado" if estado_envio == 200 else "Error al enviar correo"
 
-    return f"<h1>Compra finalizada con éxito</h1><p>{mensaje_envio}</p><a href='/'>Volver al inicio</a>"
+    return f"<h1>Compra finalizada</h1><p>{mensaje_envio}</p><a href='/'>Volver</a>"
 
 ##-------------------------------------------------------------fin_compra------------------------------------------------------------------
+##-------------------------------------------------------------compra_exitosa_mp-------------------------------------------------------------------------
+@app.route('/mp/success')
+def compra_exitosa_mp():
+    return "<h1>Pago aprobado con Mercado Pago</h1>"
+
+@app.route('/mp/failure')
+def compra_fallida_mp():
+    return "<h1>El pago no se completó</h1>"
+##-------------------------------------------------------------fin_compra_exitosa_mp------------------------------------------------------------------
 ##-------------------------------------------------------------error_404------------------------------------------------------------------
 @app.errorhandler(404)
 def page_not_found(e):
