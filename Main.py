@@ -31,6 +31,12 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 app = Flask(__name__) 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "pool_pre_ping": True,    
+    "pool_recycle": 180,      
+    "pool_size": 5,
+    "max_overflow": 10
+}
 app.secret_key = 'contraseña_secreta'
 init_app(app)
 
@@ -212,12 +218,10 @@ def load_user(user_id):
 @app.route('/inicio_sesion', methods=['GET', 'POST'])
 def inicio_sesion():
 
-    # Inicializar variables de sesión
     if 'intentos' not in session:
         session['intentos'] = 0
         session['bloqueado_hasta'] = None
 
-    # ---- VERIFICAR BLOQUEO ----
     if session.get('bloqueado_hasta'):
         try:
             bloqueado = datetime.fromisoformat(session['bloqueado_hasta'])
@@ -547,7 +551,7 @@ def crear_usuario():
     db.session.add(nuevo_usuario)
     db.session.commit()
 
-    flash(f"Usuario {nombre} creado correctamente", "success")
+    flash(f"Usuario creado correctamente", "success")
     return redirect(url_for('Admin'))
 
 @app.route('/usuario/editar/<int:id>', methods=['GET', 'POST'])
@@ -888,7 +892,6 @@ def pedidos_vendedor():
 def comprador():
     return render_template('usuariocomprador.html')
 ##-------------------------------------------------------------fin_comprador------------------------------------------------------------------
-
 ##-------------------------------------------------------------compra-------------------------------------------------------------------------
 @app.route('/compra')
 @login_required
@@ -961,19 +964,22 @@ def page_not_found(e):
 def choose_role():
     
     return render_template("Rol.html")
+
 @app.route('/set_rol', methods=['POST'])
 def set_rol():
     rol_elegido = int(request.form.get("rol"))
-    
     session['rol_elegido'] = rol_elegido
-    
-    return redirect(url_for('complete_registration'))
+
+    mensaje = session.pop('mensaje_confirmacion', "Registro completado correctamente.")
+
+    return render_template("correo_confirmacion.html", mensaje=mensaje)
+
 
 ##-------------------------------------------------------------fin_Rol------------------------------------------------------------------
 
 @app.route('/test_mailjet')
 def test_mailjet():
-    destinatario = 'dzgarcia10@gmail.com'  # tu correo personal para recibir la prueba
+    destinatario = 'dzgarcia10@gmail.com'  
     nombre_usuario = 'Prueba'
     confirm_url = 'https://unimarket-620z.onrender.com/test_mailjet'  
     
