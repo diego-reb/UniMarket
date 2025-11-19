@@ -140,6 +140,110 @@
       font-size: 1.1rem;
       margin: 0;
     }
+
+    /* Estilos para el Modal del Chatbot */
+    .chat-modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: none; /* Inicialmente oculto */
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .chat-modal-content {
+        background: var(--card);
+        border-radius: var(--radius);
+        width: 350px;
+        height: 450px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .chat-header {
+        background: linear-gradient(90deg, var(--brand), var(--brand-2));
+        padding: 15px;
+        color: var(--bg);
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chat-header button {
+        background: none;
+        border: none;
+        color: var(--bg);
+        font-size: 1.5rem;
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    .chat-body {
+        flex-grow: 1;
+        padding: 15px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .chat-input-area {
+        padding: 10px 15px;
+        border-top: 1px solid rgba(148, 163, 184, 0.1);
+        display: flex;
+        gap: 10px;
+    }
+
+    .chat-input-area input {
+        flex-grow: 1;
+        padding: 10px;
+        border-radius: 999px;
+        border: 1px solid var(--muted);
+        background: var(--bg);
+        color: var(--text);
+        outline: none;
+    }
+
+    .chat-input-area button {
+        background: var(--brand);
+        color: var(--bg);
+        border: none;
+        border-radius: 999px;
+        padding: 10px 15px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .chat-input-area button:hover {
+        background: var(--ok);
+    }
+
+    /* Estilos de mensajes */
+    .message {
+        max-width: 80%;
+        padding: 8px 12px;
+        border-radius: 12px;
+    }
+
+    .user-message {
+        align-self: flex-end;
+        background-color: var(--brand-2); /* Sky Blue */
+        color: var(--bg);
+    }
+
+    .bot-message {
+        align-self: flex-start;
+        background-color: var(--card);
+        border: 1px solid rgba(148, 163, 184, 0.15);
+    }
+
+    .bot-message::before {
+        content: '🤖 ';
+    }
   </style>
 </head>
 <body id="high-contrast">
@@ -148,7 +252,6 @@
 
   <header>
   <div class="header-wrap container">
-    <!-- Logo -->
     <a class="logo" href="/">
       <div class="logo-badge" aria-hidden="true">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo UniMarket">
@@ -165,7 +268,6 @@
       </div>
     </a>
 
-    <!-- Barra de búsqueda -->
     <div class="search">
       <div class="icon" aria-hidden="true">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -176,9 +278,7 @@
       <input id="search" type="search" placeholder="Buscar productos o categorías…" aria-label="Buscar" />
     </div>
 
-    <!-- Botones de acciones -->
     <div class="actions" style="display:flex; gap:10px;">
-      <!-- Usuario -->
       {% if current_user.is_authenticated %}
         <a href="/logout" class="icon-btn" title="Cerrar sesión" aria-label="Cerrar sesión">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -195,7 +295,14 @@
         </a>
       {% endif %}
 
-      <!-- Carrito -->
+      <button class="icon-btn" id="botBtn" title="Asistente UniMarket" aria-label="Abrir Asistente de Chat">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 18H8a4 4 0 0 1 0-8h4a4 4 0 1 0 0-8H8" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+            <path d="M16 12a4 4 0 0 0-4-4h-4a4 4 0 1 0 0 8h4a4 4 0 1 0 0-8" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="10" stroke="#94a3b8" stroke-width="2"/>
+        </svg>
+      </button>
+
       <button class="icon-btn" id="cartBtn" title="Carrito" aria-label="Carrito" style="position:relative">
         <span id="cartBadge" class="badge" hidden>0</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -271,7 +378,22 @@
     © <span id="year"></span> UniMarket • Hecho por estudiantes para estudiantes.
   </footer>
 
-<script>
+    <div id="chatModalOverlay" class="chat-modal-overlay">
+        <div class="chat-modal-content">
+            <div class="chat-header">
+                Asistente UniMarket 
+                <button id="closeChatBtn" aria-label="Cerrar chat">&times;</button>
+            </div>
+            <div class="chat-body" id="chatBody">
+                <div class="message bot-message">¡Hola! Soy tu asistente. Pregúntame sobre el funcionamiento de UniMarket.</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." aria-label="Campo de mensaje">
+                <button id="sendChatBtn">Enviar</button>
+            </div>
+        </div>
+    </div>
+    <script>
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
 const tabs = document.querySelectorAll('.tab');
@@ -340,6 +462,224 @@ window.addEventListener('storage', (e) => {
         cart = JSON.parse(e.newValue) || [];
         updateBadge();
     }
+});
+
+// --- LÓGICA DEL CHATBOT (Añadido) ---
+// 🔑 CLAVE API DE GEMINI INSERTADA AQUÍ
+const GEMINI_API_KEY = "AIzaSyB6f6nJWCrR0my4yF9BQGS45h30u-ZQOKA"; 
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+
+// --- Referencias del Chat y Menú de Usuario ---
+const botBtn = document.getElementById('botBtn');
+
+const chatModalOverlay = document.getElementById('chatModalOverlay');
+const closeChatBtn = document.getElementById('closeChatBtn');
+const chatBody = document.getElementById('chatBody');
+const chatInput = document.getElementById('chatInput');
+const sendChatBtn = document.getElementById('sendChatBtn');
+
+// --- Funcionalidad del Chatbot ---
+
+// Función para mostrar mensajes en el chat
+function appendMessage(text, sender) {
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', `${sender}-message`);
+    // Permite saltos de línea y formateo básico si la API lo devuelve
+    messageDiv.innerHTML = text.replace(/\n/g, '<br>'); 
+    chatBody.appendChild(messageDiv);
+    // Desplazar hacia el último mensaje
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+// Función principal para llamar a la API
+async function getBotResponse(userMessage) {
+    if (!GEMINI_API_KEY) {
+        appendMessage("❌ Error: La clave API de Gemini no está configurada.", 'bot');
+        return;
+    }
+
+    try {
+        // Agregar mensaje de carga
+        appendMessage("Escribiendo...", 'bot');
+        
+        // Construcción de la URL y la solicitud corregida
+        const fullUrl = `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
+        
+        const response = await fetch(fullUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ 
+                    role: "user", 
+                    parts: [{ text: `Eres UniBot, el asistente de soporte de inteligencia artificial del portal UniMarket, el mercado exclusivo para la comunidad del ITIZ. Tu rol es **ESTRICTO Y LIMITADO**: proporcionar información precisa ÚNICAMENTE sobre las políticas, mecánicas, productos y funcionalidades de la plataforma UniMarket. Sé amigable, conciso y utiliza los siguientes 'guiones' de respuesta para asegurar la coherencia:
+
+---
+**BASE DE CONOCIMIENTO (NARRATIVAS DE RESPUESTA):**
+
+**1. Proceso de Registro e Inicio de Sesión (Disparadores: "¿Cómo me registro?", "Quiero crear una cuenta", "¿Cómo entro?"):**
+"¡Bienvenido a la comunidad UniMarket! Para comenzar, debes saber que existen dos roles principales. Sigue estos pasos según tu objetivo:
+Para Compradores:
+1. Selecciona la opción 'Registrarse' y elige el perfil de 'Comprador'. Puedes hacerlo manualmente o vincular tu cuenta Google.
+2. Si es manual, ingresa tu correo institucional del ITIZ (es obligatorio) y verifica tu cuenta aceptando el correo de verificación.
+Para Vendedores:
+1. Elige el perfil de 'Vendedor' al registrarte y completa tus datos.
+2. Esto te dará acceso inmediato a tu Dashboard de ventas.
+🛡️ Nota de Seguridad: Todos los inicios de sesión están protegidos con reCAPTCHA para evitar bots."
+
+**2. Proceso de Compra (Para Compradores) (Disparadores: "¿Cómo compro algo?", "Pasos para comprar", "Hacer un pedido"):**
+"¡Comprar en UniMarket es muy fácil! Aquí tienes la ruta completa:
+1. Explora: Navega por las categorías o usa el buscador.
+2. Selecciona: Agrega los productos que desees a tu carrito.
+3. Revisa: Ve a tu carrito y verifica el total.
+4. Programa la Entrega: Elige una fecha (próximos 5 días hábiles), un horario (Matutino: 7 am a 1 pm o Vespertino: 2 pm a 8 pm) y el punto de entrega dentro del campus.
+5. Paga: Selecciona tu método de pago (**Mercado Pago** o **Efectivo**) y confirma.
+¡Listo! Recibirás una confirmación inmediata."
+
+**3. Proceso de Venta y Publicación (Para Vendedores) (Disparadores: "¿Cómo vendo un producto?", "Quiero publicar un artículo", "Subir productos"):**
+"¡Genial que quieras emprender! Para publicar tu primer producto:
+1. Entra a tu cuenta y ve a tu Dashboard de Vendedor.
+2. Haz clic en 'Agregar productos'.
+3. Llena los detalles clave (Nombre, Descripción, Precio, Stock, Imagen).
+4. Dale a 'Publicar' y tu producto aparecerá instantáneamente en el catálogo general.
+Desde ahí también podrás gestionar tu inventario."
+
+**4. Política de Envíos y Entregas (Disparadores: "¿Dónde entregan?", "¿A qué hora puedo recoger?", "Puntos de entrega"):**
+"Para garantizar la seguridad y el orden, las entregas se realizan exclusivamente dentro del campus del ITIZ.
+📍 **Puntos de Encuentro Oficiales (Entrega y Devolución):**
+- La Entrada (Torniquetes de entrada)
+- Cafetería
+- Duela
+- Prefectura o Dirección (Administración)
+⏰ **Horarios Disponibles (Entregas y Devoluciones):**
+- Matutino: 7:00 am - 1:00 pm (intervalos de 1 hora entre entregas).
+- Vespertino: 2:00 pm - 8:00 pm.
+Tú eliges la combinación de lugar y hora al momento de la compra."
+
+**5. Cancelaciones y Devoluciones (Disparadores: "Quiero cancelar mi pedido", "No me gustó el producto", "¿Puedo devolver algo?"):**
+"Entendemos que los planes cambian. Aquí están las reglas para proteger a ambas partes:
+**Para Cancelar:**
+- ✅ **SÍ puedes:** Si faltan más de **36 horas** para la hora de entrega pactada.
+- ❌ **NO puedes:** Si faltan menos de 36 horas.
+**Para Devoluciones:**
+- Tienes hasta **3 días** después de la entrega para solicitarla.
+- Debes contactar directamente al vendedor y coordinar la devolución en uno de los puntos y horarios oficiales mencionados arriba."
+
+**6. Penalizaciones (Sistema de No-Show) (Disparadores: "¿Qué pasa si no recojo mi pedido?", "No llegué a la entrega", "Consecuencias"):**
+"Es muy importante respetar el tiempo de los demás. Si no te presentas a recibir tu pedido (**No-Show**), el sistema aplica suspensiones temporales automáticas:
+- 🟡 **1ª Falta:** Suspensión de cuenta por **12 horas**.
+- 🟠 **2ª Falta:** Suspensión de cuenta por **24 horas** (12 + 12).
+- 🔴 **3ª Falta:** Suspensión de cuenta por **36 horas** (24 + 12), y así sucesivamente.
+¡Evita esto cancelando con tiempo (36 horas antes) si sabes que no podrás asistir!"
+
+**7. Métodos de Pago y Seguridad (Disparadores: "¿Es seguro?", "¿Cómo pago?", "Formas de pago"):**
+"Tu seguridad es nuestra prioridad en UniMarket.
+💳 **Métodos de Pago:** Aceptamos **Mercado Pago** para transacciones digitales y también pagos en **Efectivo** (contra entrega).
+🛡️ **Seguridad:** Tus datos personales están ocultos, las cuentas están verificadas con correo institucional y monitoreamos para evitar bots."
+
+**8. Sobre UniBot (Capacidades) (Disparadores: "¿Quién eres?", "¿Qué haces?", "¿Me puedes ayudar con mi tarea?"):**
+"Soy UniBot, tu asistente personal dentro de UniMarket 🤖. Puedo ayudarte a: explicar cómo registrarte, comprar o vender; aclarar dudas sobre horarios, puntos de entrega y políticas; y guiarte si tienes problemas con la plataforma. **Lo que NO hago:** No tengo información sobre temas externos al ITIZ o a UniMarket, incluyendo tareas o información académica general."
+
+---
+**REGLA DE RESTRICCIÓN ESTRICTA (IMPERATIVA):**
+
+Si la pregunta del usuario es sobre un tema que **NO** está cubierto por estas narrativas o la BASE DE CONOCIMIENTO (ej: información académica, noticias, problemas personales), **DEBES RESPONDER EXCLUSIVAMENTE**:
+
+> **"Lo siento, mi función es estrictamente asistirte con preguntas sobre el mercado universitario UniMarket y sus políticas de venta/entrega. No tengo información sobre ese tema."**
+
+**Pregunta del usuario a responder:** ${userMessage}` }]
+                }]
+            })
+        });
+
+        // Si la respuesta no es OK (ej: 400, 403, 500)
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Error de API (${response.status}): ${errorData.error.message || 'Error desconocido'}`);
+        }
+
+        const data = await response.json();
+        
+        // Remover el mensaje de carga
+        if (chatBody.lastElementChild && chatBody.lastElementChild.textContent === "Escribiendo...") {
+            chatBody.lastElementChild.remove();
+        }
+        
+        const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No pude generar una respuesta. Intenta con otra pregunta.";
+        appendMessage(botReply, 'bot');
+
+    } catch (error) {
+        console.error("Error en la llamada a la API:", error);
+        // Remover el mensaje de carga en caso de error
+        if (chatBody.lastElementChild && chatBody.lastElementChild.textContent === "Escribiendo...") {
+            chatBody.lastElementChild.remove();
+        }
+        appendMessage(`Hubo un error: ${error.message}.`, 'bot');
+    }
+}
+
+// Manejador de envío de mensaje
+function sendMessageHandler() {
+    const message = chatInput.value.trim();
+    if (message === "") return;
+
+    appendMessage(message, 'user');
+    chatInput.value = '';
+    
+    getBotResponse(message);
+}
+
+// Eventos del chat
+sendChatBtn.addEventListener('click', sendMessageHandler);
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessageHandler();
+});
+
+// Abrir/Cerrar Chat
+botBtn.addEventListener('click', () => {
+    chatModalOverlay.style.display = 'flex';
+});
+
+closeChatBtn.addEventListener('click', () => {
+    chatModalOverlay.style.display = 'none';
+});
+
+// Cierre del chat al hacer clic en el fondo oscuro
+chatModalOverlay.addEventListener('click', (e) => {
+    if (e.target === chatModalOverlay) {
+        chatModalOverlay.style.display = 'none';
+    }
+});
+
+// --- Funcionalidad del Carrusel (Añadido) ---
+let currentIndex = 0;
+const track = document.getElementById('carouselTrack');
+const slides = document.querySelectorAll('.carousel-slide');
+const totalSlides = slides.length;
+
+function updateCarousel() {
+    if (slides.length > 0) {
+        const width = slides[0].clientWidth;
+        track.style.transform = `translateX(-${currentIndex * width}px)`;
+    }
+}
+
+function nextSlide() {
+    if (totalSlides > 0) {
+        currentIndex = (currentIndex + 1) % totalSlides;
+        updateCarousel();
+    }
+}
+
+// Auto-reproducción
+setInterval(nextSlide, 5000); 
+
+// Ajustar al redimensionar la ventana
+window.addEventListener('resize', updateCarousel);
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar la posición del carrusel y actualizar el año
+    updateCarousel();
+    document.getElementById('year').textContent = new Date().getFullYear();
 });
 
 </script>

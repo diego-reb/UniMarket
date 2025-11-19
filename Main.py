@@ -27,9 +27,6 @@ import mercadopago
 sdk = mercadopago.SDK(os.getenv('MP_ACCESS_TOKEN'))
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
-
-
-
 app = Flask(__name__) 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
