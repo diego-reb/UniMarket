@@ -1,4 +1,6 @@
-/* === Accesibilidad general === */
+/* =========================================
+   🌐 ACCESIBILIDAD GENERAL
+========================================= */
 
 :root {
   --font-size-base: 16px;
@@ -6,7 +8,11 @@
 }
 
 /* === Escala de grises === */
-body.grayscale { filter: grayscale(100%); background: #ffffff !important; color: #000000 !important; }
+body.grayscale { 
+  filter: grayscale(100%); 
+  background: #ffffff !important; 
+  color: #000000 !important; 
+}
 
 /* === Cambio de tipografía accesible === */
 body.alt-font {
@@ -26,12 +32,21 @@ body.alt-font {
   transition: top 0.1s ease; 
 }
 
-body.reading-guide-active .reading-guide-mask{
-  display: block;
+body.reading-guide-active .reading-guide-mask {
+  display: block;
 }
-body.dark-mode { background: #111827; color: #f0f5f9; }
 
-body.light-mode { background: #ffffff; color: #0f0e0e; }
+/* === Modos de color === */
+body.dark-mode { 
+  background: #111827; 
+  color: #f0f5f9; 
+}
+
+body.light-mode { 
+  background: #ffffff; 
+  color: #0f0e0e; 
+}
+
 /* === Alto contraste === */
 body.high-contrast {
   background: #000 !important;
@@ -42,31 +57,12 @@ body.high-contrast a {
   color: rgb(8, 205, 100) !important;
 }
 
-/* TAMAÑO NORMAL (Punto de inicio y fin de disminución) */
-body.text-size-1 { 
-  font-size: 1em !important; 
-}
-
-/* Aumento 1 */
-body.text-size-2 {
-  font-size: 1.25em !important;
-}
-
-/* Aumento 2 */
-body.text-size-3 {
-  font-size: 1.5em !important;
-}
-
-/* Aumento 3 */
-body.text-size-4 {
-  font-size: 1.75em !important;
-}
-
-/* Aumento 4 (Máximo) */
-body.text-size-5 {
-  font-size: 2em !important;
-}
-
+/* === Tamaños de fuente === */
+body.text-size-1 { font-size: 1em !important; }
+body.text-size-2 { font-size: 1.25em !important; }
+body.text-size-3 { font-size: 1.5em !important; }
+body.text-size-4 { font-size: 1.75em !important; }
+body.text-size-5 { font-size: 2em !important; }
 
 /* === Botón flotante de accesibilidad === */
 #accesibility-toggle {
@@ -89,7 +85,7 @@ body.text-size-5 {
   transform: scale(1.08);
 }
 
-/* === Menú desplegable === */
+/* === Menú desplegable de accesibilidad === */
 #accesibility-panel {
   position: fixed;
   bottom: 80px;
@@ -113,7 +109,7 @@ body.text-size-5 {
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 #accesibility-panel button {
@@ -132,45 +128,209 @@ body.text-size-5 {
   background: rgba(255,255,255,.25);
 }
 
-/* 🌙 Modo oscuro (ya está por defecto con tus variables) */
+/* =========================================
+   🎨 MODO CLARO – VARIABLES EXTRA
+========================================= */
 
-/* ☀️ Modo claro */
 body.light-mode {
-    --bg: #f4f4f9;              /* Fondo general */
-    --card: #ffffff;            /* Fondo del panel de login */
-    --muted: #5c687a;           /* Texto gris medio */
-    --text: #0f172a;            /* Texto principal oscuro */
-    --brand: #22c55e;           /* Verde consistente */
-    --brand-2: #38bdf8;         /* Azul consistente */
-    --accent: #eab308;          /* Amarillo */
-    --error: #ef4444;           /* Rojo */
-    --ok: #10b981;              /* Verde éxito */
+  --bg: #f4f4f9;          /* Fondo general */
+  --card: #ffffff;        /* Fondo de paneles / tarjetas */
+  --muted: #5c687a;       /* Texto gris medio */
+  --text: #0f172a;        /* Texto principal */
+  --brand: #22c55e;       /* Verde */
+  --brand-2: #38bdf8;     /* Azul */
+  --accent: #eab308;      /* Amarillo */
+  --error: #ef4444;       /* Rojo */
+  --ok: #10b981;          /* Verde éxito */
 }
 
-/* Ajuste visual del panel del formulario en modo claro */
+/* Panel de formulario en modo claro */
 body.light-mode .form-panel {
-    background: var(--card);
-    border: 1px solid rgba(148,163,184,.25);
-    color: var(--text);
+  background: var(--card);
+  border: 1px solid rgba(148,163,184,.25);
+  color: var(--text);
 }
 
-/* Ajuste de inputs en modo claro */
+/* Inputs en modo claro */
 body.light-mode input[type="email"],
 body.light-mode input[type="password"] {
-    background: #f9fafb;
-    color: #111827;
-    border: 1px solid rgba(148,163,184,.4);
+  background: #f9fafb;
+  color: #111827;
+  border: 1px solid rgba(148,163,184,.4);
 }
 
-/* Hover de opciones radio en modo claro */
+/* Radio en modo claro */
 body.light-mode .radio-option {
-    background: #f9fafb;
-    color: #0f172a;
+  background: #f9fafb;
+  color: #0f172a;
 }
 body.light-mode .radio-option:hover {
-    background: #f3f4f6;
+  background: #f3f4f6;
 }
 body.light-mode .radio-option.selected {
-    background: rgba(56,189,248,.15);
-    border-color: var(--brand-2);
+  background: rgba(56,189,248,.15);
+  border-color: var(--brand-2);
+}
+
+/* =========================================
+   🧱 LAYOUT BASE (MOBILE FIRST)
+   (ajusta las clases a tu HTML si es necesario)
+========================================= */
+
+/* Contenedor general */
+.container {
+  width: 100%;
+  padding: 0 16px;
+  margin: 0 auto;
+}
+
+/* Layout principal (catálogo / página) */
+.main-layout {
+  display: flex;
+  flex-direction: column; /* Móvil: columna */
+  gap: 16px;
+}
+
+/* Sidebar (filtros, menú lateral, etc.) */
+.sidebar {
+  width: 100%;
+}
+
+/* Área de contenido principal */
+.content-area {
+  width: 100%;
+}
+
+/* Lista de productos: en móvil 1 por fila */
+.product-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+/* Tarjeta de producto */
+.product-card {
+  background: var(--card, #ffffff);
+  border-radius: 12px;
+  padding: 12px;
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0,0,0,.12);
+}
+
+/* Navbar genérico (si lo usas) */
+#main-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 12px;
+}
+
+#main-nav a {
+  display: block;
+  padding: 8px 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Footer genérico */
+footer {
+  padding: 20px 16px;
+}
+footer .footer-section {
+  width: 100%;
+}
+
+/* =========================================
+   📱 RESPONSIVE – MEDIA QUERIES
+========================================= */
+
+/* --- CELULARES (hasta 599px) --- */
+@media screen and (max-width: 599px) {
+
+  .container,
+  .main-content {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* Menú en columna para que no se amontone */
+  #main-nav ul {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  #main-nav a {
+    padding: 10px 0;
+  }
+
+  footer .footer-section {
+    margin-bottom: 16px;
+  }
+}
+
+/* --- TABLET (600px a 1023px) --- */
+@media screen and (min-width: 600px) and (max-width: 1023px) {
+
+  /* Dos productos por fila */
+  .product-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  /* Sidebar + contenido en dos columnas */
+  .main-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .sidebar {
+    width: 30%;
+  }
+
+  .content-area {
+    width: 70%;
+  }
+
+  /* Footer en 2 columnas */
+  footer .footer-section {
+    width: 50%;
+    display: inline-block;
+    vertical-align: top;
+  }
+}
+
+/* --- ESCRITORIO (1024px en adelante) --- */
+@media screen and (min-width: 1024px) {
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Cuatro productos por fila */
+  .product-list {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .main-layout {
+    flex-direction: row;
+    gap: 24px;
+  }
+
+  .sidebar {
+    width: 25%;
+  }
+
+  .content-area {
+    width: 75%;
+  }
+
+  /* Footer en 4 columnas */
+  footer .footer-section {
+    width: 25%;
+    display: inline-block;
+    vertical-align: top;
+  }
 }
