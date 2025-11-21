@@ -47,7 +47,7 @@
                       box-shadow: var(--shadow); }
         .brand { font-size: 1.35rem }
         .tagline { font-size: .9rem; color: var(--muted) }
-        .actions { margin-left: auto; }
+        .actions { margin-left: auto; display: flex; align-items: center; gap: 10px;}
         .icon-btn { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; border: 1px solid rgba(148,163,184,.25);
                     background: rgba(2,6,23,.6); cursor: pointer; transition: transform .06s ease, border .2s; }
         .icon-btn:hover { border-color: var(--brand-2) }
@@ -85,9 +85,113 @@
         .order-status.completed { color: var(--ok); font-weight: bold; }
         .order-details p { margin: 0 0 8px; font-size: 0.95rem; }
         .guardar-btn {
-    padding: 12px 24px !important;border-radius: 12px !important;background: linear-gradient(135deg, var(--brand), var(--brand-2)) !important;color: white !important;font-weight: 800 !important;border: none !important;cursor: pointer;}
+            padding: 12px 24px !important;border-radius: 12px !important;background: linear-gradient(135deg, var(--brand), var(--brand-2)) !important;color: white !important;font-weight: 800 !important;border: none !important;cursor: pointer;}
 
         footer { padding: 20px; color: var(--muted); text-align: center; }
+        
+        /* Estilos para el Modal del Chatbot (Añadido del index.html) */
+        .chat-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none; /* Inicialmente oculto */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .chat-modal-content {
+            background: var(--card);
+            border-radius: var(--radius);
+            width: 350px;
+            height: 450px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(90deg, var(--brand), var(--brand-2));
+            padding: 15px;
+            color: var(--bg);
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header button {
+            background: none;
+            border: none;
+            color: var(--bg);
+            font-size: 1.5rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .chat-body {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-input-area {
+            padding: 10px 15px;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input-area input {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 999px;
+            border: 1px solid var(--muted);
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
+        }
+
+        .chat-input-area button {
+            background: var(--brand);
+            color: var(--bg);
+            border: none;
+            border-radius: 999px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .chat-input-area button:hover {
+            background: var(--ok);
+        }
+
+        /* Estilos de mensajes */
+        .message {
+            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 12px;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--brand-2); /* Sky Blue */
+            color: var(--bg);
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: var(--card);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+        }
+
+        .bot-message::before {
+            content: '🤖 ';
+        }
     </style>
 </head>
 <body>
@@ -102,7 +206,24 @@
             </div>
         </a>
         <div class="actions">
-            <a href="{{ url_for('logout') }}" class="icon-btn" title="Cerrar sesión" aria-label="Cerrar sesión">Salir</a>
+             <button class="icon-btn" id="botBtn" title="Asistente de Vendedor" aria-label="Abrir Asistente de Chat">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#38bdf8;">
+                    <path d="M12 2v2"></path>
+                    <path d="M10 18h4"></path>
+                    <path d="M10 5a2 2 0 0 1 4 0v3a2 2 0 0 1-4 0v-3z"></path>
+                    <path d="M19 19H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2z"></path>
+                    <line x1="15" y1="9" x2="15" y2="9"></line>
+                    <line x1="9" y1="9" x2="9" y2="9"></line>
+                </svg>
+            </button>
+            
+            <a href="{{ url_for('logout') }}" class="icon-btn" title="Cerrar sesión" aria-label="Cerrar sesión">
+                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+            </a>
         </div>
     </div>
 </header>
@@ -112,7 +233,6 @@
     <h1>Bienvenid@, {{ current_user.nombre }}</h1>
     <p>Gestiona tus productos y pedidos desde tu panel de control.</p>
 
-    <!-- Menú del dashboard -->
     <div class="btn-group">
         <button class="btn active" onclick="showSection('add-product', this)">Agregar productos</button>
         <button class="btn" onclick="showSection('product-list', this)">Lista de productos</button>
@@ -120,7 +240,6 @@
         <button class="btn" onclick="showSection('order-history', this)">Historial</button>
     </div>
 
-    <!-- Agregar producto -->
     <div id="add-product" class="content-section active">
         <h2 style="text-align:center;margin-bottom:24px;">Agregar Nuevo Producto</h2>
         <form action="{{ url_for('crear_producto') }}" method="POST" enctype="multipart/form-data">
@@ -159,7 +278,6 @@
         </form>
     </div>
 
-    <!-- Lista de productos -->
     <div id="product-list" class="content-section">
         <h2 style="text-align:center;margin-bottom:24px;">Mis Productos</h2>
         <div class="product-list">
@@ -189,8 +307,7 @@
         </div>
     </div>
 
- <!-- Pedidos pendientes -->
-<div id="orders" class="content-section">
+ <div id="orders" class="content-section">
     <h2 style="text-align:center;margin-bottom:24px;">Pedidos Pendientes</h2>
     <div class="product-list">
         {% if pedidos %}
@@ -252,7 +369,6 @@
     <div class="container">© <span id="year"></span> UniMarket • Hecho por estudiantes para estudiantes.</div>
 </footer>
 
-<!-- Modal para editar producto -->
 <div id="editModal" style="
     display:none; position:fixed; inset:0; background:rgba(0,0,0,.5);
     align-items:center; justify-content:center; z-index:1000;">
@@ -299,8 +415,198 @@
     </div>
 </div>
 
+<div id="chatModalOverlay" class="chat-modal-overlay">
+    <div class="chat-modal-content">
+        <div class="chat-header">
+            Asistente UniMarket 
+            <button id="closeChatBtn" aria-label="Cerrar chat">&times;</button>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <div class="message bot-message">¡Hola! Soy tu asistente para el dashboard de vendedor. Puedo ayudarte a gestionar tus productos, procesar pedidos y revisar tu historial de ventas. ¿En qué necesitas ayuda hoy?</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." aria-label="Campo de mensaje">
+            <button id="sendChatBtn">Enviar</button>
+        </div>
+    </div>
+</div>
+
+
 <script>
     document.getElementById('year').textContent = new Date().getFullYear();
+
+    // 🔑 CLAVE API DE GEMINI INSERTADA AQUÍ (Necesita ser reemplazada por tu clave real)
+    const GEMINI_API_KEY = "AIzaSyB6f6nJWCrR0my4yF9BQGS45h30u-ZQOKA"; 
+    const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+
+    // --- Referencias del Chat ---
+    const botBtn = document.getElementById('botBtn');
+    const chatModalOverlay = document.getElementById('chatModalOverlay');
+    const closeChatBtn = document.getElementById('closeChatBtn');
+    const chatBody = document.getElementById('chatBody');
+    const chatInput = document.getElementById('chatInput');
+    const sendChatBtn = document.getElementById('sendChatBtn');
+
+    // --- Funcionalidad del Chatbot (Modificada para el contexto de Vendedor) ---
+    
+    // Función para mostrar mensajes en el chat
+    function appendMessage(text, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', `${sender}-message`);
+        // Permite saltos de línea y formateo básico si la API lo devuelve
+        messageDiv.innerHTML = text.replace(/\n/g, '<br>'); 
+        chatBody.appendChild(messageDiv);
+        // Desplazar hacia el último mensaje
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    // Función principal para llamar a la API
+    async function getBotResponse(userMessage) {
+        if (!GEMINI_API_KEY) {
+            appendMessage("❌ Error: La clave API de Gemini no está configurada.", 'bot');
+            return;
+        }
+
+        const VENDOR_PROMPT = `
+Eres un asistente especializado llamado UniBot para el panel de vendedores de UniMarket. 
+Los usuarios que interactúan contigo son vendedores registrados en la plataforma ITIZ que gestionan sus productos y pedidos.
+Tu rol es **ESTRICTO Y LIMITADO**: proporcionar información precisa ÚNICAMENTE sobre las funcionalidades del Dashboard de Vendedor.
+
+---
+**BASE DE CONOCIMIENTO (NARRATIVAS DE RESPUESTA):**
+
+**1. Agregar nuevos productos (Disparadores: "¿Cómo agrego un nuevo producto?", "Quiero publicar algo", "Subir un artículo", Agregar, Producto, Agregar productos):**
+"Para agregar un nuevo producto:
+1. Ve a la sección 'Agregar productos' (botón azul/verde).
+2. Completa todos los campos obligatorios: Nombre, Descripción, Cantidad, y Costo ($).
+3. Selecciona la Categoría apropiada del menú desplegable.
+4. Sube una Imagen del producto (opcional pero muy recomendado).
+5. Haz clic en el botón 'Guardar Producto'.
+Tu artículo aparecerá en el catálogo general inmediatamente."
+
+**2. Editar productos existentes (Disparadores: "Necesito cambiar el precio", "Quiero editar un producto", "Modificar descripción", Editar, Cambiar, Cambiar Precio, Cambiar descripcion):**
+"Para editar un producto:
+1. Ve a la sección 'Lista de productos'.
+2. Encuentra el producto y haz clic en el botón 'Editar' asociado a él.
+3. Se abrirá un modal (ventana emergente). En este, puedes modificar el Nombre, Descripción, Cantidad, Precio, Categoría y hasta subir una nueva imagen.
+4. Una vez hecho el cambio, haz clic en el botón 'Guardar Producto' dentro del modal. Los cambios se aplicarán al instante."
+
+**3. Eliminar productos (Disparadores: "Quiero eliminar un producto", "Dar de baja un artículo", Eliminar, Eliminar Producto, ):**
+"Para eliminar un producto:
+1. Ve a la sección 'Lista de productos'.
+2. Encuentra el producto que deseas y haz clic en el botón 'Eliminar'.
+3. El sistema te pedirá una confirmación. Al confirmar, el producto será removido de tu lista y del catálogo general."
+
+**4. Pedidos pendientes (Disparadores: "Tengo un pedido pendiente, ¿qué hago?", "Ver mis pedidos", "Información del comprador", Pedidos, Pendientes, Comprador):**
+"En la sección 'Pedidos', verás una lista de los pedidos pendientes de entrega. En cada pedido encontrarás:
+- El número de Pedido.
+- **Información del Comprador** (Nombre, Correo y Teléfono).
+- Detalles del pedido (los productos comprados y el total).
+Tu siguiente paso es coordinar la entrega con el comprador en los puntos y horarios oficiales del ITIZ."
+
+**5. Marcar como entregado (Disparadores: "Ya entregué mi pedido", "Confirmar entrega", Confirmo, Como confirmo mi entrega, Entregado):**
+"Para marcar un pedido como entregado y finalizar la transacción:
+1. Asegúrate de estar en la sección 'Pedidos'.
+2. Identifica el pedido específico que has entregado.
+3. Haz clic en el botón 'Marcar como Entregado' asociado a ese pedido.
+4. Confirma la acción.
+El pedido desaparecerá de la lista de 'Pedidos' y se registrará automáticamente en tu 'Historial'."
+
+**6. Historial de entregas (Disparadores: "Ver mis ventas completadas", "Historial de ventas", Historial):**
+"Para revisar tus transacciones completadas, ve a la sección 'Historial'. Aquí podrás consultar todos los pedidos que has marcado como 'Entregado', incluyendo detalles como el comprador, los productos, el total y la fecha de la venta."
+
+**7. Navegación del Dashboard (Disparadores: "¿Cómo cambio de sección?", "Quiero ver mi lista de productos", Opciones ):**
+"El dashboard tiene un menú central con botones. Solo tienes que hacer clic en el botón que deseas para cambiar de vista: 'Agregar productos', 'Lista de productos', 'Pedidos' o 'Historial'. El botón activo se resaltará."
+
+**8. Sobre UniBot (Capacidades) (Disparadores: "¿Quién eres?", "¿Qué haces?", "¿Me puedes ayudar con mi tarea?"):**
+"Soy UniBot, tu asistente personal para el Dashboard de Vendedor 🤖. Puedo ayudarte a: explicar cómo agregar o editar productos, guiarte en la gestión de pedidos pendientes, y revisar el historial de ventas. **Lo que NO hago:** No tengo información sobre temas externos al dashboard, como problemas académicos, información de comprador/vendedor no visible en la interfaz, o ejecutar acciones de manera directa."
+
+---
+**REGLA DE RESTRICCIÓN ESTRICTA (IMPERATIVA):**
+
+Si la pregunta del usuario es sobre un tema que **NO** está cubierto por estas narrativas o la BASE DE CONOCIMIENTO (ej: información académica, noticias, problemas personales, preguntas sobre el lado de la compra), **DEBES RESPONDER EXCLUSIVAMENTE**:
+
+> **"Lo siento, mi función es estrictamente asistirte con preguntas sobre tu panel de vendedor de UniMarket (gestión de productos y pedidos). No tengo información sobre ese tema."**
+
+**Pregunta del usuario a responder:** ${userMessage}`
+        
+        try {
+            // Agregar mensaje de carga
+            appendMessage("Escribiendo...", 'bot');
+            
+            // Construcción de la URL y la solicitud corregida
+            const fullUrl = `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
+            
+            const response = await fetch(fullUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ 
+                        role: "user", 
+                        parts: [{ text: VENDOR_PROMPT + "\n\nPregunta del usuario a responder: " + userMessage }]
+                    }]
+                })
+            });
+
+            // Si la respuesta no es OK (ej: 400, 403, 500)
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Error de API (${response.status}): ${errorData.error.message || 'Error desconocido'}`);
+            }
+
+            const data = await response.json();
+            
+            // Remover el mensaje de carga
+            if (chatBody.lastElementChild && chatBody.lastElementChild.textContent === "Escribiendo...") {
+                chatBody.lastElementChild.remove();
+            }
+            
+            const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No pude generar una respuesta. Intenta con otra pregunta.";
+            appendMessage(botReply, 'bot');
+
+        } catch (error) {
+            console.error("Error en la llamada a la API:", error);
+            // Remover el mensaje de carga en caso de error
+            if (chatBody.lastElementChild && chatBody.lastElementChild.textContent === "Escribiendo...") {
+                chatBody.lastElementChild.remove();
+            }
+            appendMessage(`Hubo un error: ${error.message}.`, 'bot');
+        }
+    }
+
+
+    // Manejador de envío de mensaje
+    function sendMessageHandler() {
+        const message = chatInput.value.trim();
+        if (message === "") return;
+
+        appendMessage(message, 'user');
+        chatInput.value = '';
+        
+        getBotResponse(message);
+    }
+
+    // Eventos del chat
+    sendChatBtn.addEventListener('click', sendMessageHandler);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessageHandler();
+    });
+
+    // Abrir/Cerrar Chat
+    botBtn.addEventListener('click', () => {
+        chatModalOverlay.style.display = 'flex';
+    });
+
+    closeChatBtn.addEventListener('click', () => {
+        chatModalOverlay.style.display = 'none';
+    });
+    
+    // Cierre del chat al hacer clic en el fondo oscuro
+    chatModalOverlay.addEventListener('click', (e) => {
+        if (e.target === chatModalOverlay) {
+            chatModalOverlay.style.display = 'none';
+        }
+    });
 
     // Cambiar de sección
     function showSection(sectionId, btn) {
