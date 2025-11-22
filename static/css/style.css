@@ -332,5 +332,25 @@ footer .footer-section {
     width: 25%;
     display: inline-block;
     vertical-align: top;
+
+    /* Ajustes específicos para la página de inicio (index) */
+    body#index-page main {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+
+
+    @media (max-width: 767px) {
+    header {
+        position: static !important;
+        top: auto !important;
+    }
+
+    .hero {
+        margin-top: 0 !important;
+        padding-top: 12px !important;
+    }
+}
+
+}
   }
 }
