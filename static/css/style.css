@@ -393,49 +393,63 @@ footer .footer-section {
         height: 40px;
     }
 }
-
-/* --- AJUSTES PARA MÓVILES (hasta 599px/767px) --- */
+/* --- AJUSTES PARA MÓVILES (hasta 767px) --- */
 @media screen and (max-width: 767px) {
     
-    /* 1. Ocultar el Buscador y asegurar separación del contenido */
-    .search {
-        display: none; /* ¡Clave! Ocultamos la barra de búsqueda en móvil */
+    /* 1. Contenedor principal del header: Forzar alineación vertical al centro */
+    .header-wrap {
+        /* Usamos align-items: center; que ya estaba, pero lo confirmamos */
+        align-items: center; 
+        justify-content: space-between; 
+        padding: 10px 16px;
+        /* Quitamos el gap que podría influir si solo hay dos elementos grandes */
+        gap: 0; 
+        min-height: 58px; /* Damos una altura mínima fija para asegurar el espacio */
     }
 
-    /* 2. Ajuste del contenedor de la barra de navegación */
-    .header-wrap {
-        padding: 10px 16px;
-        justify-content: space-between; /* Separar el logo de las acciones */
-        gap: 10px;
+    /* 2. Ocultar el Buscador (permanece igual) */
+    .search {
+        display: none; 
     }
 
     /* 3. Reducción de tamaño del Logo */
     .logo {
-        gap: 8px;
+        gap: 6px; /* Ajuste aún más compacto */
+        /* Eliminamos cualquier margen vertical posible */
+        margin: 0; 
     }
 
     .brand {
-        font-size: 1.15rem; /* Título más pequeño */
+        font-size: 1.1rem; /* Título un poco más pequeño */
     }
 
     .tagline {
-        font-size: 0.7rem; /* Subtítulo más pequeño */
+        font-size: 0.65rem; /* Subtítulo muy pequeño */
     }
     
     .logo-badge {
-        width: 38px;
-        height: 38px;
+        width: 36px; /* Icono del logo más pequeño */
+        height: 36px;
+    }
+    
+    .logo-badge svg {
+        width: 16px;
+        height: 16px;
     }
 
     /* 4. Ajuste de los Íconos de Acción */
     .actions {
-        gap: 6px; /* Espacio mínimo entre los íconos */
+        gap: 4px; /* Espacio mínimo entre los íconos */
+        /* Aseguramos que los botones dentro del flexbox también estén centrados */
+        align-items: center; 
+        /* Eliminamos cualquier margen vertical posible */
+        margin: 0; 
     }
     
     .icon-btn {
-        width: 38px; 
-        height: 38px;
-        border-radius: 10px;
+        width: 36px; /* Botones más pequeños para caber */
+        height: 36px;
+        border-radius: 8px;
     }
 
     .icon-btn svg {
@@ -445,11 +459,10 @@ footer .footer-section {
 
     .badge {
         /* Ajustamos la posición de la burbuja del carrito */
-        transform: translate(10px, -8px); 
+        transform: translate(8px, -8px); 
     }
 }
 
-  
 }
   }
 }
