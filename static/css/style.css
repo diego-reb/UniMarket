@@ -338,19 +338,118 @@ footer .footer-section {
     margin-top: 0 !important;
     padding-top: 0 !important;
 
+    /* =========================================
+   🌐 AJUSTES ESPECÍFICOS DEL HEADER
+========================================= */
 
-    @media (max-width: 767px) {
-    header {
-        position: static !important;
-        top: auto !important;
+/* --- AJUSTES BASE DEL HEADER (fuera de media queries, traído del HTML) --- */
+
+/* Asegura el layout flexible del header */
+.header-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+}
+
+/* El buscador ocupa el espacio central disponible */
+.search {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 12px;
+}
+
+/* Contenedor de los íconos de acción */
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* --- AJUSTES PARA TABLETAS (600px a 1023px) --- */
+@media screen and (min-width: 600px) and (max-width: 1023px) {
+    /* Ajustamos el buscador y los botones para que no se aprieten */
+    .search {
+        margin: 0 8px;
     }
 
-    .hero {
-        margin-top: 0 !important;
-        padding-top: 12px !important;
+    .search input {
+        padding: 10px 14px 10px 40px; /* Reducimos el padding */
+    }
+
+    .search .icon svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .actions {
+        gap: 8px; /* Reducimos el espacio entre los botones de acción */
+    }
+    
+    .icon-btn {
+        width: 40px; 
+        height: 40px;
     }
 }
 
+/* --- AJUSTES PARA MÓVILES (hasta 599px/767px) --- */
+@media screen and (max-width: 767px) {
+    
+    /* 1. Ocultar el Buscador y asegurar separación del contenido */
+    .search {
+        display: none; /* ¡Clave! Ocultamos la barra de búsqueda en móvil */
+    }
+
+    /* 2. Ajuste del contenedor de la barra de navegación */
+    .header-wrap {
+        padding: 10px 16px;
+        justify-content: space-between; /* Separar el logo de las acciones */
+        gap: 10px;
+    }
+
+    /* 3. Reducción de tamaño del Logo */
+    .logo {
+        gap: 8px;
+    }
+
+    .brand {
+        font-size: 1.15rem; /* Título más pequeño */
+    }
+
+    .tagline {
+        font-size: 0.7rem; /* Subtítulo más pequeño */
+    }
+    
+    .logo-badge {
+        width: 38px;
+        height: 38px;
+    }
+
+    /* 4. Ajuste de los Íconos de Acción */
+    .actions {
+        gap: 6px; /* Espacio mínimo entre los íconos */
+    }
+    
+    .icon-btn {
+        width: 38px; 
+        height: 38px;
+        border-radius: 10px;
+    }
+
+    .icon-btn svg {
+        width: 16px; 
+        height: 16px;
+    }
+
+    .badge {
+        /* Ajustamos la posición de la burbuja del carrito */
+        transform: translate(10px, -8px); 
+    }
+}
+
+  
 }
   }
 }
