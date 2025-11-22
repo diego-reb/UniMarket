@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - UniMarket (Cambio de Contraseña)</title>
+    
+    <style>
+        /* ================= VARIABLES ================= */
+        :root{
+            --bg: #1A1D2B;             
+            --card: #1F2333;           
+            --muted: #9CA3AF;          
+            --text: #E0E2E5;           
+            --brand: #33C695;          /* Verde/Cyan */
+            --brand-2: #0080ff;        /* Azul */
+            --error: #EF4444;          /* Rojo */
+            --separador: #303544;      
+            --fondo-activo: #292E3D;   
+            --hover-item: #2A3041;     
+            --radius: 8px;
+            --shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+
+            --input-fondo: #1A1D2B; /* Fondo de inputs más oscuro */
+        }
+
+        /* 1. Estilos Globales y Body */
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a, button { text-decoration: none; cursor: pointer; }
+
+        /* 2. Estilos del Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 40px;
+            background-color: var(--bg);
+            border-bottom: 1px solid var(--separador);
+        }
+
+        .logo-container { display: flex; align-items: center; gap: 10px; }
+        .logo { font-size: 24px; font-weight: 800; color: var(--brand); }
+        .slogan { font-size: 14px; color: var(--muted); margin-top: 5px; }
+        .search-bar { flex-grow: 1; margin: 0 40px; max-width: 500px; }
+        .search-bar input {
+            width: 100%; padding: 10px 15px; border: none; border-radius: 5px;
+            background-color: var(--card); color: var(--text); font-size: 16px;
+        }
+        .user-actions { 
+            display: flex; 
+            align-items: center; 
+            gap: 20px;
+        }
+        
+        /* Botones de acción en el header (Cerrar Sesión y Regresar) */
+        .header-btn {
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 4px;
+            transition: background-color 0.2s, color 0.2s;
+            white-space: nowrap; 
+        }
+
+        .action-logout {
+            background-color: transparent; 
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+        .action-logout:hover {
+            background-color: var(--error);
+            color: var(--bg);
+        }
+
+        .action-back {
+            background-color: transparent; 
+            color: var(--brand);
+            border: 1px solid var(--brand);
+        }
+        .action-back:hover {
+            background-color: var(--brand);
+            color: var(--bg);
+        }
+        
+        /* 3. Estilos del Contenedor Principal (Flexbox) */
+        .perfil-container {
+            display: flex;
+            padding: 30px 40px;
+            gap: 30px;
+            flex-grow: 1;
+        }
+
+        /* 4. Estilos del Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            align-self: flex-start;
+        }
+
+        .perfil-info { padding-bottom: 20px; border-bottom: 1px solid var(--separador); margin-bottom: 20px; text-align: center; }
+        .avatar {
+            width: 80px; height: 80px; border-radius: 50%; background-color: var(--brand);
+            color: var(--bg); font-size: 36px; font-weight: bold; margin: 0 auto 10px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .editar-btn {
+            background-color: transparent; color: var(--brand); border: 1px solid var(--brand);
+            padding: 8px 15px; border-radius: 4px; font-weight: 600;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .editar-btn:hover { background-color: var(--brand); color: var(--bg); }
+
+        .nav-item {
+            color: var(--text); padding: 12px 15px; margin: 4px 0; border-radius: 4px;
+            transition: background-color 0.2s; display: flex; align-items: center; gap: 10px;
+        }
+        .nav-item:hover { background-color: var(--hover-item); } 
+        
+        .nav-item.active {
+            background-color: var(--fondo-activo); 
+            font-weight: bold;
+            border-left: 3px solid var(--brand);
+            padding-left: 12px;
+        }
+        .nav-item.logout {
+            color: var(--error); margin-top: 20px; border-top: 1px solid var(--separador); padding-top: 15px;
+        }
+
+        /* 5. Estilos del Contenido Principal */
+        .perfil-content {
+            flex-grow: 1;
+            padding: 30px;
+            background-color: var(--bg);
+            border-radius: var(--radius);
+        }
+        .perfil-content h2 { font-size: 28px; color: var(--text); margin-bottom: 20px; }
+        .content-description { color: var(--muted); margin-bottom: 30px; font-size: 15px; }
+        .content-section { display: none; }
+        .content-section.active-content { display: block; }
+
+        /* Estilos de Botón de Acceso (VISTA ESPECIAL) */
+        .form-section {
+            background-color: var(--card);
+            padding: 25px;
+            border-radius: var(--radius);
+            margin-bottom: 30px;
+            border: 1px solid var(--separador);
+            text-align: center; /* Centrar el contenido para destacar el botón */
+        }
+
+        .form-section h3 {
+            color: var(--text);
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        
+        .access-btn {
+            background-color: var(--brand);
+            color: var(--bg);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 4px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: inline-block; /* Para que parezca un botón grande */
+            box-shadow: 0 4px 10px rgba(51, 198, 149, 0.3);
+        }
+
+        .access-btn:hover {
+            background-color: #4CD1A6;
+        }
+        
+        /* 6. Pie de Página (Footer) */
+        .footer {
+            margin-top: 30px; padding: 20px 40px; text-align: center; color: var(--muted);
+            font-size: 13px; border-top: 1px solid var(--separador); background-color: var(--bg);
+        }
+
+        /* ================= AJUSTES RESPONSIVOS ================= */
+        
+        .menu-toggle { display: none; }
+
+        @media (max-width: 768px) {
+            .header { flex-wrap: wrap; padding: 15px 20px; }
+            .perfil-container { padding: 20px; flex-direction: column; gap: 20px; }
+            .search-bar { order: 3; flex: 1 0 100%; margin: 10px 0 0; }
+            
+            .sidebar { width: 100%; padding: 15px; }
+            .menu-toggle { display: block; }
+            .perfil-nav { display: none; flex-direction: column; }
+            .perfil-nav.is-open { display: flex; }
+            
+            .perfil-content { padding: 20px 15px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo-container">
+            <div style="width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(135deg, var(--brand), var(--brand-2)); box-shadow: 0 6px 12px rgba(0,0,0,.35);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 8V7a5 5 0 0 1 10 0v1" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
+                    <rect x="4" y="8" width="16" height="12" rx="3" fill="rgba(255,255,255,.90)"/>
+                    <path d="M7 13h10" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="10" cy="19" r="1.6" fill="#0b1020"/>
+                    <circle cx="16" cy="19" r="1.6" fill="#0b1020"/>
+                </svg>
+            </div>
+            <div>
+                <div class="logo">UniMarket</div>
+                <div class="slogan">Compra, vende y comparte en el ITIZ</div>
+            </div>
+        </div>
+        
+        <div class="search-bar">
+            <input type="text" placeholder="Buscar productos o categorías...">
+        </div>
+        
+        <div class="user-actions">
+            <a href="/logout" class="header-btn action-logout" title="Cerrar sesión">Cerrar Sesión</a> 
+            
+            <a href="/" class="header-btn action-back" title="Regresar al inicio">Regresar</a> 
+        </div>
+    </header>
+
+    <main class="perfil-container">
+        <aside class="sidebar">
+            <div class="perfil-info">
+                <div class="avatar">U</div>
+                <h3>Usuario Comprador Ejemplo</h3>
+                <p>usuario.ejemplo@email.com</p>
+                <button class="editar-btn">Editar Perfil</button>
+            </div>
+            
+            <button class="menu-toggle" id="menuToggle">☰ Navegación del Perfil</button>
+            
+            <nav class="perfil-nav" id="perfilNav">
+                <a href="#" class="nav-item" data-target="favoritos-content"> Favoritos</a>
+                <a href="#" class="nav-item" data-target="pedidos-content"> Mis Pedidos</a>
+                <a href="#" class="nav-item" data-target="pagos-content"> Métodos de Pago</a>
+                <a href="#" class="nav-item active" data-target="password-content"> Cambiar Contraseña</a>
+                <a href="#logout" class="nav-item logout"> Cerrar Sesión</a>
+            </nav>
+        </aside>
+
+        <section class="perfil-content">
+            <div id="password-content" class="content-section active-content">
+                <h2> Cambiar Contraseña</h2>
+                <p class="content-description">Tu seguridad es importante. Usa el botón de abajo para acceder al formulario seguro de cambio de contraseña.</p>
+                
+                <div class="form-section">
+                    <h3>Acceder a Gestión de Seguridad</h3>
+                    <p class="content-description" style="margin-top: -10px;">Serás redirigido a una página dedicada para actualizar tu contraseña.</p>
+                    
+                    <a href="/security/change-password" class="access-btn">
+                        Ir a Cambiar Contraseña
+                    </a>
+                </div>
+            </div>
+            
+            <div id="favoritos-content" class="content-section"><h2> Mis Favoritos</h2><p style="color:var(--muted)">Contenido de favoritos...</p></div>
+            <div id="pedidos-content" class="content-section"><h2> Mis Pedidos</h2><p style="color:var(--muted)">Contenido de pedidos...</p></div>
+            <div id="pagos-content" class="content-section"><h2> Métodos de Pago</h2><p style="color:var(--muted)">Contenido de pagos...</p></div>
+        </section>
+    </main>
+    
+    <footer class="footer">
+        © <span id="currentYear"></span> UniMarket • Hecho por estudiantes del ITIZ para estudiantes del ITIZ.
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navItems = document.querySelectorAll('.nav-item');
+            const contentSections = document.querySelectorAll('.content-section');
+            const menuToggle = document.getElementById('menuToggle');
+            const perfilNav = document.getElementById('perfilNav');
+            const currentYearSpan = document.getElementById('currentYear');
+            
+            // 1. Mostrar/Ocultar el menú lateral en móvil
+            menuToggle.addEventListener('click', () => {
+                perfilNav.classList.toggle('is-open');
+            });
+
+            // 2. Lógica de navegación (mostrar contenido)
+            function setActiveContent(targetId) {
+                navItems.forEach(nav => nav.classList.remove('active'));
+                contentSections.forEach(section => section.classList.remove('active-content'));
+
+                const activeNav = document.querySelector(`.nav-item[data-target="${targetId}"]`);
+                const targetSection = document.getElementById(targetId);
+
+                if (activeNav) activeNav.classList.add('active');
+                if (targetSection) targetSection.classList.add('active-content');
+
+                // Cerrar el menú después de seleccionar un item en móvil
+                if (window.innerWidth <= 768) {
+                    perfilNav.classList.remove('is-open');
+                }
+            }
+
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = e.currentTarget.getAttribute('data-target');
+                    if (targetId) setActiveContent(targetId);
+                });
+            });
+            
+            // 3. Inicialización: Hacemos que "Cambiar Contraseña" sea la sección activa.
+            setActiveContent('password-content'); 
+            currentYearSpan.textContent = new Date().getFullYear();
+        });
+    </script>
+</body>
+</html>

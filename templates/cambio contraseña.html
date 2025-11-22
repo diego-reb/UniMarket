@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecer Contraseña - UniMarket (Unificada)</title>
+    
+    <style>
+        /* ================= VARIABLES ================= */
+        :root{
+            --bg: #1A1D2B;             
+            --card: #1F2333;           
+            --muted: #9CA3AF;          
+            --text: #E0E2E5;           
+            --brand: #33C695;          /* Verde/Cyan */
+            --brand-2: #0080ff;        /* Azul */
+            --error: #EF4444;          /* Rojo */
+            --separador: #303544;      
+            --radius: 8px;
+            --shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 1. Estilos Globales y Layout */
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            /* Layout centrado */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .recovery-container {
+            width: 100%;
+            max-width: 480px; /* Un poco más ancho para la combinación de campos */
+            background-color: var(--card);
+            padding: 40px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        /* 2. Header y Logo */
+        .header-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .logo-badge {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            box-shadow: 0 4px 10px rgba(0,0,0,.3);
+        }
+
+        .logo-badge h1 {
+            color: var(--bg);
+            font-size: 24px;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .recovery-container p {
+            color: var(--muted);
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+
+        /* 3. Estilos del Formulario */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--separador);
+            border-radius: 6px;
+            background-color: var(--bg); /* Fondo de input más oscuro */
+            color: var(--text);
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--brand);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            background-color: var(--brand);
+            color: var(--bg);
+            border: none;
+            padding: 14px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px; /* Espacio extra antes del botón */
+        }
+
+        .submit-btn:hover {
+            background-color: #4CD1A6; 
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 25px;
+            color: var(--muted);
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--brand-2);
+        }
+    </style>
+</head>
+<body>
+    <div class="recovery-container">
+        <div class="header-logo">
+            <div class="logo-badge">
+                <h1>U</h1>
+            </div>
+            <h1 style="color: var(--text); font-size: 28px;">UniMarket</h1>
+        </div>
+
+        <h2>Restablecer Contraseña</h2>
+        <p>Introduce tu correo institucional y establece tu nueva contraseña.</p>
+
+        <form action="/restablecer-password-unificado" method="POST">
+            
+            <div class="form-group">
+                <label for="email">Correo Institucional (ITIZ)</label>
+                <input type="email" id="email" name="email" placeholder="ejemplo@itiz.edu.mx" required>
+            </div>
+            
+            <hr style="border: 0; height: 1px; background: var(--separador); margin: 30px 0;">
+
+            <p style="margin: -10px 0 20px; font-size: 14px; color: var(--text);">Establece tu nueva clave de acceso:</p>
+
+            <div class="form-group">
+                <label for="new-password">Nueva Contraseña</label>
+                <input type="password" id="new-password" name="new_password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm-password">Confirmar Nueva Contraseña</label>
+                <input type="password" id="confirm-password" name="confirm_password" required>
+            </div>
+            
+            <button type="submit" class="submit-btn">Restablecer Contraseña y Acceder</button>
+        </form>
+
+        <a href="/inicio_sesion" class="back-link">← Volver al Inicio de Sesión</a>
+    </div>
+</body>
+</html>
