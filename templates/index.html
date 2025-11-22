@@ -267,6 +267,49 @@
   background: rgba(15,23,42,0.85);
 }
 
+/* Botón para desplegar/cerrar el panel */
+.sidebar-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(148,163,184,0.35);
+  background: rgba(15,23,42,0.98);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+
+.sidebar-toggle span:first-child {
+  font-size: 1.2rem;
+}
+
+.sidebar-toggle .chevron {
+  font-size: 0.9rem;
+  transition: transform 0.15s ease;
+}
+
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+/* Estado colapsado */
+.sidebar-panel.collapsed .sidebar-content {
+  display: none;
+}
+
+.sidebar-panel.collapsed .sidebar-toggle .chevron {
+  transform: rotate(-90deg);
+}
+
 /* Cabecera de la sección principal */
 .content-panel {
   display: flex;
@@ -675,35 +718,45 @@
   <div class="page-layout">
     <!-- ===== SIDEBAR ===== -->
     <aside class="sidebar-panel" aria-label="Panel de usuario">
-      <div class="sidebar-card">
-        <h2 class="sidebar-title">Mi cuenta</h2>
-        {% if current_user.is_authenticated %}
-          <p class="sidebar-text">Sesión activa en UniMarket. Gestiona tus compras y ventas desde aquí.</p>
-        {% else %}
-          <p class="sidebar-text">Inicia sesión para ver tu perfil, tus pedidos y administrar tus productos.</p>
-        {% endif %}
-        <nav class="sidebar-nav" aria-label="Navegación de cuenta">
-          <a href="/perfil" class="sidebar-link">
-            <span>👤</span> <span>Perfil</span>
-          </a>
-          <a href="/pedidos" class="sidebar-link">
-            <span>📦</span> <span>Mis pedidos</span>
-          </a>
-          <a href="/mis_productos" class="sidebar-link">
-            <span>🛍️</span> <span>Mis productos</span>
-          </a>
-        </nav>
-      </div>
+  <!-- Botón desplegable -->
+  <button class="sidebar-toggle" id="sidebarToggle" type="button">
+    <span>📂</span>
+    <span>Mi cuenta, pedidos y productos</span>
+    <span class="chevron">▾</span>
+  </button>
 
-      <div class="sidebar-card sidebar-card-muted">
-        <h3 class="sidebar-subtitle">Resumen rápido</h3>
-        <ul class="sidebar-text" style="padding-left: 18px; margin: 6px 0 0;">
-          <li>Revisa compras recientes.</li>
-          <li>Da seguimiento a pedidos.</li>
-          <li>Coordina entregas en el ITIZ.</li>
-        </ul>
-      </div>
-    </aside>
+  <!-- Contenido que se muestra/oculta -->
+  <div class="sidebar-content" id="sidebarContent">
+    <div class="sidebar-card">
+      <h2 class="sidebar-title">Mi cuenta</h2>
+      {% if current_user.is_authenticated %}
+        <p class="sidebar-text">Sesión activa en UniMarket. Gestiona tus compras y ventas desde aquí.</p>
+      {% else %}
+        <p class="sidebar-text">Inicia sesión para ver tu perfil, tus pedidos y administrar tus productos.</p>
+      {% endif %}
+      <nav class="sidebar-nav" aria-label="Navegación de cuenta">
+        <a href="/perfil" class="sidebar-link">
+          <span>👤</span> <span>Perfil</span>
+        </a>
+        <a href="/pedidos" class="sidebar-link">
+          <span>📦</span> <span>Mis pedidos</span>
+        </a>
+        <a href="/mis_productos" class="sidebar-link">
+          <span>🛍️</span> <span>Mis productos</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-card sidebar-card-muted">
+      <h3 class="sidebar-subtitle">Resumen rápido</h3>
+      <ul class="sidebar-text" style="padding-left: 18px; margin: 6px 0 0;">
+        <li>Revisa compras recientes.</li>
+        <li>Da seguimiento a pedidos.</li>
+        <li>Coordina entregas en el ITIZ.</li>
+      </ul>
+    </div>
+  </div>
+</aside>
 
     <!-- ===== CONTENIDO PRINCIPAL ===== -->
     <section class="content-panel">
@@ -716,15 +769,15 @@
         <div class="carousel" aria-roledescription="carrusel" aria-label="Productos más vendidos">
           <div class="carousel-track" id="carouselTrack">
             <div class="carousel-slide">
-              <h2>🎉 2x1 en café frío</h2>
-              <p>Solo hoy en cafeterías del ITIZ</p>
+              <h2>Labial Revlon 01</h2>
+              <p>Producto mas vendido</p>
             </div>
             <div class="carousel-slide">
-              <h2>🔥 Descuento en papelería</h2>
-              <p>Hasta 30% en útiles seleccionados</p>
+              <h2>🔥Descuento en Articulos seleccionados🔥</h2>
+              <p>Hasta 30% papeleria</p>
             </div>
             <div class="carousel-slide">
-              <h2>🛍️ Nueva colección de ropa ITIZ</h2>
+              <h2>🛍️ Nueva colección de Labiales magios</h2>
               <p>Playeras y sudaderas edición limitada</p>
             </div>
           </div>
@@ -858,6 +911,21 @@ window.addEventListener('storage', (e) => {
         updateBadge();
     }
 });
+
+// --- Toggle del sidebar ---
+const sidebarPanel = document.querySelector('.sidebar-panel');
+const sidebarToggle = document.getElementById('sidebarToggle');
+
+if (sidebarPanel && sidebarToggle) {
+  // En pantallas pequeñas lo iniciamos colapsado
+  if (window.innerWidth <= 960) {
+    sidebarPanel.classList.add('collapsed');
+  }
+
+  sidebarToggle.addEventListener('click', () => {
+    sidebarPanel.classList.toggle('collapsed');
+  });
+}
 
 // --- LÓGICA DEL CHATBOT (Añadido) ---
 // 🔑 CLAVE API DE GEMINI INSERTADA AQUÍ
