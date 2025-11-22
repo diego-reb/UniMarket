@@ -720,8 +720,7 @@
     <aside class="sidebar-panel" aria-label="Panel de usuario">
   <!-- Botón desplegable -->
   <button class="sidebar-toggle" id="sidebarToggle" type="button">
-    <span>📂</span>
-    <span>Mi cuenta, pedidos y productos</span>
+    <span> Mis favoritos </span>
     <span class="chevron">▾</span>
   </button>
 
@@ -732,17 +731,17 @@
       {% if current_user.is_authenticated %}
         <p class="sidebar-text">Sesión activa en UniMarket. Gestiona tus compras y ventas desde aquí.</p>
       {% else %}
-        <p class="sidebar-text">Inicia sesión para ver tu perfil, tus pedidos y administrar tus productos.</p>
+        <p class="sidebar-text">Inicia sesión para ver tu perfil, tus pedidos y agergar tus productos favoritos.</p>
       {% endif %}
       <nav class="sidebar-nav" aria-label="Navegación de cuenta">
         <a href="/perfil" class="sidebar-link">
           <span>👤</span> <span>Perfil</span>
         </a>
         <a href="/pedidos" class="sidebar-link">
-          <span>📦</span> <span>Mis pedidos</span>
+          <span>📦</span> <span>Pedidos</span>
         </a>
         <a href="/mis_productos" class="sidebar-link">
-          <span>🛍️</span> <span>Mis productos</span>
+          <span>🛍️</span> <span>Favoritos</span>
         </a>
       </nav>
     </div>
