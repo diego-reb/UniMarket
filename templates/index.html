@@ -407,37 +407,72 @@
   .bot-message::before {
       content: '🤖 ';
   }
+/* ================= AJUSTES RESPONSIVOS ================= */
 
-  /* ================= AJUSTES RESPONSIVOS ================= */
+/* MÓVIL: header en 2 filas (logo + iconos arriba, buscador abajo) */
+@media (max-width: 767px) {
 
-  /* MÓVIL: reducimos espacios y evitamos “salto” visual */
-  @media (max-width: 767px) {
-
-    header {
-      position: static;              /* quitamos sticky en móvil para que no empuje el contenido */
-      border-bottom: none;
-    }
-
-    .header-wrap {
-      padding:10px 16px;
-    }
-
-    .container {
-      padding:12px 16px;
-    }
-
-    .hero {
-      padding-top:16px;              /* un poco de aire pero sin hueco grande */
-    }
-
-    .search {
-      margin:0 6px;
-    }
-
-    .tagline {
-      font-size:0.8rem;
-    }
+  header {
+    position: static;              /* evitamos el salto raro al hacer scroll en móvil */
+    border-bottom: none;
   }
+
+  .container {
+    padding: 12px 16px;
+  }
+
+  .hero {
+    padding-top: 16px;
+  }
+
+  .tagline {
+    font-size: 0.8rem;
+  }
+
+  /* ---- HEADER ---- */
+
+  .header-wrap {
+    padding: 10px 16px;
+    flex-wrap: wrap;               /* permite que el buscador baje a la segunda fila */
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* Logo ocupa la parte izquierda de la primera fila */
+  .logo {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* Iconos a la derecha, más compactos */
+  .actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+
+  /* Buscador a lo ancho en la segunda fila */
+  .search {
+    order: 3;                      /* lo mandamos debajo del logo+iconos */
+    flex: 1 0 100%;
+    display: flex !important;      /* por si en tu CSS externo estaba en display:none */
+    margin: 4px 0 0;
+  }
+
+  .search input {
+    width: 100%;
+    padding: 10px 12px 10px 40px;
+    font-size: 0.9rem;
+  }
+}
+ 
 </style>
 
 </head>
