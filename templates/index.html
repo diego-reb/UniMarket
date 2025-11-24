@@ -1,700 +1,700 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UniMarket – Mercado universitario</title>
-  <meta name="description" content="Compra y vende productos dentro del ITIZ" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
-  <script src="{{ url_for('static', filename='js/accesibilidad.js')}}"></script>
-  <style>
-  :root{
-    --bg:#0f172a;           /* slate-900 */
-    --card:#111827;         /* gray-900 */
-    --muted:#94a3b8;        /* slate-400 */
-    --text:#e5e7eb;         /* gray-200 */
-    --brand:#22c55e;        /* green-500 */
-    --brand-2:#38bdf8;      /* sky-400 */
-    --accent:#fde047;       /* yellow-300 */
-    --error:#ef4444;        /* red-500 */
-    --ok:#10b981;           /* emerald-500 */
-    --shadow: 0 10px 30px rgba(0,0,0,.35);
-    --radius: 16px;
-  }
-
-  * { box-sizing: border-box }
-  html,body { height: 100% }
-
-  body {
-    margin:0;
-    font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
-    background:
-      radial-gradient(1200px 600px at 10% -10%, rgba(56,189,248,.25), rgba(56,189,248,0)),
-      radial-gradient(900px 600px at 120% 10%, rgba(34,197,94,.20), rgba(34,197,94,0)),
-      var(--bg);
-    color:var(--text);
-  }
-
-  a { color:inherit; text-decoration:none }
-
-  .container {
-    max-width:1200px;
-    margin:auto;
-    padding:20px;
-    overflow-y:auto;
-  }
-
-  /* ================= HEADER ================= */
-
-  header {
-    position:sticky;
-    top:0;
-    z-index:50;
-    backdrop-filter: blur(10px);
-    background: linear-gradient(180deg, rgba(15,23,42,.85), rgba(15,23,42,.65));
-    border-bottom:1px solid rgba(148,163,184,.15);
-  }
-
-  .header-wrap {
-    display:flex;
-    align-items:center;
-    gap:16px;
-    padding:14px 20px;
-  }
-
-  .logo {
-    display:flex;
-    align-items:center;
-    gap:10px;
-    font-weight:800;
-    letter-spacing:.2px;
-  }
-
-  .logo-badge {
-    width:42px;
-    height:42px;
-    border-radius:12px;
-    display:grid;
-    place-items:center;
-    background: linear-gradient(135deg, var(--brand), var(--brand-2));
-    box-shadow: var(--shadow);
-  }
-
-  .logo svg { filter:drop-shadow(0 6px 12px rgba(0,0,0,.35)) }
-
-  .brand { font-size:1.35rem }
-  .tagline { font-size:.9rem; color:var(--muted)}
-
-  /* ================= BUSCADOR ================= */
-
-  .search {
-    flex:1;
-    display:flex;
-    align-items:center;
-    gap:10px;
-    margin:0 12px;
-  }
-
-  .search input {
-    flex:1;
-    padding:12px 14px 12px 44px;
-    border-radius:999px;
-    border:1px solid rgba(148,163,184,.25);
-    background:rgba(2,6,23,.6);
-    color:var(--text);
-    outline:none;
-    transition:border .2s ease;
-  }
-
-  .search input:focus { border-color:var(--brand-2) }
-
-  .search .icon { position:relative }
-
-  .search .icon svg {
-    position:absolute;
-    left:14px;
-    top:50%;
-    transform:translateY(-50%);
-    opacity:.7;
-  }
-
-  /* ================= ACCIONES HEADER ================= */
-
-  .actions {
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-
-  .icon-btn {
-    width:42px;
-    height:42px;
-    border-radius:12px;
-    display:grid;
-    place-items:center;
-    border:1px solid rgba(148,163,184,.25);
-    background:rgba(2,6,23,.6);
-    cursor:pointer;
-    transition:transform .06s ease, border .2s;
-  }
-
-  .icon-btn:hover { border-color:var(--brand-2) }
-  .icon-btn:active { transform:translateY(1px) }
-
-  .badge {
-    position:absolute;
-    transform:translate(12px, -10px);
-    background:var(--accent);
-    color:#111827;
-    font-weight:700;
-    font-size:.72rem;
-    padding:2px 6px;
-    border-radius:999px;
-  }
-
-  /* ================= HERO / OFERTAS ================= */
-
-  .hero {
-    padding:24px 0 10px;  /* menos padding arriba para que no se vea tan separado en móvil */
-  }
-
-  .hero h1 { font-size:2rem; margin:6px 0 }
-  .hero p  { margin:0; color:var(--muted)}
-
-  /* ================= TABS / CATEGORÍAS ================= */
-
-  .tabs {
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    margin:18px 0 8px;
-  }
-
-  .tab {
-    padding:10px 14px;
-    border-radius:999px;
-    border:1px solid rgba(148,163,184,.25);
-    cursor:pointer;
-    background:rgba(2,6,23,.6);
-    transition:background .2s, border .2s, transform .06s;
-    user-select:none;
-    color: var(--text);
-  }
-
-  .tab.active {
-    border-color:var(--brand);
-    background:rgba(34,197,94,.12);
-  }
-
-  .tab:hover { border-color:var(--brand-2) }
-
-  /* ================= GRID PRODUCTOS ================= */
-
-  .grid {
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:16px;
-  }
-
-  @media (max-width:1000px){
-    .grid { grid-template-columns:repeat(3,1fr); }
-  }
-
-  @media (max-width:720px){
-    .grid { grid-template-columns:repeat(2,1fr); }
-  }
-
-  @media (max-width:480px){
-    .grid { grid-template-columns:1fr; }
-  }
-
-  .card {
-    background:rgba(2,6,23,.55);
-    border:1px solid rgba(148,163,184,.20);
-    border-radius:var(--radius);
-    overflow:hidden;
-    box-shadow:var(--shadow);
-    display:flex;
-    flex-direction:column;
-    min-height:280px;
-    position:relative;
-  }
-
-  .thumb {
-    height:160px;
-    background:linear-gradient(135deg, rgba(56,189,248,.16), rgba(34,197,94,.16));
-    display:grid;
-    place-items:center;
-  }
-
-  .thumb span { font-size:2.6rem; opacity:.9 }
-
-  .card-body { padding:14px }
-
-  .title { font-weight:700; margin:0 0 6px }
-  .price { color:var(--accent); font-weight:800 }
-  .meta  { font-size:.86rem; color:var(--muted)}
-
-  .buy {
-    margin-top:auto;
-    display:flex;
-    gap:8px;
-    padding:14px;
-    align-items:center;
-  }
-
-  .btn {
-    flex:1;
-    padding:10px 12px;
-    border-radius:12px;
-    border:1px solid rgba(148,163,184,.25);
-    background:rgba(2,6,23,.7);
-    color:var(--text);
-    cursor:pointer;
-  }
-
-  .btn.primary {
-    background:linear-gradient(135deg, var(--brand), var(--brand-2));
-    border:none;
-    font-weight:800;
-  }
-
-  .btn:hover { filter:brightness(1.05) }
-
-  footer {
-    margin:40px 0 60px;
-    color:var(--muted);
-    text-align:center;
-  }
-
-  /* ================= CARROUSEL ================= */
-
-  .carousel {
-    position: relative;
-    overflow: hidden;
-    border-radius: var(--radius);
-    background: rgba(2,6,23,.4);
-    margin-bottom: 20px;
-  }
-
-  .carousel-track {
-    display: flex;
-    transition: transform 0.6s ease-in-out;
-  }
-
-  .carousel-slide {
-    min-width: 100%;
-    padding: 30px 20px;
-    box-sizing: border-box;
-    text-align: center;
-  }
-
-  .carousel-slide h2 {
-    font-size: 1.8rem;
-    margin: 0 0 10px;
-    color: var(--accent);
-  }
-
-  .carousel-slide p {
-    color: var(--text);
-    font-size: 1.1rem;
-    margin: 0;
-  }
-
-  /* ================= MODAL CHATBOT ================= */
-
-  .chat-modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-  }
-
-  .chat-modal-content {
-      background: var(--card);
-      border-radius: var(--radius);
-      width: 350px;
-      height: 450px;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-  }
-
-  .chat-header {
-      background: linear-gradient(90deg, var(--brand), var(--brand-2));
-      padding: 15px;
-      color: var(--bg);
-      font-weight: bold;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-  }
-
-  .chat-header button {
-      background: none;
-      border: none;
-      color: var(--bg);
-      font-size: 1.5rem;
-      cursor: pointer;
-      line-height: 1;
-  }
-
-  .chat-body {
-      flex-grow: 1;
-      padding: 15px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-  }
-
-  .chat-input-area {
-      padding: 10px 15px;
-      border-top: 1px solid rgba(148, 163, 184, 0.1);
-      display: flex;
-      gap: 10px;
-  }
-
-  .chat-input-area input {
-      flex-grow: 1;
-      padding: 10px;
-      border-radius: 999px;
-      border: 1px solid var(--muted);
-      background: var(--bg);
-      color: var(--text);
-      outline: none;
-  }
-
-  .chat-input-area button {
-      background: var(--brand);
-      color: var(--bg);
-      border: none;
-      border-radius: 999px;
-      padding: 10px 15px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-  }
-
-  .chat-input-area button:hover {
-      background: var(--ok);
-  }
-
-  .message {
-      max-width: 80%;
-      padding: 8px 12px;
-      border-radius: 12px;
-  }
-
-  .user-message {
-      align-self: flex-end;
-      background-color: var(--brand-2);
-      color: var(--bg);
-  }
-
-  .bot-message {
-      align-self: flex-start;
-      background-color: var(--card);
-      border: 1px solid rgba(148, 163, 184, 0.15);
-  }
-
-  .bot-message::before {
-      content: '🤖 ';
-  }
-
-  /* ================= AJUSTES RESPONSIVOS ================= */
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UniMarket – Mercado universitario</title>
+    <meta name="description" content="Compra y vende productos dentro del ITIZ" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
+    <script src="{{ url_for('static', filename='js/accesibilidad.js')}}"></script>
+    <style>
+    :root{
+        --bg:#0f172a;                       /* slate-900 */
+        --card:#111827;                   /* gray-900 */
+        --muted:#94a3b8;                /* slate-400 */
+        --text:#e5e7eb;                   /* gray-200 */
+        --brand:#22c55e;                /* green-500 */
+        --brand-2:#38bdf8;            /* sky-400 */
+        --accent:#fde047;               /* yellow-300 */
+        --error:#ef4444;                /* red-500 */
+        --ok:#10b981;                       /* emerald-500 */
+        --shadow: 0 10px 30px rgba(0,0,0,.35);
+        --radius: 16px;
+    }
+
+    * { box-sizing: border-box }
+    html,body { height: 100% }
+
+    body {
+        margin:0;
+        font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+        background:
+            radial-gradient(1200px 600px at 10% -10%, rgba(56,189,248,.25), rgba(56,189,248,0)),
+            radial-gradient(900px 600px at 120% 10%, rgba(34,197,94,.20), rgba(34,197,94,0)),
+            var(--bg);
+        color:var(--text);
+    }
+
+    a { color:inherit; text-decoration:none }
+
+    .container {
+        max-width:1200px;
+        margin:auto;
+        padding:20px;
+        overflow-y:auto;
+    }
+
+    /* ================= HEADER ================= */
+
+    header {
+        position:sticky;
+        top:0;
+        z-index:50;
+        backdrop-filter: blur(10px);
+        background: linear-gradient(180deg, rgba(15,23,42,.85), rgba(15,23,42,.65));
+        border-bottom:1px solid rgba(148,163,184,.15);
+    }
+
+    .header-wrap {
+        display:flex;
+        align-items:center;
+        gap:16px;
+        padding:14px 20px;
+    }
+
+    .logo {
+        display:flex;
+        align-items:center;
+        gap:10px;
+        font-weight:800;
+        letter-spacing:.2px;
+    }
+
+    .logo-badge {
+        width:42px;
+        height:42px;
+        border-radius:12px;
+        display:grid;
+        place-items:center;
+        background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        box-shadow: var(--shadow);
+    }
+
+    .logo svg { filter:drop-shadow(0 6px 12px rgba(0,0,0,.35)) }
+
+    .brand { font-size:1.35rem }
+    .tagline { font-size:.9rem; color:var(--muted)}
+
+    /* ================= BUSCADOR ================= */
+
+    .search {
+        flex:1;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        margin:0 12px;
+    }
+
+    .search input {
+        flex:1;
+        padding:12px 14px 12px 44px;
+        border-radius:999px;
+        border:1px solid rgba(148,163,184,.25);
+        background:rgba(2,6,23,.6);
+        color:var(--text);
+        outline:none;
+        transition:border .2s ease;
+    }
+
+    .search input:focus { border-color:var(--brand-2) }
+
+    .search .icon { position:relative }
+
+    .search .icon svg {
+        position:absolute;
+        left:14px;
+        top:50%;
+        transform:translateY(-50%);
+        opacity:.7;
+    }
+
+    /* ================= ACCIONES HEADER ================= */
+
+    .actions {
+        display:flex;
+        align-items:center;
+        gap:10px;
+    }
+
+    .icon-btn {
+        width:42px;
+        height:42px;
+        border-radius:12px;
+        display:grid;
+        place-items:center;
+        border:1px solid rgba(148,163,184,.25);
+        background:rgba(2,6,23,.6);
+        cursor:pointer;
+        transition:transform .06s ease, border .2s;
+    }
+
+    .icon-btn:hover { border-color:var(--brand-2) }
+    .icon-btn:active { transform:translateY(1px) }
+
+    .badge {
+        position:absolute;
+        transform:translate(12px, -10px);
+        background:var(--accent);
+        color:#111827;
+        font-weight:700;
+        font-size:.72rem;
+        padding:2px 6px;
+        border-radius:999px;
+    }
+
+    /* ================= HERO / OFERTAS ================= */
+
+    .hero {
+        padding:24px 0 10px;    /* menos padding arriba para que no se vea tan separado en móvil */
+    }
+
+    .hero h1 { font-size:2rem; margin:6px 0 }
+    .hero p    { margin:0; color:var(--muted)}
+
+    /* ================= TABS / CATEGORÍAS ================= */
+
+    .tabs {
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+        margin:18px 0 8px;
+    }
+
+    .tab {
+        padding:10px 14px;
+        border-radius:999px;
+        border:1px solid rgba(148,163,184,.25);
+        cursor:pointer;
+        background:rgba(2,6,23,.6);
+        transition:background .2s, border .2s, transform .06s;
+        user-select:none;
+        color: var(--text);
+    }
+
+    .tab.active {
+        border-color:var(--brand);
+        background:rgba(34,197,94,.12);
+    }
+
+    .tab:hover { border-color:var(--brand-2) }
+
+    /* ================= GRID PRODUCTOS ================= */
+
+    .grid {
+        display:grid;
+        grid-template-columns:repeat(4,1fr);
+        gap:16px;
+    }
+
+    @media (max-width:1000px){
+        .grid { grid-template-columns:repeat(3,1fr); }
+    }
+
+    @media (max-width:720px){
+        .grid { grid-template-columns:repeat(2,1fr); }
+    }
+
+    @media (max-width:480px){
+        .grid { grid-template-columns:1fr; }
+    }
+
+    .card {
+        background:rgba(2,6,23,.55);
+        border:1px solid rgba(148,163,184,.20);
+        border-radius:var(--radius);
+        overflow:hidden;
+        box-shadow:var(--shadow);
+        display:flex;
+        flex-direction:column;
+        min-height:280px;
+        position:relative;
+    }
+
+    .thumb {
+        height:160px;
+        background:linear-gradient(135deg, rgba(56,189,248,.16), rgba(34,197,94,.16));
+        display:grid;
+        place-items:center;
+    }
+
+    .thumb span { font-size:2.6rem; opacity:.9 }
+
+    .card-body { padding:14px }
+
+    .title { font-weight:700; margin:0 0 6px }
+    .price { color:var(--accent); font-weight:800 }
+    .meta    { font-size:.86rem; color:var(--muted)}
+
+    .buy {
+        margin-top:auto;
+        display:flex;
+        gap:8px;
+        padding:14px;
+        align-items:center;
+    }
+
+    .btn {
+        flex:1;
+        padding:10px 12px;
+        border-radius:12px;
+        border:1px solid rgba(148,163,184,.25);
+        background:rgba(2,6,23,.7);
+        color:var(--text);
+        cursor:pointer;
+    }
+
+    .btn.primary {
+        background:linear-gradient(135deg, var(--brand), var(--brand-2));
+        border:none;
+        font-weight:800;
+    }
+
+    .btn:hover { filter:brightness(1.05) }
+
+    footer {
+        margin:40px 0 60px;
+        color:var(--muted);
+        text-align:center;
+    }
+
+    /* ================= CARROUSEL ================= */
+
+    .carousel {
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--radius);
+        background: rgba(2,6,23,.4);
+        margin-bottom: 20px;
+    }
+
+    .carousel-track {
+        display: flex;
+        transition: transform 0.6s ease-in-out;
+    }
+
+    .carousel-slide {
+        min-width: 100%;
+        padding: 30px 20px;
+        box-sizing: border-box;
+        text-align: center;
+    }
+
+    .carousel-slide h2 {
+        font-size: 1.8rem;
+        margin: 0 0 10px;
+        color: var(--accent);
+    }
+
+    .carousel-slide p {
+        color: var(--text);
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    /* ================= MODAL CHATBOT ================= */
+
+    .chat-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+    }
+
+    .chat-modal-content {
+            background: var(--card);
+            border-radius: var(--radius);
+            width: 350px;
+            height: 450px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+    }
+
+    .chat-header {
+            background: linear-gradient(90deg, var(--brand), var(--brand-2));
+            padding: 15px;
+            color: var(--bg);
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+    }
+
+    .chat-header button {
+            background: none;
+            border: none;
+            color: var(--bg);
+            font-size: 1.5rem;
+            cursor: pointer;
+            line-height: 1;
+    }
+
+    .chat-body {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+    }
+
+    .chat-input-area {
+            padding: 10px 15px;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+            display: flex;
+            gap: 10px;
+    }
+
+    .chat-input-area input {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 999px;
+            border: 1px solid var(--muted);
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
+    }
+
+    .chat-input-area button {
+            background: var(--brand);
+            color: var(--bg);
+            border: none;
+            border-radius: 999px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+    }
+
+    .chat-input-area button:hover {
+            background: var(--ok);
+    }
+
+    .message {
+            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 12px;
+    }
+
+    .user-message {
+            align-self: flex-end;
+            background-color: var(--brand-2);
+            color: var(--bg);
+    }
+
+    .bot-message {
+            align-self: flex-start;
+            background-color: var(--card);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+    }
+
+    .bot-message::before {
+            content: '🤖 ';
+    }
+
+    /* ================= AJUSTES RESPONSIVOS ================= */
 
 /* MÓVIL: header en 2 filas (logo + iconos arriba, buscador abajo) */
 @media (max-width: 767px) {
 
-  header {
-    position: static;              /* evitamos el salto raro al hacer scroll en móvil */
-    border-bottom: none;
-  }
+    header {
+        position: static;                            /* evitamos el salto raro al hacer scroll en móvil */
+        border-bottom: none;
+    }
 
-  .container {
-    padding: 12px 16px;
-  }
+    .container {
+        padding: 12px 16px;
+    }
 
-  .hero {
-    padding-top: 16px;
-  }
+    .hero {
+        padding-top: 16px;
+    }
 
-  .tagline {
-    font-size: 0.8rem;
-  }
+    .tagline {
+        font-size: 0.8rem;
+    }
 
-  /* ---- HEADER ---- */
+    /* ---- HEADER ---- */
 
-  .header-wrap {
-    padding: 10px 16px;
-    flex-wrap: wrap;               /* permite que el buscador baje a la segunda fila */
-    align-items: flex-start;
-    gap: 8px;
-  }
+    .header-wrap {
+        padding: 10px 16px;
+        flex-wrap: wrap;                               /* permite que el buscador baje a la segunda fila */
+        align-items: flex-start;
+        gap: 8px;
+    }
 
-  /* Logo ocupa la parte izquierda de la primera fila */
-  .logo {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
+    /* Logo ocupa la parte izquierda de la primera fila */
+    .logo {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
 
-  /* Iconos a la derecha, más compactos */
-  .actions {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+    /* Iconos a la derecha, más compactos */
+    .actions {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
 
-  .icon-btn {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-  }
+    .icon-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+    }
 
-  /* Buscador a lo ancho en la segunda fila */
-  .search {
-    order: 3;                      /* lo mandamos debajo del logo+iconos */
-    flex: 1 0 100%;
-    display: flex !important;      /* por si en tu CSS externo estaba en display:none */
-    margin: 4px 0 0;
-  }
+    /* Buscador a lo ancho en la segunda fila */
+    .search {
+        order: 3;                                            /* lo mandamos debajo del logo+iconos */
+        flex: 1 0 100%;
+        display: flex !important;            /* por si en tu CSS externo estaba en display:none */
+        margin: 4px 0 0;
+    }
 
-  .search input {
-    width: 100%;
-    padding: 10px 12px 10px 40px;
-    font-size: 0.9rem;
-  }
+    .search input {
+        width: 100%;
+        padding: 10px 12px 10px 40px;
+        font-size: 0.9rem;
+    }
 }
 </style>
 
 </head>
 <body id="high-contrast" class="index-page">
-  <div id="reading-guide" class="reading-guide-mask"></div>
-  <header>
-  <div class="header-wrap container">
-    <a class="logo" href="/">
-      <div class="logo-badge" aria-hidden="true">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo UniMarket">
-          <path d="M7 8V7a5 5 0 0 1 10 0v1" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
-          <rect x="4" y="8" width="16" height="12" rx="3" fill="rgba(255,255,255,.90)"/>
-          <path d="M7 13h10" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
-          <circle cx="10" cy="19" r="1.6" fill="#0b1020"/>
-          <circle cx="16" cy="19" r="1.6" fill="#0b1020"/>
-        </svg>
-      </div>
-      <div>
-        <div class="brand">UniMarket</div>
-        <div class="tagline">Compra, vende y comparte en el ITIZ</div>
-      </div>
-    </a>
-
-    <div class="search">
-      <div class="icon" aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 21l-4.3-4.3" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
-          <circle cx="11" cy="11" r="7" stroke="#94a3b8" stroke-width="2"/>
-        </svg>
-      </div>
-      <input id="search" type="search" placeholder="Buscar productos o categorías…" aria-label="Buscar" />
-    </div>
-
-    <div class="actions" style="display:flex; gap:10px;">
-      {% if current_user.is_authenticated %}
-        <a href="/logout" class="icon-btn" title="Cerrar sesión" aria-label="Cerrar sesión">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 17l5-5-5-5M21 12H9" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
-            <path d="M13 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7" stroke="#94a3b8" stroke-width="2"/>
-          </svg>
+    <div id="reading-guide" class="reading-guide-mask"></div>
+    <header>
+    <div class="header-wrap container">
+        <a class="logo" href="/">
+            <div class="logo-badge" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo UniMarket">
+                    <path d="M7 8V7a5 5 0 0 1 10 0v1" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
+                    <rect x="4" y="8" width="16" height="12" rx="3" fill="rgba(255,255,255,.90)"/>
+                    <path d="M7 13h10" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="10" cy="19" r="1.6" fill="#0b1020"/>
+                    <circle cx="16" cy="19" r="1.6" fill="#0b1020"/>
+                </svg>
+            </div>
+            <div>
+                <div class="brand">UniMarket</div>
+                <div class="tagline">Compra, vende y comparte en el ITIZ</div>
+            </div>
         </a>
-      {% else %}
-        <a href="/inicio_sesion" class="icon-btn" title="Iniciar sesión" aria-label="Iniciar sesión">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="8" r="3.2" stroke="#94a3b8" stroke-width="2"/>
-            <path d="M4.5 20a7.5 7.5 0 0 1 15 0" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </a>
-      {% endif %}
 
-      <button class="icon-btn" id="botBtn" title="Asistente UniMarket" aria-label="Abrir Asistente de Chat">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 18H8a4 4 0 0 1 0-8h4a4 4 0 1 0 0-8H8" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
-            <path d="M16 12a4 4 0 0 0-4-4h-4a4 4 0 1 0 0 8h4a4 4 0 1 0 0-8" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="12" cy="12" r="10" stroke="#94a3b8" stroke-width="2"/>
-        </svg>
-      </button>
+        <div class="search">
+            <div class="icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 21l-4.3-4.3" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="11" cy="11" r="7" stroke="#94a3b8" stroke-width="2"/>
+                </svg>
+            </div>
+            <input id="search" type="search" placeholder="Buscar productos o categorías…" aria-label="Buscar" />
+        </div>
 
-      <button class="icon-btn" id="cartBtn" title="Carrito" aria-label="Carrito" style="position:relative">
-        <span id="cartBadge" class="badge" hidden>0</span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M6 6h14l-1.5 8.5a2 2 0 0 1-2 1.6H9.8a2 2 0 0 1-1.95-1.55L6 4H3" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
-          <circle cx="10" cy="20" r="1.4" fill="#94a3b8"/>
-          <circle cx="18" cy="20" r="1.4" fill="#94a3b8"/>
-        </svg>
-      </button>
+        <div class="actions" style="display:flex; gap:10px;">
+            {% if current_user.is_authenticated %}
+                <a href="/logout" class="icon-btn" title="Cerrar sesión" aria-label="Cerrar sesión">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 17l5-5-5-5M21 12H9" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M13 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7" stroke="#94a3b8" stroke-width="2"/>
+                    </svg>
+                </a>
+            {% else %}
+                <a href="/inicio_sesion" class="icon-btn" title="Iniciar sesión" aria-label="Iniciar sesión">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="8" r="3.2" stroke="#94a3b8" stroke-width="2"/>
+                        <path d="M4.5 20a7.5 7.5 0 0 1 15 0" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </a>
+            {% endif %}
+
+            <button class="icon-btn" id="botBtn" title="Asistente UniMarket" aria-label="Abrir Asistente de Chat">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 18H8a4 4 0 0 1 0-8h4a4 4 0 1 0 0-8H8" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M16 12a4 4 0 0 0-4-4h-4a4 4 0 1 0 0 8h4a4 4 0 1 0 0-8" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="12" r="10" stroke="#94a3b8" stroke-width="2"/>
+                </svg>
+            </button>
+
+            <button class="icon-btn" id="cartBtn" title="Carrito" aria-label="Carrito" style="position:relative">
+                <span id="cartBadge" class="badge" hidden>0</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 6h14l-1.5 8.5a2 2 0 0 1-2 1.6H9.8a2 2 0 0 1-1.95-1.55L6 4H3" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="10" cy="20" r="1.4" fill="#94a3b8"/>
+                    <circle cx="18" cy="20" r="1.4" fill="#94a3b8"/>
+                </svg>
+            </button>
+        </div>
     </div>
-  </div>
 </header>
 
 
-  <main class="container">
-    <section class="hero" aria-labelledby="ofertas-destacadas">
-      <h2 id="ofertas-destacadas" class="sr-only">Ofertas destacadas</h2>
-      <div class="carousel" aria-roledescription="carrusel" aria-label="Ofertas destacadas">
-        <div class="carousel-track" id="carouselTrack">
-          <div class="carousel-slide">
-            <h2>🎉 2x1 en café frío</h2>
-            <p>Solo hoy en cafeterías del ITIZ</p>
-          </div>
-          <div class="carousel-slide">
-            <h2>🔥 Descuento en papelería</h2>
-            <p>Hasta 30% en útiles seleccionados</p>
-          </div>
-          <div class="carousel-slide">
-            <h2>🛍️ Nueva colección de ropa ITIZ</h2>
-            <p>Playeras y sudaderas edición limitada</p>
-          </div>
-        </div>
-      </div>
-      <div class="tabs" role="tablist" aria-label="Categorías de productos">
-        <button class="tab active" data-filter="todos" role="tab" aria-selected="true">Todos</button>
-        {% for cat in categorias %}
-          <button class="tab" data-filter="{{ cat.id_categoria }}" role="tab">{{ cat.nombre }}</button>
+    <main class="container">
+        <section class="hero" aria-labelledby="ofertas-destacadas">
+            <h2 id="ofertas-destacadas" class="sr-only">Ofertas destacadas</h2>
+            <div class="carousel" aria-roledescription="carrusel" aria-label="Ofertas destacadas">
+                <div class="carousel-track" id="carouselTrack">
+                    <div class="carousel-slide">
+                        <h2>🎉 2x1 en café frío</h2>
+                        <p>Solo hoy en cafeterías del ITIZ</p>
+                    </div>
+                    <div class="carousel-slide">
+                        <h2>🔥 Descuento en papelería</h2>
+                        <p>Hasta 30% en útiles seleccionados</p>
+                    </div>
+                    <div class="carousel-slide">
+                        <h2>🛍️ Nueva colección de ropa ITIZ</h2>
+                        <p>Playeras y sudaderas edición limitada</p>
+                    </div>
+                </div>
+            </div>
+            <div class="tabs" role="tablist" aria-label="Categorías de productos">
+                <button class="tab active" data-filter="todos" role="tab" aria-selected="true">Todos</button>
+                {% for cat in categorias %}
+                    <button class="tab" data-filter="{{ cat.id_categoria }}" role="tab">{{ cat.nombre }}</button>
 
-        {% endfor %}
-      </div>
-    </section>
+                {% endfor %}
+            </div>
+        </section>
 
-    <section aria-label="Listado de productos" id="productList" class="grid">
-  {% for p in productos %}
-    <article class="card" data-name="{{ p.nombre }}" 
-         data-category="{{ p.categoria_id }}">
-      <div class="thumb">
-        <div class="thumb">
-    <img src="{{ url_for('static', filename='uploads/' ~ p.foto) }}" alt="{{ p.nombre }}" style="max-width:100%; border-radius:8px;">
+        <section aria-label="Listado de productos" id="productList" class="grid">
+    {% for p in productos %}
+        <article class="card" data-name="{{ p.nombre }}"   
+                   data-category="{{ p.categoria_id }}">
+            <div class="thumb">
+                <div class="thumb">
+        <img src="{{ url_for('static', filename='uploads/' ~ p.foto) }}" alt="{{ p.nombre }}" style="max-width:100%; border-radius:8px;">
 </div>
 
-      </div>
-      <div class="card-body">
-        <h3 class="title">{{ p.nombre }}</h3>
-        <p class="meta">Vendedor: {{ p.vendedor }}</p>
-        <p class="meta">{{p.descripcion}}</p>
-        <div class="buy">
-          <div class="price">${{ "%.2f"|format(p.precio) }}</div>
-          <button class="btn primary" data-add 
-                  data-id="{{ p.id }}" data-name="{{ p.nombre }}" 
-                  data-price="{{ p.precio }}" data-vendedor="{{ p.vendedor }}" data-descripcion = "{{p.descripcion}}"  data-image="{{ url_for('static', filename='uploads/' ~ p.foto) }}">
-            Agregar
-          </button>
-        </div>
-      </div>
-    </article>
-  {% endfor %}
+            </div>
+            <div class="card-body">
+                <h3 class="title">{{ p.nombre }}</h3>
+                <p class="meta">Vendedor: {{ p.vendedor }}</p>
+                <p class="meta">{{p.descripcion}}</p>
+                <div class="buy">
+                    <div class="price">${{ "%.2f"|format(p.precio) }}</div>
+                    <button class="btn primary" data-add   
+                                    data-id="{{ p.id }}" data-name="{{ p.nombre }}"   
+                                    data-price="{{ p.precio }}" data-vendedor="{{ p.vendedor }}" data-descripcion = "{{p.descripcion}}"    data-image="{{ url_for('static', filename='uploads/' ~ p.foto) }}">
+                        Agregar
+                    </button>
+                </div>
+            </div>
+        </article>
+    {% endfor %}
 </section>
 
 
-        </main>
+                </main>
 
-  <footer class="container">
-    © <span id="year"></span> UniMarket • Hecho por estudiantes para estudiantes.
-  </footer>
+    <footer class="container">
+        © <span id="year"></span> UniMarket • Hecho por estudiantes para estudiantes.
+    </footer>
 
-    <div id="chatModalOverlay" class="chat-modal-overlay">
-        <div class="chat-modal-content">
-            <div class="chat-header">
-                Asistente UniMarket 
-                <button id="closeChatBtn" aria-label="Cerrar chat">&times;</button>
-            </div>
-            <div class="chat-body" id="chatBody">
-                <div class="message bot-message">¡Hola! Soy tu asistente. Pregúntame sobre el funcionamiento de UniMarket.</div>
-            </div>
-            <div class="chat-input-area">
-                <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." aria-label="Campo de mensaje">
-                <button id="sendChatBtn">Enviar</button>
-            </div>
+        <div id="chatModalOverlay" class="chat-modal-overlay">
+                <div class="chat-modal-content">
+                        <div class="chat-header">
+                                Asistente UniMarket   
+                                <button id="closeChatBtn" aria-label="Cerrar chat">&times;</button>
+                        </div>
+                        <div class="chat-body" id="chatBody">
+                                <div class="message bot-message">¡Hola! Soy tu asistente. Pregúntame sobre el funcionamiento de UniMarket.</div>
+                        </div>
+                        <div class="chat-input-area">
+                                <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." aria-label="Campo de mensaje">
+                                <button id="sendChatBtn">Enviar</button>
+                        </div>
+                </div>
         </div>
-    </div>
-    <script>
+        <script>
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
 const tabs = document.querySelectorAll('.tab');
 const products = document.querySelectorAll('#productList .card');
 
 tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    tabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
+    tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
 
-    const filter = tab.dataset.filter;
+        const filter = tab.dataset.filter;
 
-    products.forEach(product => {
-      if (filter === 'todos' || product.dataset.category === filter) {
-        product.style.display = 'flex';
-      } else {
-        product.style.display = 'none';
-      }
+        products.forEach(product => {
+            if (filter === 'todos' || product.dataset.category === filter) {
+                product.style.display = 'flex';
+            } else {
+                product.style.display = 'none';
+            }
+        });
     });
-  });
 });
 
 function updateBadge() {
-    const badge = document.getElementById('cartBadge');
-    const totalQuantity = cart.reduce((sum, p) => sum + p.quantity, 0);
-    badge.textContent = totalQuantity;
-    badge.hidden = totalQuantity === 0;
+        const badge = document.getElementById('cartBadge');
+        const totalQuantity = cart.reduce((sum, p) => sum + p.quantity, 0);
+        badge.textContent = totalQuantity;
+        badge.hidden = totalQuantity === 0;
 }
 
 document.querySelectorAll('[data-add]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const productId = parseInt(btn.dataset.id);
-        const existing = cart.find(p => p.id === productId);
+        btn.addEventListener('click', () => {
+                const productId = parseInt(btn.dataset.id);
+                const existing = cart.find(p => p.id === productId);
 
-        if (existing) {
-            existing.quantity += 1;
-        } else {
-            cart.push({
-                id: productId,
-                name: btn.dataset.name,
-                price: parseFloat(btn.dataset.price),
-                vendor: btn.dataset.vendedor,
-                quantity: 1,
-                image: btn.dataset.image,
-                description: btn.dataset.descripcion || ""
-            });
-        }
+                if (existing) {
+                        existing.quantity += 1;
+                } else {
+                        cart.push({
+                                id: productId,
+                                name: btn.dataset.name,
+                                price: parseFloat(btn.dataset.price),
+                                vendor: btn.dataset.vendedor,
+                                quantity: 1,
+                                image: btn.dataset.image,
+                                description: btn.dataset.descripcion || ""
+                        });
+                }
 
-        localStorage.setItem('cart', JSON.stringify(cart));
-        updateBadge();
+                localStorage.setItem('cart', JSON.stringify(cart));
+                updateBadge();
 
-        btn.textContent = 'Agregado ✓';
-        setTimeout(() => btn.textContent = 'Agregar', 900);
-    });
+                btn.textContent = 'Agregado ✓';
+                setTimeout(() => btn.textContent = 'Agregar', 900);
+        });
 });
 
 
 document.getElementById('cartBtn').addEventListener('click', () => {
-    window.location.href = '/carrito';
+        window.location.href = '/carrito';
 });
 
 updateBadge();
 
 window.addEventListener('storage', (e) => {
-    if (e.key === 'cart') {
-        cart = JSON.parse(e.newValue) || [];
-        updateBadge();
-    }
+        if (e.key === 'cart') {
+                cart = JSON.parse(e.newValue) || [];
+                updateBadge();
+        }
 });
 
 // --- LÓGICA DEL CHATBOT (Añadido) ---
 // 🔑 CLAVE API DE GEMINI INSERTADA AQUÍ
-const GEMINI_API_KEY = "AIzaSyB6f6nJWCrR0my4yF9BQGS45h30u-ZQOKA"; 
+const GEMINI_API_KEY = "AIzaSyAoHCyL8KFca7Vr3sFB2m0kbeI8Nd6tqmE";    // <--- CLAVE CORREGIDA AQUÍ
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 // --- Referencias del Chat y Menú de Usuario ---
@@ -710,36 +710,36 @@ const sendChatBtn = document.getElementById('sendChatBtn');
 
 // Función para mostrar mensajes en el chat
 function appendMessage(text, sender) {
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message', `${sender}-message`);
-    // Permite saltos de línea y formateo básico si la API lo devuelve
-    messageDiv.innerHTML = text.replace(/\n/g, '<br>'); 
-    chatBody.appendChild(messageDiv);
-    // Desplazar hacia el último mensaje
-    chatBody.scrollTop = chatBody.scrollHeight;
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', `${sender}-message`);
+        // Permite saltos de línea y formateo básico si la API lo devuelve
+        messageDiv.innerHTML = text.replace(/\n/g, '<br>');   
+        chatBody.appendChild(messageDiv);
+        // Desplazar hacia el último mensaje
+        chatBody.scrollTop = chatBody.scrollHeight;
 }
 
 // Función principal para llamar a la API
 async function getBotResponse(userMessage) {
-    if (!GEMINI_API_KEY) {
-        appendMessage("❌ Error: La clave API de Gemini no está configurada.", 'bot');
-        return;
-    }
+        if (!GEMINI_API_KEY) {
+                appendMessage("❌ Error: La clave API de Gemini no está configurada.", 'bot');
+                return;
+        }
 
-    try {
-        // Agregar mensaje de carga
-        appendMessage("Escribiendo...", 'bot');
-        
-        // Construcción de la URL y la solicitud corregida
-        const fullUrl = `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
-        
-        const response = await fetch(fullUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ 
-                    role: "user", 
-                    parts: [{ text: `Eres UniBot, el asistente de soporte de inteligencia artificial del portal UniMarket, el mercado exclusivo para la comunidad del ITIZ. Tu rol es **ESTRICTO Y LIMITADO**: proporcionar información precisa ÚNICAMENTE sobre las políticas, mecánicas, productos y funcionalidades de la plataforma UniMarket. Sé amigable, conciso y utiliza los siguientes 'guiones' de respuesta para asegurar la coherencia:
+        try {
+                // Agregar mensaje de carga
+                appendMessage("Escribiendo...", 'bot');
+                  
+                // Construcción de la URL y la solicitud corregida
+                const fullUrl = `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
+                  
+                const response = await fetch(fullUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                                contents: [{   
+                                        role: "user",   
+                                        parts: [{ text: `Eres UniBot, el asistente de soporte de inteligencia artificial del portal UniMarket, el mercado exclusivo para la comunidad del ITIZ. Tu rol es **ESTRICTO Y LIMITADO**: proporcionar información precisa ÚNICAMENTE sobre las políticas, mecánicas, productos y funcionalidades de la plataforma UniMarket. Sé amigable, conciso y utiliza los siguientes 'guiones' de respuesta para asegurar la coherencia:
 
 ---
 **BASE DE CONOCIMIENTO (NARRATIVAS DE RESPUESTA):**
@@ -807,6 +807,23 @@ Tú eliges la combinación de lugar y hora al momento de la compra."
 **8. Sobre UniBot (Capacidades) (Disparadores: "¿Quién eres?", "¿Qué haces?", "¿Me puedes ayudar con mi tarea?"):**
 "Soy UniBot, tu asistente personal dentro de UniMarket 🤖. Puedo ayudarte a: explicar cómo registrarte, comprar o vender; aclarar dudas sobre horarios, puntos de entrega y políticas; y guiarte si tienes problemas con la plataforma. **Lo que NO hago:** No tengo información sobre temas externos al ITIZ o a UniMarket, incluyendo tareas o información académica general."
 
+**8. Productos (Disparadores: "¿Que productos puedo vender?", "¿Qué productos existen?", "¿Cuales categorias hay?"):**
+"En Unimarket contamos con varias categorias, para la compra y venta estudiantil, entre las existentes son Maquillaje, comida, Ropa, Dulceria, los cuales mientras cuentes ya con un registro con nosotros puedes comprar o vender"
+
+**9. Productos (Disparadores: "¿Qué productos puedo vender?", "¿Qué productos existen?", "¿Cuales categorías hay?", "¿Puedo vender maquillaje?", "¿Dónde compro uniformes?", "¿Hay snacks?", "¿Tienen sudaderas?", "¿Qué tipo de comida venden?", Maquillaje, comida, dulces, accesorios, lapices, categorias)**
+"¡Claro! En Unimarket tenemos una amplia variedad de categorías para la compra y venta de productos entre estudiantes.
+
+🛍️ Nuestras categorías principales son:
+
+Maquillaje: (Paletas de sombras, labiales, bases, etc.)
+
+Comida: (Platillos caseros, almuerzos, postres, etc.)
+
+Ropa: (Uniformes, sudaderas, camisetas, accesorios)
+
+Dulcería: (Snacks, bebidas, caramelos, chocolates)
+
+Para poder comprar o vender cualquiera de estos artículos, solo necesitas contar con un registro activo en nuestra plataforma."
 ---
 **REGLA DE RESTRICCIÓN ESTRICTA (IMPERATIVA):**
 
@@ -815,67 +832,67 @@ Si la pregunta del usuario es sobre un tema que **NO** está cubierto por estas 
 > **"Lo siento, mi función es estrictamente asistirte con preguntas sobre el mercado universitario UniMarket y sus políticas de venta/entrega. No tengo información sobre ese tema."**
 
 **Pregunta del usuario a responder:** ${userMessage}` }]
-                }]
-            })
-        });
+                                }]
+                        })
+                });
 
-        // Si la respuesta no es OK (ej: 400, 403, 500)
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`Error de API (${response.status}): ${errorData.error.message || 'Error desconocido'}`);
-        }
+                // Si la respuesta no es OK (ej: 400, 403, 500)
+                if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`Error de API (${response.status}): ${errorData.error.message || 'Error desconocido'}`);
+                }
 
-        const data = await response.json();
-        
-        // Remover el mensaje de carga
-        if (chatBody.lastElementChild && chatBody.lastElementChild.textContent === "Escribiendo...") {
-            chatBody.lastElementChild.remove();
-        }
-        
-        const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No pude generar una respuesta. Intenta con otra pregunta.";
-        appendMessage(botReply, 'bot');
+                const data = await response.json();
+                  
+                // Remover el mensaje de carga
+                if (chatBody.lastElementChild && chatBody.lastElementChild.textContent === "Escribiendo...") {
+                        chatBody.lastElementChild.remove();
+                }
+                  
+                const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No pude generar una respuesta. Intenta con otra pregunta.";
+                appendMessage(botReply, 'bot');
 
-    } catch (error) {
-        console.error("Error en la llamada a la API:", error);
-        // Remover el mensaje de carga en caso de error
-        if (chatBody.lastElementChild && chatBody.lastElementChild.textContent === "Escribiendo...") {
-            chatBody.lastElementChild.remove();
+        } catch (error) {
+                console.error("Error en la llamada a la API:", error);
+                // Remover el mensaje de carga en caso de error
+                if (chatBody.lastElementChild && chatBody.lastElementChild.textContent === "Escribiendo...") {
+                        chatBody.lastElementChild.remove();
+                }
+                appendMessage(`Hubo un error: ${error.message}.`, 'bot');
         }
-        appendMessage(`Hubo un error: ${error.message}.`, 'bot');
-    }
 }
 
 // Manejador de envío de mensaje
 function sendMessageHandler() {
-    const message = chatInput.value.trim();
-    if (message === "") return;
+        const message = chatInput.value.trim();
+        if (message === "") return;
 
-    appendMessage(message, 'user');
-    chatInput.value = '';
-    
-    getBotResponse(message);
+        appendMessage(message, 'user');
+        chatInput.value = '';
+          
+        getBotResponse(message);
 }
 
 // Eventos del chat
 sendChatBtn.addEventListener('click', sendMessageHandler);
 chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessageHandler();
+        if (e.key === 'Enter') sendMessageHandler();
 });
 
 // Abrir/Cerrar Chat
 botBtn.addEventListener('click', () => {
-    chatModalOverlay.style.display = 'flex';
+        chatModalOverlay.style.display = 'flex';
 });
 
 closeChatBtn.addEventListener('click', () => {
-    chatModalOverlay.style.display = 'none';
+        chatModalOverlay.style.display = 'none';
 });
 
 // Cierre del chat al hacer clic en el fondo oscuro
 chatModalOverlay.addEventListener('click', (e) => {
-    if (e.target === chatModalOverlay) {
-        chatModalOverlay.style.display = 'none';
-    }
+        if (e.target === chatModalOverlay) {
+                chatModalOverlay.style.display = 'none';
+        }
 });
 
 // --- Funcionalidad del Carrusel (Añadido) ---
@@ -885,29 +902,29 @@ const slides = document.querySelectorAll('.carousel-slide');
 const totalSlides = slides.length;
 
 function updateCarousel() {
-    if (slides.length > 0) {
-        const width = slides[0].clientWidth;
-        track.style.transform = `translateX(-${currentIndex * width}px)`;
-    }
+        if (slides.length > 0) {
+                const width = slides[0].clientWidth;
+                track.style.transform = `translateX(-${currentIndex * width}px)`;
+        }
 }
 
 function nextSlide() {
-    if (totalSlides > 0) {
-        currentIndex = (currentIndex + 1) % totalSlides;
-        updateCarousel();
-    }
+        if (totalSlides > 0) {
+                currentIndex = (currentIndex + 1) % totalSlides;
+                updateCarousel();
+        }
 }
 
 // Auto-reproducción
-setInterval(nextSlide, 5000); 
+setInterval(nextSlide, 5000);   
 
 // Ajustar al redimensionar la ventana
 window.addEventListener('resize', updateCarousel);
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar la posición del carrusel y actualizar el año
-    updateCarousel();
-    document.getElementById('year').textContent = new Date().getFullYear();
+        // Inicializar la posición del carrusel y actualizar el año
+        updateCarousel();
+        document.getElementById('year').textContent = new Date().getFullYear();
 });
 
 </script>
