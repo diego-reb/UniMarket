@@ -11,10 +11,10 @@
 <script src="{{ url_for('static', filename='js/accesibilidad.js')}}"></script>
 <style>
 :root {
-    --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb;
-    --brand:#22c55e; --brand-2:#38bdf8; --accent:#fde047;
-    --error:#ef4444; --ok:#10b981; --shadow:0 10px 30px rgba(0,0,0,.35);
-    --radius:12px;
+    --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb;
+    --brand:#22c55e; --brand-2:#38bdf8; --accent:#fde047;
+    --error:#ef4444; --ok:#10b981; --shadow:0 10px 30px rgba(0,0,0,.35);
+    --radius:12px;
 }
 * { box-sizing:border-box; }
 html,body { height:100%; margin:0; font-family:'Inter',sans-serif; color:var(--text); background:var(--bg);}
@@ -25,7 +25,7 @@ html,body { height:100%; margin:0; font-family:'Inter',sans-serif; color:var(--t
 .sidebar-logo-badge svg { width:16px; height:16px; }
 .sidebar-nav a { display:block; padding:12px; border-radius:8px; color:var(--text); text-decoration:none; transition:background-color .2s; }
 .sidebar-nav a:hover, .sidebar-nav a.active { background-color: rgba(56,189,248,.1); }
-.main-content { flex:1; background:rgba(2,6,23,.55); border:1px solid rgba(148,163,184,.20); border-radius:var(--radius); box-shadow:var(--shadow); padding:30px; display:flex; flex-direction:column;  overflow-y: auto;}
+.main-content { flex:1; background:rgba(2,6,23,.55); border:1px solid rgba(148,163,184,.20); border-radius:var(--radius); box-shadow:var(--shadow); padding:30px; display:flex; flex-direction:column;  overflow-y: auto;}
 .main-content h1 { margin:0 0 20px; font-size:2rem; text-align:center; color:var(--text); }
 .content-section { display:none; }
 .content-section.active { display:block; }
@@ -37,538 +37,617 @@ html,body { height:100%; margin:0; font-family:'Inter',sans-serif; color:var(--t
 .user-card p strong, .product-card p strong { color:var(--text); }
 .user-actions, .product-actions { margin-top:15px; display:flex; gap:10px; }
 .edit-btn {
-    background:var(--brand-2);
-    padding:10px 18px;
-    color:white;
-    border:none;
-    border-radius:8px;
-    font-size:.95rem;
-    cursor:pointer;
+    background:var(--brand-2);
+    padding:10px 18px;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-size:.95rem;
+    cursor:pointer;
 }
 .edit-btn:hover { transform:scale(1.05); }
 
 .delete-btn {
-    background:var(--error);
-    padding:10px 18px;
-    color:white;
-    border:none;
-    border-radius:8px;
-    font-size:.95rem;
-    cursor:pointer;
+    background:var(--error);
+    padding:10px 18px;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-size:.95rem;
+    cursor:pointer;
 }
 .delete-btn:hover { transform:scale(1.05); }
 .message-box { padding:15px; border-radius:8px; margin-bottom:20px; text-align:center; display:none; }
 .message-box.success { background-color:var(--ok); color:white; }
 .message-box.error { background-color:var(--error); color:white; }
 .edit-form-container {
-    display:none;
-    position:fixed;
-    top:50%;
-    left:50%;
-    transform:translate(-50%, -50%);
-    z-index:1000;
-    width:450px;
-    background:rgba(15,23,42,0.97);
-    border:1px solid rgba(148,163,184,.25);
-    box-shadow:0 20px 40px rgba(0,0,0,.55);
-    border-radius:16px;
-    padding:25px 30px;
-    animation:fadeIn .25s ease;
+    display:none;
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    z-index:1000;
+    width:450px;
+    background:rgba(15,23,42,0.97);
+    border:1px solid rgba(148,163,184,.25);
+    box-shadow:0 20px 40px rgba(0,0,0,.55);
+    border-radius:16px;
+    padding:25px 30px;
+    animation:fadeIn .25s ease;
 }
 .edit-form-container h3 {
-    text-align:center;
-    margin-bottom:20px;
-    font-size:1.4rem;
-    color:var(--brand-2);
+    text-align:center;
+    margin-bottom:20px;
+    font-size:1.4rem;
+    color:var(--brand-2);
 }
 .edit-form-container label {
-    display:block;
-    margin-bottom:5px;
-    font-weight:600;
-    color:var(--text);
+    display:block;
+    margin-bottom:5px;
+    font-weight:600;
+    color:var(--text);
 }
 .edit-form-container input,
 .edit-form-container select,
 .edit-form-container textarea {
-    width:100%;
-    padding:10px 12px;
-    background:#0f172a;
-    border:1px solid rgba(148,163,184,.25);
-    border-radius:8px;
-    color:var(--text);
-    margin-bottom:15px;
-    font-size:.95rem;
+    width:100%;
+    padding:10px 12px;
+    background:#0f172a;
+    border:1px solid rgba(148,163,184,.25);
+    border-radius:8px;
+    color:var(--text);
+    margin-bottom:15px;
+    font-size:.95rem;
 }
 
 .edit-form-container textarea {
-    resize:none;
+    resize:none;
 }
 
 .modal-buttons {
-    display:flex;
-    justify-content:flex-end;
-    gap:10px;
-    margin-top:15px;
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:15px;
 }
 
 .modal-overlay {
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
 }
 .filter-buttons { display:flex; justify-content:center; gap:10px; margin-bottom:20px; }
 .filter-buttons button { background:var(--card); border:1px solid rgba(148,163,184,.20); color:var(--text); padding:8px 16px; border-radius:6px; cursor:pointer; }
 .filter-buttons button.active { background-color:var(--brand-2); color:white; }
 @media (max-width:768px) { .dashboard-container { flex-direction:column; padding:10px; } .sidebar { flex:none; width:100%; } .main-content { padding:20px; } }
 @keyframes fadeIn {
-    from { opacity:0; transform:translate(-50%, -48%); }
-    to   { opacity:1; transform:translate(-50%, -50%); }
+    from { opacity:0; transform:translate(-50%, -48%); }
+    to   { opacity:1; transform:translate(-50%, -50%); }
 }
 
 /* Estilos para el Modal del Chatbot (Copiado de index.html) */
 .chat-modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    display: none; /* Inicialmente oculto */
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: none; /* Inicialmente oculto */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
 .chat-modal-content {
-    background: var(--card);
-    border-radius: var(--radius);
-    width: 350px;
-    height: 450px;
-    box-shadow: var(--shadow);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    background: var(--card);
+    border-radius: var(--radius);
+    width: 350px;
+    height: 450px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .chat-header {
-    background: linear-gradient(90deg, var(--brand), var(--brand-2));
-    padding: 15px;
-    color: var(--bg);
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    background: linear-gradient(90deg, var(--brand), var(--brand-2));
+    padding: 15px;
+    color: var(--bg);
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .chat-header button {
-    background: none;
-    border: none;
-    color: var(--bg);
-    font-size: 1.5rem;
-    cursor: pointer;
-    line-height: 1;
+    background: none;
+    border: none;
+    color: var(--bg);
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
 }
 
 .chat-body {
-    flex-grow: 1;
-    padding: 15px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .chat-input-area {
-    padding: 10px 15px;
-    border-top: 1px solid rgba(148, 163, 184, 0.1);
-    display: flex;
-    gap: 10px;
+    padding: 10px 15px;
+    border-top: 1px solid rgba(148, 163, 184, 0.1);
+    display: flex;
+    gap: 10px;
 }
 
 .chat-input-area input {
-    flex-grow: 1;
-    padding: 10px;
-    border-radius: 999px;
-    border: 1px solid var(--muted);
-    background: var(--bg);
-    color: var(--text);
-    outline: none;
+    flex-grow: 1;
+    padding: 10px;
+    border-radius: 999px;
+    border: 1px solid var(--muted);
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
 }
 
 .chat-input-area button {
-    background: var(--brand);
-    color: var(--bg);
-    border: none;
-    border-radius: 999px;
-    padding: 10px 15px;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    background: var(--brand);
+    color: var(--bg);
+    border: none;
+    border-radius: 999px;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
 .chat-input-area button:hover {
-    background: var(--ok);
+    background: var(--ok);
 }
 
 /* Estilos de mensajes */
 .message {
-    max-width: 80%;
-    padding: 8px 12px;
-    border-radius: 12px;
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 12px;
 }
 
 .user-message {
-    align-self: flex-end;
-    background-color: var(--brand-2); /* Sky Blue */
-    color: var(--bg);
+    align-self: flex-end;
+    background-color: var(--brand-2); /* Sky Blue */
+    color: var(--bg);
 }
 
 .bot-message {
-    align-self: flex-start;
-    background-color: var(--card);
-    border: 1px solid rgba(148, 163, 184, 0.15);
+    align-self: flex-start;
+    background-color: var(--card);
+    border: 1px solid rgba(148, 163, 184, 0.15);
 }
 
 .bot-message::before {
-    content: '🤖 ';
+    content: '🤖 ';
 }
 
 .icon-btn {
-    width:42px; height:42px; border-radius:8px; display:grid; place-items:center; border:1px solid rgba(148,163,184,.25);
-    background:rgba(2,6,23,.6); cursor:pointer; transition:transform .06s ease, border .2s;
-    /* Ajuste para que se vea bien en la barra de filtros */
-    padding: 8px 16px;
-    font-size: 0.95rem;
-    color: var(--text);
-    background: var(--card);
+    width:42px; height:42px; border-radius:8px; display:grid; place-items:center; border:1px solid rgba(148,163,184,.25);
+    background:rgba(2,6,23,.6); cursor:pointer; transition:transform .06s ease, border .2s;
+    /* Ajuste para que se vea bien en la barra de filtros */
+    padding: 8px 16px;
+    font-size: 0.95rem;
+    color: var(--text);
+    background: var(--card);
 }
 .icon-btn:hover { border-color:var(--brand-2); }
 .icon-btn:active { transform:translateY(1px); }
+
+.crear-btn {
+    background:var(--brand);
+    padding:10px 18px;
+    color:var(--bg);
+    border:none;
+    border-radius:8px;
+    font-size:.95rem;
+    cursor:pointer;
+}
+
 </style>
 </head>
 <body>
-    <div class="reading-guide" id="reading-guide-mask"></div>
+    <div class="reading-guide" id="reading-guide-mask"></div>
 <div class="dashboard-container">
-    <div class="sidebar">
-        <div class="sidebar-logo">
-            <div class="sidebar-logo-badge" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 8V7a5 5 0 0 1 10 0v1" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/><rect x="4" y="8" width="16" height="12" rx="3" fill="rgba(255,255,255,.90)"/><path d="M7 13h10" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="19" r="1.6" fill="#0b1020"/><circle cx="16" cy="19" r="1.6" fill="#0b1020"/></svg>
-            </div>
-            UniMarket
-        </div>
-        <nav class="sidebar-nav">
-            <a href="#" id="nav-users" class="active">Usuarios</a>
-            <a href="#" id="nav-products">Productos</a>
-            <a href="{{ url_for('logout') }}" style="margin-top:auto; color:var(--error); font-weight:bold;">Cerrar sesión</a>
-        </nav>
-    </div>
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-badge" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 8V7a5 5 0 0 1 10 0v1" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/><rect x="4" y="8" width="16" height="12" rx="3" fill="rgba(255,255,255,.90)"/><path d="M7 13h10" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="19" r="1.6" fill="#0b1020"/><circle cx="16" cy="19" r="1.6" fill="#0b1020"/></svg>
+            </div>
+            UniMarket
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" id="nav-users" class="active">Usuarios</a>
+            <a href="#" id="nav-products">Productos</a>
+            <a href="{{ url_for('logout') }}" style="margin-top:auto; color:var(--error); font-weight:bold;">Cerrar sesión</a>
+        </nav>
+    </div>
 
-    <div class="main-content">
-        <h1>Bienvenid@ de nuevo {{current_user.nombre}}</h1>
-        <div id="message-box" class="message-box"></div>
+    <div class="main-content">
+        <h1>Bienvenid@ de nuevo {{current_user.nombre}}</h1>
+        <div id="message-box" class="message-box"></div>
 
-        <div id="users-section" class="content-section active">
-            <div class="filter-buttons">
-                <button class="filter-btn active" data-filter="all">Todos</button>
-                <button class="filter-btn" data-filter="vendedor">Vendedores</button>
-                <button class="filter-btn" data-filter="comprador">Compradores</button>
-                <button class="filter-btn" data-filter="administrador">Administrador</button>
-                <button class="icon-btn" id="botBtn" title="Asistente UniMarket" aria-label="Abrir Asistente de Chat" style="margin-left:auto; margin-right:10px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 18H8a4 4 0 0 1 0-8h4a4 4 0 1 0 0-8H8" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M16 12a4 4 0 0 0-4-4h-4a4 4 0 1 0 0 8h4a4 4 0 1 0 0-8" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
-                        <circle cx="12" cy="12" r="10" stroke="#94a3b8" stroke-width="2"/>
-                    </svg>
-                    Chatbot
-                </button>
-                <button class="crear-btn" onclick="abrirModal('crear-usuario-modal')">Crear Usuario</button>
-            </div>
-            <div id="user-list" class="user-list">
-                {% for u in usuarios %}
-                <div class="user-card" data-role="{{ u.rol.nombre|lower }}">
-                    <h3>{{ u.nombre }}</h3>
-                    <p><strong>Rol:</strong> {{ u.rol.nombre if u.rol else 'Sin rol' }}</p>
-                    <p><strong>Correo:</strong> {{ u.correo }}</p>
-                    <p><strong>Telefono:</strong> {{ u.telefono }}</p>
-                    <div class="user-actions">
-                        <button class="edit-btn"
-                            onclick="abrirEditarUsuario({{ u.id_usuario }}, '{{ u.nombre }}', '{{ u.correo }}', '{{ u.telefono }}', {{ u.id_rol }}, '{{ 'True' if u.estado else 'False' }}')">
-                            Editar
-                        </button>
-                        <form method="POST" action="{{ url_for('eliminar_usuario', id=u.id_usuario) }}" style="display:inline;" onsubmit="return confirm('¿Seguro que quieres eliminar a {{ u.nombre }}?');">
-                            {% if csrf_token is defined %}
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            {% endif %}
-                            <button type="submit" class="delete-btn">Eliminar</button>
-                        </form>
-                    </div>
-                </div>
-                {% else %}
-                <p style="text-align:center; color:var(--muted);">No hay usuarios registrados.</p>
-                {% endfor %}
-            </div>
-        </div>
+        <div id="users-section" class="content-section active">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">Todos</button>
+                <button class="filter-btn" data-filter="vendedor">Vendedores</button>
+                <button class="filter-btn" data-filter="comprador">Compradores</button>
+                <button class="filter-btn" data-filter="administrador">Administrador</button>
+                <button class="icon-btn" id="botBtn" title="Asistente UniMarket" aria-label="Abrir Asistente de Chat" style="margin-left:auto; margin-right:10px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 18H8a4 4 0 0 1 0-8h4a4 4 0 1 0 0-8H8" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M16 12a4 4 0 0 0-4-4h-4a4 4 0 1 0 0 8h4a4 4 0 1 0 0-8" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="12" r="10" stroke="#94a3b8" stroke-width="2"/>
+                    </svg>
+                    Chatbot
+                </button>
+                <button class="crear-btn" onclick="abrirModal('crear-usuario-modal')">Crear Usuario</button>
+            </div>
+            <div id="user-list" class="user-list">
+                {% for u in usuarios %}
+                <div class="user-card" data-role="{{ u.rol.nombre|lower }}">
+                    <h3>{{ u.nombre }}</h3>
+                    <p><strong>Rol:</strong> {{ u.rol.nombre if u.rol else 'Sin rol' }}</p>
+                    <p><strong>Correo:</strong> {{ u.correo }}</p>
+                    <p><strong>Telefono:</strong> {{ u.telefono }}</p>
+                    <div class="user-actions">
+                        <button class="edit-btn"
+                            onclick="abrirEditarUsuario({{ u.id_usuario }}, '{{ u.nombre }}', '{{ u.correo }}', '{{ u.telefono }}', {{ u.id_rol }}, '{{ 'True' if u.estado else 'False' }}')">
+                            Editar
+                        </button>
+                        <form method="POST" action="{{ url_for('eliminar_usuario', id=u.id_usuario) }}" style="display:inline;" onsubmit="return confirm('¿Seguro que quieres eliminar a {{ u.nombre }}?');">
+                            {% if csrf_token is defined %}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            {% endif %}
+                            <button type="submit" class="delete-btn">Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <p style="text-align:center; color:var(--muted);">No hay usuarios registrados.</p>
+                {% endfor %}
+            </div>
+        </div>
 
-        <div id="products-section" class="content-section">
-            <div class="filter-buttons">
-                <button class="filter-btn active" data-filter="all">Todos</button>
-                <button class="filter-btn" data-filter="published">Publicados</button>
-                <button class="filter-btn" data-filter="pending">Pendientes</button>
-                <button class="crear-btn" style="margin-left:auto;" onclick="abrirModal('crear-producto-form')">Agregar Producto</button>
-            </div>
-            <div id="product-list" class="product-list">
-                {% for p in productos %}
-                <div class="product-card" data-id="{{ p.id_producto }}" data-categoria="{{ p.id_categoria }}" data-status="{{ 'published' if p.estado else 'pending' }}">
-                    <h3>{{ p.nombre }}</h3>
-                    <p><strong>Descripción:</strong> {{ p.descripcion }}</p>
-                    <p><strong>Precio:</strong> ${{ '%.2f'|format(p.precio) }}</p>
-                    <p><strong>Stock:</strong> {{ p.stock }}</p>
-                    <p><strong>Vendedor:</strong> {{ p.vendedor.nombre }}</p>
-                    <p><strong>Estado:</strong> {{ 'Publicado' if p.estado else 'Pendiente' }}</p>
-                    {% if p.foto %}
-                    <img src="{{ url_for('static', filename='uploads/' ~ p.foto) }}" alt="{{ p.nombre }}" style="max-width:100%; border-radius:8px;">
-                    {% endif %}
-                    <div class="product-actions">
-                        <button class="edit-btn" onclick="abrirEditarProducto({{ p.id_producto }}, '{{ p.nombre }}', '{{ p.descripcion }}', {{ p.stock }}, {{ p.precio }}, {{ p.id_vendedor }}, {{ p.id_categoria }})">Editar</button>
-                        <form method="POST" action="{{ url_for('eliminar_producto', id=p.id_producto) }}" style="display:inline;" onsubmit="return confirm('¿Seguro que quieres eliminar el producto \"{{ p.nombre }}\"?');">
-                            {% if csrf_token is defined %}
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            {% endif %}
-                            <button type="submit" class="delete-btn">Eliminar</button>
-                        </form>
-                    </div>
-                </div>
-                {% else %}
-                <p style="text-align:center; color:var(--muted);">No hay productos.</p>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
+        <div id="products-section" class="content-section">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">Todos</button>
+                <button class="filter-btn" data-filter="published">Publicados</button>
+                <button class="filter-btn" data-filter="pending">Pendientes</button>
+                <button class="crear-btn" style="margin-left:auto;" onclick="abrirModal('crear-producto-form')">Agregar Producto</button>
+            </div>
+            <div id="product-list" class="product-list">
+                {% for p in productos %}
+                <div class="product-card" data-id="{{ p.id_producto }}" data-categoria="{{ p.id_categoria }}" data-status="{{ 'published' if p.estado else 'pending' }}">
+                    <h3>{{ p.nombre }}</h3>
+                    <p><strong>Descripción:</strong> {{ p.descripcion }}</p>
+                    <p><strong>Precio:</strong> ${{ '%.2f'|format(p.precio) }}</p>
+                    <p><strong>Stock:</strong> {{ p.stock }}</p>
+                    <p><strong>Vendedor:</strong> {{ p.vendedor.nombre }}</p>
+                    <p><strong>Estado:</strong> {{ 'Publicado' if p.estado else 'Pendiente' }}</p>
+                    {% if p.foto %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ p.foto) }}" alt="{{ p.nombre }}" style="max-width:100%; border-radius:8px;">
+                    {% endif %}
+                    <div class="product-actions">
+                        <button class="edit-btn" onclick="abrirEditarProducto({{ p.id_producto }}, '{{ p.nombre }}', '{{ p.descripcion }}', {{ p.stock }}, {{ p.precio }}, {{ p.id_vendedor }}, {{ p.id_categoria }})">Editar</button>
+                        <form method="POST" action="{{ url_for('eliminar_producto', id=p.id_producto) }}" style="display:inline;" onsubmit="return confirm('¿Seguro que quieres eliminar el producto \"{{ p.nombre }}\"?');">
+                            {% if csrf_token is defined %}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            {% endif %}
+                            <button type="submit" class="delete-btn">Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <p style="text-align:center; color:var(--muted);">No hay productos.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="modal-overlay" class="modal-overlay" onclick="cerrarModal()"></div>
 
 <div id="crear-usuario-modal" class="edit-form-container">
-    <h3>Crear Nuevo Usuario</h3>
+    <h3>Crear Nuevo Usuario</h3>
 
-    <form method="POST" action="{{ url_for('crear_usuario') }}">
-        {% if csrf_token is defined %}
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        {% endif %}
+    <form method="POST" action="{{ url_for('crear_usuario') }}">
+        {% if csrf_token is defined %}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% endif %}
 
-        <label>Nombre:</label>
-        <input type="text" name="nombre" required>
+        <label>Nombre:</label>
+        <input type="text" name="nombre" required>
 
-        <label>Correo:</label>
-        <input type="email" name="correo" required>
+        <label>Correo:</label>
+        <input type="email" name="correo" required>
 
-        <label>Contraseña:</label>
-        <input type="password" name="password">
+        <label>Contraseña:</label>
+        <input type="password" name="password">
 
-        <label>Confirmar contraseña:</label>
-        <input type="password" name="confirmar">
+        <label>Confirmar contraseña:</label>
+        <input type="password" name="confirmar">
 
-        <label>Teléfono:</label>
-        <input type="text" name="telefono">
+        <label>Teléfono:</label>
+        <input type="text" name="telefono">
 
-        <label>Rol:</label>
-        <select name="id_rol" required>
-            {% for r in rol %}
-            <option value="{{ r.id_rol }}">{{ r.nombre }}</option>
-            {% endfor %}
-        </select>
+        <label>Rol:</label>
+        <select name="id_rol" required>
+            {% for r in rol %}
+            <option value="{{ r.id_rol }}">{{ r.nombre }}</option>
+            {% endfor %}
+        </select>
 
-        <label>Estado:</label>
-        <select name="estado" required>
-            <option value="True">Activo</option>
-            <option value="False">Inactivo</option>
-        </select>
+        <label>Estado:</label>
+        <select name="estado" required>
+            <option value="True">Activo</option>
+            <option value="False">Inactivo</option>
+        </select>
 
-        <div class="modal-buttons">
-            <button type="button" class="delete-btn" onclick="cerrarModal()">Cancelar</button>
-            <button type="submit" class="edit-btn">Crear Usuario</button>
-        </div>
-    </form>
+        <div class="modal-buttons">
+            <button type="button" class="delete-btn" onclick="cerrarModal()">Cancelar</button>
+            <button type="submit" class="edit-btn">Crear Usuario</button>
+        </div>
+    </form>
 </div>
 <div id="editar-usuario-modal" class="edit-form-container">
-    <h3>Editar Usuario</h3>
+    <h3>Editar Usuario</h3>
 
-    <form id="editar-usuario-form" method="POST">
-        {% if csrf_token is defined %}
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        {% endif %}
+    <form id="editar-usuario-form" method="POST">
+        {% if csrf_token is defined %}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% endif %}
 
-        <label>Nombre:</label>
-        <input type="text" name="nombre" id="editar-nombre" required>
+        <label>Nombre:</label>
+        <input type="text" name="nombre" id="editar-nombre" required>
 
-        <label>Correo:</label>
-        <input type="email" name="correo" id="editar-correo" required>
+        <label>Correo:</label>
+        <input type="email" name="correo" id="editar-correo" required>
 
-        <label>Teléfono:</label>
-        <input type="text" name="telefono" id="editar-telefono">
+        <label>Teléfono:</label>
+        <input type="text" name="telefono" id="editar-telefono">
 
-        <label>Contraseña:</label>
-        <input type="password" name="password" id="editar-password" placeholder="Déjala en blanco si no deseas cambiarla">
+        <label>Contraseña:</label>
+        <input type="password" name="password" id="editar-password" placeholder="Déjala en blanco si no deseas cambiarla">
 
-        <label>Confirmar Contraseña:</label>
-        <input type="password" name="confirmar" id="editar-confirmar" placeholder="Déjala en blanco si no deseas cambiarla">
+        <label>Confirmar Contraseña:</label>
+        <input type="password" name="confirmar" id="editar-confirmar" placeholder="Déjala en blanco si no deseas cambiarla">
 
-        <label>Rol:</label>
-        <select name="id_rol" id="editar-rol" required>
-            {% for r in rol %}
-            <option value="{{ r.id_rol }}">{{ r.nombre }}</option>
-            {% endfor %}
-        </select>
+        <label>Rol:</label>
+        <select name="id_rol" id="editar-rol" required>
+            {% for r in rol %}
+            <option value="{{ r.id_rol }}">{{ r.nombre }}</option>
+            {% endfor %}
+        </select>
 
-        <label>Estado:</label>
-        <select name="estado" id="editar-estado" required>
-            <option value="True">Activo</option>
-            <option value="False">Inactivo</option>
-        </select>
+        <label>Estado:</label>
+        <select name="estado" id="editar-estado" required>
+            <option value="True">Activo</option>
+            <option value="False">Inactivo</option>
+        </select>
 
-        <div class="modal-buttons">
-            <button type="button" class="delete-btn" onclick="cerrarModal()">Cancelar</button>
-            <button type="submit" class="edit-btn">Guardar cambios</button>
-        </div>
-    </form>
+        <div class="modal-buttons">
+            <button type="button" class="delete-btn" onclick="cerrarModal()">Cancelar</button>
+            <button type="submit" class="edit-btn">Guardar cambios</button>
+        </div>
+    </form>
 </div>
 
 <div id="crear-producto-form" class="edit-form-container">
-    <h3>Agregar Nuevo Producto</h3>
+    <h3>Agregar Nuevo Producto</h3>
 
-    <form method="POST" action="{{ url_for('crear_producto_post') }}" enctype="multipart/form-data">
-        {% if csrf_token is defined %}
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        {% endif %}
+    <form method="POST" action="{{ url_for('crear_producto_post') }}" enctype="multipart/form-data">
+        {% if csrf_token is defined %}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% endif %}
 
-        <label>Nombre:</label>
-        <input type="text" name="nombre" required>
+        <label>Nombre:</label>
+        <input type="text" name="nombre" required>
 
-        <label>Descripción:</label>
-        <textarea name="descripcion" rows="4" required></textarea>
+        <label>Descripción:</label>
+        <textarea name="descripcion" rows="4" required></textarea>
 
-        <label>Cantidad:</label>
-        <input type="number" name="stock" min="1" required>
+        <label>Cantidad:</label>
+        <input type="number" name="stock" min="1" required>
 
-        <label>Precio ($):</label>
-        <input type="number" name="precio" min="0" step="0.01" required>
+        <label>Precio ($):</label>
+        <input type="number" name="precio" min="0" step="0.01" required>
 
-        <label>Foto:</label>
-        <input type="file" name="foto" accept="image/*">
+        <label>Foto:</label>
+        <input type="file" name="foto" accept="image/*">
 
-        <label>Vendedor:</label>
-        <select name="id_vendedor" required>
-            {% for v in vendedores %}
-            <option value="{{ v.id_usuario }}">{{ v.nombre }}</option>
-            {% endfor %}
-        </select>
+        <label>Vendedor:</label>
+        <select name="id_vendedor" required>
+            {% for v in vendedores %}
+            <option value="{{ v.id_usuario }}">{{ v.nombre }}</option>
+            {% endfor %}
+        </select>
 
-        <label>Categoría:</label>
-        <select name="id_categoria" required>
-            {% for c in categorias %}
-            <option value="{{ c.id_categoria }}">{{ c.nombre }}</option>
-            {% endfor %}
-        </select>
+        <label>Categoría:</label>
+        <select name="id_categoria" required>
+            {% for c in categorias %}
+            <option value="{{ c.id_categoria }}">{{ c.nombre }}</option>
+            {% endfor %}
+        </select>
 
-        <div class="modal-buttons">
-            <button type="button" class="delete-btn" onclick="cerrarModal()">Cancelar</button>
-            <button type="submit" class="edit-btn">Agregar Producto</button>
-        </div>
-    </form>
+        <div class="modal-buttons">
+            <button type="button" class="delete-btn" onclick="cerrarModal()">Cancelar</button>
+            <button type="submit" class="edit-btn">Agregar Producto</button>
+        </div>
+    </form>
 </div>
 
+<div id="editar-producto-form" class="edit-form-container">
+    <h3>Editar Producto</h3>
+
+    <form id="form-editar-producto" method="POST" enctype="multipart/form-data">
+        {% if csrf_token is defined %}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% endif %}
+
+        <label>Nombre:</label>
+        <input type="text" name="nombre" id="edit-prod-nombre" required>
+
+        <label>Descripción:</label>
+        <textarea name="descripcion" rows="4" id="edit-prod-descripcion" required></textarea>
+
+        <label>Cantidad:</label>
+        <input type="number" name="stock" min="1" id="edit-prod-stock" required>
+
+        <label>Precio ($):</label>
+        <input type="number" name="precio" min="0" step="0.01" id="edit-prod-precio" required>
+
+        <label>Nueva Foto (opcional):</label>
+        <input type="file" name="foto" accept="image/*">
+
+        <label>Vendedor:</label>
+        <select name="id_vendedor" id="edit-prod-vendedor" required>
+            {% for v in vendedores %}
+            <option value="{{ v.id_usuario }}">{{ v.nombre }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Categoría:</label>
+        <select name="id_categoria" id="edit-prod-categoria" required>
+            {% for c in categorias %}
+            <option value="{{ c.id_categoria }}">{{ c.nombre }}</option>
+            {% endfor %}
+        </select>
+
+        <div class="modal-buttons">
+            <button type="button" class="delete-btn" onclick="cerrarModal()">Cancelar</button>
+            <button type="submit" class="edit-btn">Guardar Cambios</button>
+        </div>
+    </form>
+</div>
+
+
 <div id="chatModalOverlay" class="chat-modal-overlay">
-    <div class="chat-modal-content">
-        <div class="chat-header">
-            Asistente UniMarket 
-            <button id="closeChatBtn" aria-label="Cerrar chat">&times;</button>
-        </div>
-        <div class="chat-body" id="chatBody">
-            <div class="message bot-message">¡Hola! Soy tu asistente. Pregúntame sobre el funcionamiento de UniMarket.</div>
-        </div>
-        <div class="chat-input-area">
-            <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." aria-label="Campo de mensaje">
-            <button id="sendChatBtn">Enviar</button>
-        </div>
-    </div>
+    <div class="chat-modal-content">
+        <div class="chat-header">
+            Asistente UniMarket 
+            <button id="closeChatBtn" aria-label="Cerrar chat">&times;</button>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <div class="message bot-message">¡Hola! Soy tu asistente. Pregúntame sobre el funcionamiento de UniMarket.</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." aria-label="Campo de mensaje">
+            <button id="sendChatBtn">Enviar</button>
+        </div>
+    </div>
 </div>
 
 <script>
 // Filtrado de usuarios por rol
 document.addEventListener('DOMContentLoaded', () => {
-    const filterBtns = document.querySelectorAll('#users-section .filter-btn');
-    const userCards = document.querySelectorAll('#user-list .user-card');
+    const filterBtns = document.querySelectorAll('#users-section .filter-btn');
+    const userCards = document.querySelectorAll('#user-list .user-card');
 
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            // Remover clase active de todos los botones
-            filterBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remover clase active de todos los botones
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
 
-            const filter = btn.getAttribute('data-filter');
+            const filter = btn.getAttribute('data-filter');
 
-            userCards.forEach(card => {
-                const role = card.getAttribute('data-role'); // vendedor, comprador, administrador
-                if (filter === 'all' || role === filter) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-    });
+            userCards.forEach(card => {
+                const role = card.getAttribute('data-role'); // vendedor, comprador, administrador
+                if (filter === 'all' || role === filter) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // Filtrado de productos por estado
+    const productFilterBtns = document.querySelectorAll('#products-section .filter-btn');
+    const productCards = document.querySelectorAll('#product-list .product-card');
+
+    productFilterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            productFilterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const filter = btn.getAttribute('data-filter');
+
+            productCards.forEach(card => {
+                const status = card.getAttribute('data-status'); // published o pending
+                if (filter === 'all' || status === filter) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
 });
 </script>
 
 <script>
 function abrirModal(id){
-    document.getElementById(id).style.display='block';
-    document.getElementById('modal-overlay').style.display='block';
+    document.getElementById(id).style.display='block';
+    document.getElementById('modal-overlay').style.display='block';
 }
 function cerrarModal(){
-    document.querySelectorAll('.edit-form-container').forEach(m => m.style.display='none');
-    document.getElementById('modal-overlay').style.display='none';
-    // Además, cerrar el modal del chatbot si está abierto
-    document.getElementById('chatModalOverlay').style.display='none';
+    document.querySelectorAll('.edit-form-container').forEach(m => m.style.display='none');
+    document.getElementById('modal-overlay').style.display='none';
+    // Además, cerrar el modal del chatbot si está abierto
+    document.getElementById('chatModalOverlay').style.display='none';
 }
 
 // Editar usuario
 function abrirEditarUsuario(id, nombre, correo, telefono, rol, estado){
-    abrirModal('editar-usuario-modal');
-    const form = document.getElementById('editar-usuario-form');
-    form.action = `/usuario/editar/${id}`;
-    document.getElementById('editar-nombre').value = nombre;
-    document.getElementById('editar-correo').value = correo;
-    document.getElementById('editar-telefono').value = telefono;
-    document.getElementById('editar-rol').value = rol;
-    document.getElementById('editar-estado').value = estado;
+    abrirModal('editar-usuario-modal');
+    const form = document.getElementById('editar-usuario-form');
+    form.action = `/usuario/editar/${id}`;
+    document.getElementById('editar-nombre').value = nombre;
+    document.getElementById('editar-correo').value = correo;
+    document.getElementById('editar-telefono').value = telefono;
+    document.getElementById('editar-rol').value = rol;
+    document.getElementById('editar-estado').value = estado;
 }
 
 // Editar producto
 function abrirEditarProducto(id,nombre,descripcion,stock,precio,vendedor,categoria){
-    abrirModal('crear-producto-form');
-    const form = document.querySelector('#crear-producto-form form');
-    form.action=`/producto/editar/${id}`;
-    form.nombre.value=nombre;
-    form.descripcion.value=descripcion;
-    form.stock.value=stock;
-    form.precio.value=precio;
-    form.id_vendedor.value=vendedor;
-    form.id_categoria.value=categoria;
+    // Usa el modal dedicado a editar productos para no interferir con crear_producto_form
+    abrirModal('editar-producto-form');
+    const form = document.getElementById('form-editar-producto');
+    form.action=`/producto/editar/${id}`;
+    document.getElementById('edit-prod-nombre').value = nombre;
+    document.getElementById('edit-prod-descripcion').value = descripcion;
+    document.getElementById('edit-prod-stock').value = stock;
+    document.getElementById('edit-prod-precio').value = precio;
+    document.getElementById('edit-prod-vendedor').value = vendedor;
+    document.getElementById('edit-prod-categoria').value = categoria;
 }
 
 // Navegación secciones
 document.addEventListener('DOMContentLoaded',()=>{
-    const navUsers=document.getElementById('nav-users');
-    const navProducts=document.getElementById('nav-products');
-    function showSection(id){
-        document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.sidebar-nav a').forEach(a=>a.classList.remove('active'));
-        if(id==='users-section') navUsers.classList.add('active'); else navProducts.classList.add('active');
-    }
-    navUsers.addEventListener('click',e=>{e.preventDefault(); showSection('users-section');});
-    navProducts.addEventListener('click',e=>{e.preventDefault(); showSection('products-section');});
+    const navUsers=document.getElementById('nav-users');
+    const navProducts=document.getElementById('nav-products');
+    function showSection(id){
+        document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.sidebar-nav a').forEach(a=>a.classList.remove('active'));
+        if(id==='users-section') navUsers.classList.add('active'); else navProducts.classList.add('active');
+    }
+    navUsers.addEventListener('click',e=>{e.preventDefault(); showSection('users-section');});
+    navProducts.addEventListener('click',e=>{e.preventDefault(); showSection('products-section');});
 });
 
-// --- Funcionalidad del Chatbot (Copiado de index.html) ---
+// --- Funcionalidad del Chatbot (Actualizado con clave funcional) ---
 
-// 🔑 CLAVE API DE GEMINI INSERTADA AQUÍ (Mantenemos la clave para que la funcionalidad se mantenga)
-const GEMINI_API_KEY = "AIzaSyB6f6nJWCrR0my4yF9BQGS45h30u-ZQOKA"; 
+// 🔑 CLAVE API DE GEMINI INSERTADA AQUÍ
+const GEMINI_API_KEY = "AIzaSyAoHCyL8KFca7Vr3sFB2m0kbeI8Nd6tqmE"; 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 // --- Referencias del Chat ---
@@ -583,36 +662,40 @@ const sendChatBtn = document.getElementById('sendChatBtn');
 
 // Función para mostrar mensajes en el chat
 function appendMessage(text, sender) {
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message', `${sender}-message`);
-    // Permite saltos de línea y formateo básico si la API lo devuelve
-    messageDiv.innerHTML = text.replace(/\n/g, '<br>'); 
-    chatBody.appendChild(messageDiv);
-    // Desplazar hacia el último mensaje
-    chatBody.scrollTop = chatBody.scrollHeight;
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', `${sender}-message`);
+    // Permite saltos de línea y formateo básico si la API lo devuelve
+    messageDiv.innerHTML = text.replace(/\n/g, '<br>'); 
+    chatBody.appendChild(messageDiv);
+    // Desplazar hacia el último mensaje
+    chatBody.scrollTop = chatBody.scrollHeight;
 }
 
 // Función principal para llamar a la API
 async function getBotResponse(userMessage) {
-    if (!GEMINI_API_KEY) {
-        appendMessage("❌ Error: La clave API de Gemini no está configurada.", 'bot');
-        return;
-    }
+    if (!GEMINI_API_KEY) {
+        appendMessage("❌ Error: La clave API de Gemini no está configurada.", 'bot');
+        return;
+    }
 
-    try {
-        // Agregar mensaje de carga
-        appendMessage("Escribiendo...", 'bot');
-        
-        // Construcción de la URL y la solicitud corregida
-        const fullUrl = `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
-        
-        const response = await fetch(fullUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ 
-                    role: "user", 
-                    parts: [{ text: `Eres UniBot, el asistente de soporte de inteligencia artificial del portal UniMarket, el mercado exclusivo para la comunidad del ITIZ. Tu rol es ESTRICTO Y LIMITADO: proporcionar información precisa ÚNICAMENTE sobre las políticas, mecánicas, productos y funcionalidades de la plataforma UniMarket. Sé amigable, conciso y utiliza los siguientes 'guiones' de respuesta para asegurar la coherencia:
+    try {
+        // Agregar mensaje de carga
+        const loadingMessage = document.createElement('div');
+        loadingMessage.classList.add('message', 'bot-message');
+        loadingMessage.textContent = "🤖 Escribiendo...";
+        chatBody.appendChild(loadingMessage);
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        // Construcción de la URL y la solicitud corregida
+        const fullUrl = `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
+        
+        const response = await fetch(fullUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ 
+                    role: "user", 
+                    parts: [{ text: `Eres UniBot, el asistente de soporte de inteligencia artificial del portal UniMarket, el mercado exclusivo para la comunidad del ITIZ. Tu rol es ESTRICTO Y LIMITADO: proporcionar información precisa ÚNICAMENTE sobre las políticas, mecánicas, productos y funcionalidades de la plataforma UniMarket. Sé amigable, conciso y utiliza los siguientes 'guiones' de respuesta para asegurar la coherencia:
 
 BASE DE CONOCIMIENTO (NARRATIVAS DE RESPUESTA):
 
@@ -641,70 +724,70 @@ Si la pregunta del usuario es sobre un tema que NO está cubierto por estas tres
 "Lo siento, mi función es estrictamente asistirte con preguntas sobre el mercado universitario UniMarket y sus políticas de venta/entrega. No tengo información sobre ese tema."
 
 Pregunta del usuario a responder:${userMessage}` }]
-                }]
-            })
-        });
+                }]
+            })
+        });
 
-        // Si la respuesta no es OK (ej: 400, 403, 500)
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`Error de API (${response.status}): ${errorData.error.message || 'Error desconocido'}`);
-        }
+        // Si la respuesta no es OK (ej: 400, 403, 500)
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Error de API (${response.status}): ${errorData.error.message || 'Error desconocido'}`);
+        }
 
-        const data = await response.json();
-        
-        // Remover el mensaje de carga
-        if (chatBody.lastElementChild && chatBody.lastElementChild.textContent === "Escribiendo...") {
-            chatBody.lastElementChild.remove();
-        }
-        
-        const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No pude generar una respuesta. Intenta con otra pregunta.";
-        appendMessage(botReply, 'bot');
+        const data = await response.json();
+        
+        // Remover el mensaje de carga
+        if (chatBody.lastElementChild && chatBody.lastElementChild === loadingMessage) {
+            chatBody.lastElementChild.remove();
+        }
+        
+        const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No pude generar una respuesta. Intenta con otra pregunta.";
+        appendMessage(botReply, 'bot');
 
-    } catch (error) {
-        console.error("Error en la llamada a la API:", error);
-        // Remover el mensaje de carga en caso de error
-        if (chatBody.lastElementChild && chatBody.lastElementChild.textContent === "Escribiendo...") {
-            chatBody.lastElementChild.remove();
-        }
-        appendMessage(`Hubo un error: ${error.message}.`, 'bot');
-    }
+    } catch (error) {
+        console.error("Error en la llamada a la API:", error);
+        // Remover el mensaje de carga en caso de error
+        if (chatBody.lastElementChild && chatBody.lastElementChild.textContent === "🤖 Escribiendo...") {
+            chatBody.lastElementChild.remove();
+        }
+        appendMessage(`Hubo un error: ${error.message}.`, 'bot');
+    }
 }
 
 // Manejador de envío de mensaje
 function sendMessageHandler() {
-    const message = chatInput.value.trim();
-    if (message === "") return;
+    const message = chatInput.value.trim();
+    if (message === "") return;
 
-    appendMessage(message, 'user');
-    chatInput.value = '';
-    
-    getBotResponse(message);
+    appendMessage(message, 'user');
+    chatInput.value = '';
+    
+    getBotResponse(message);
 }
 
 // Eventos del chat
 sendChatBtn.addEventListener('click', sendMessageHandler);
 chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessageHandler();
+    if (e.key === 'Enter') sendMessageHandler();
 });
 
 // Abrir/Cerrar Chat
 botBtn.addEventListener('click', () => {
-    chatModalOverlay.style.display = 'flex';
+    chatModalOverlay.style.display = 'flex';
 });
 
 closeChatBtn.addEventListener('click', () => {
-    chatModalOverlay.style.display = 'none';
+    chatModalOverlay.style.display = 'none';
 });
 
 // Cierre del chat al hacer clic en el fondo oscuro
 chatModalOverlay.addEventListener('click', (e) => {
-    if (e.target === chatModalOverlay) {
-        chatModalOverlay.style.display = 'none';
-    }
+    if (e.target === chatModalOverlay) {
+        chatModalOverlay.style.display = 'none';
+    }
 });
 
-// Nota: El código del carrusel no es relevante en el dashboard, por lo que no se copian las variables/funciones del carrusel.
+// Nota: Se agregó un modal de edición de producto dedicado y se actualizó la función abrirEditarProducto para no interferir con el modal de creación.
 </script>
 </body>
 </html>
