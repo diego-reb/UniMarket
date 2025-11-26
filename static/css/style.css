@@ -5,13 +5,14 @@
 :root {
   --font-size-base: 16px;
   --font-family-base: 'Inter', sans-serif;
+  --navy-blue: #000080; /* Se mantiene para referencias, pero ya no se usa en modo claro */
 }
 
 /* === Escala de grises === */
-body.grayscale { 
-  filter: grayscale(100%); 
-  background: #ffffff !important; 
-  color: #000000 !important; 
+body.grayscale {
+  filter: grayscale(100%);
+  background: #ffffff !important;
+  color: #000000 !important;
 }
 
 /* === Cambio de tipografía accesible === */
@@ -25,11 +26,11 @@ body.alt-font {
   left: 0;
   width: 100%;
   height: 40px;
-  background: rgba(87, 238, 28, 0.532);
+  background: rgba(117, 223, 146, 0.944);
   pointer-events: none;
   display: none;
   z-index: 9999;
-  transition: top 0.1s ease; 
+  transition: top 0.1s ease;
 }
 
 body.reading-guide-active .reading-guide-mask {
@@ -37,25 +38,43 @@ body.reading-guide-active .reading-guide-mask {
 }
 
 /* === Modos de color === */
-body.dark-mode { 
-  background: #111827; 
-  color: #f0f5f9; 
+body.dark-mode {
+  background: #111827;
+  color: #f0f5f9;
 }
 
-body.light-mode { 
-  background: #ffffff; 
-  color: #0f0e0e; 
+body.light-mode {
+  background: #ffffff;
+  color: #0f0e0e;
 }
 
-/* === Alto contraste === */
+/* === Alto contraste (Mantenido y amado) === */
 body.high-contrast {
   background: #000 !important;
-  color: #1f10ab !important;
+  color: #00ff00 !important; /* Texto principal verde fluorescente */
 }
 
 body.high-contrast a {
-  color: rgb(8, 205, 100) !important;
+  color: rgb(255, 255, 0) !important; /* Enlaces amarillos */
 }
+
+/* --- ESTILO DE ALTO CONTRASTE: Bordes fluorescentes --- */
+body.high-contrast .category-btn,
+body.high-contrast .nav-item,
+body.high-contrast .product-card,
+body.high-contrast .header-wrap,
+body.high-contrast .search input,
+body.high-contrast input[type="email"],
+body.high-contrast input[type="password"],
+body.high-contrast .google-login-btn,
+body.high-contrast button.agregar,
+body.high-contrast button.Continuar { 
+  border: 3px solid #00ff00 !important; 
+  box-shadow: 0 0 10px #00ff00 !important; 
+  background-color: #000000 !important; 
+  color: #ffff00 !important; 
+}
+
 
 /* === Tamaños de fuente === */
 body.text-size-1 { font-size: 1em !important; }
@@ -72,7 +91,7 @@ body.text-size-5 { font-size: 2em !important; }
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #22c55e, #38bdf8);
+  background: linear-gradient(135deg, #22c55e, #290bae);
   color: white;
   font-size: 1.3rem;
   border: none;
@@ -109,7 +128,7 @@ body.text-size-5 { font-size: 2em !important; }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 #accesibility-panel button {
@@ -128,41 +147,74 @@ body.text-size-5 { font-size: 2em !important; }
   background: rgba(255,255,255,.25);
 }
 
-/* =========================================
-   🎨 MODO CLARO – VARIABLES EXTRA
+/* =====================modo claro====================
+   🎨 MODO CLARO – VARIABLES EXTRA (CORREGIDO)
 ========================================= */
 
 body.light-mode {
-  --bg: #f4f4f9;          /* Fondo general */
-  --card: #ffffff;        /* Fondo de paneles / tarjetas */
-  --muted: #5c687a;       /* Texto gris medio */
-  --text: #0f172a;        /* Texto principal */
-  --brand: #22c55e;       /* Verde */
-  --brand-2: #38bdf8;     /* Azul */
-  --accent: #eab308;      /* Amarillo */
-  --error: #ef4444;       /* Rojo */
-  --ok: #10b981;          /* Verde éxito */
+  --bg: #ffffff;          /* Fondo general blanco puro */
+  --card: #2f78f6;        /* Tarjetas blancas */
+  --muted: #051e3c;       /* Texto secundario gris visible */
+  --text: #000000;        /* Texto principal negro */
+  --brand: #98b5d0;       /* Azul marca */
+  --brand-2: #3d657f;     /* Azul vibrante */
+  --accent: #050593;      /* Amarillo acento */
+  --error: #ef4444;       /* Rojo error */
+  --ok: #059669;          /* Verde éxito */
+  
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
 /* Panel de formulario en modo claro */
 body.light-mode .form-panel {
-  background: var(--card);
-  border: 1px solid rgba(148,163,184,.25);
-  color: var(--text);
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb;
+  color: #000000 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* Inputs en modo claro */
+
+/* Esto arregla los campos oscuros en Nombre, Teléfono, Fecha, etc. */
+body.light-mode input,
+body.light-mode select,
+body.light-mode textarea,
+body.light-mode input[type="text"],
 body.light-mode input[type="email"],
-body.light-mode input[type="password"] {
-  background: #f9fafb;
-  color: #111827;
-  border: 1px solid rgba(148,163,184,.4);
+body.light-mode input[type="password"],
+body.light-mode input[type="number"],
+body.light-mode input[type="date"] {
+  background-color: #ffffff !important; /* Fondo Blanco */
+  color: #000000 !important;            /* Letra Negra */
+  border: 1px solid #041431 !important; /* Borde Gris visible */
+}
+
+
+body.light-mode input::placeholder {
+  color: #1a046a !important;
+}
+
+body.light-mode .google-login-btn {
+  background-color: #ffffff !important;
+  color: #000000 !important; 
+  border: 1px solid #d1d5db !important;
+}
+
+body.light-mode a {
+  color: #000080 !important; 
+  font-weight: bold;
+}
+
+body.light-mode span, 
+body.light-mode p {
+  color: #000000; 
 }
 
 /* Radio en modo claro */
 body.light-mode .radio-option {
   background: #f9fafb;
   color: #0f172a;
+  border: 1px solid #e5e7eb;
 }
 body.light-mode .radio-option:hover {
   background: #f3f4f6;
@@ -171,7 +223,6 @@ body.light-mode .radio-option.selected {
   background: rgba(56,189,248,.15);
   border-color: var(--brand-2);
 }
-
 /* =========================================
    🧱 LAYOUT BASE (MOBILE FIRST)
    (ajusta las clases a tu HTML si es necesario)
@@ -332,13 +383,16 @@ footer .footer-section {
     width: 25%;
     display: inline-block;
     vertical-align: top;
+  }
 
-    /* Ajustes específicos para la página de inicio (index) */
-    body#index-page main {
+  /* Ajustes específicos para la página de inicio (index) */
+  body#index-page main {
     margin-top: 0 !important;
     padding-top: 0 !important;
+  }
+}
 
-    /* =========================================
+/* =========================================
    🌐 AJUSTES ESPECÍFICOS DEL HEADER
 ========================================= */
 
@@ -346,122 +400,113 @@ footer .footer-section {
 
 /* Asegura el layout flexible del header */
 .header-wrap {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
 }
 
 /* El buscador ocupa el espacio central disponible */
 .search {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0 12px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 12px;
 }
 
 /* Contenedor de los íconos de acción */
 .actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 /* --- AJUSTES PARA TABLETAS (600px a 1023px) --- */
 @media screen and (min-width: 600px) and (max-width: 1023px) {
-    /* Ajustamos el buscador y los botones para que no se aprieten */
-    .search {
-        margin: 0 8px;
-    }
+  /* Ajustamos el buscador y los botones para que no se aprieten */
+  .search {
+    margin: 0 8px;
+  }
 
-    .search input {
-        padding: 10px 14px 10px 40px; /* Reducimos el padding */
-    }
+  .search input {
+    padding: 10px 14px 10px 40px; /* Reducimos el padding */
+  }
 
-    .search .icon svg {
-        width: 16px;
-        height: 16px;
-    }
-    
-    .actions {
-        gap: 8px; /* Reducimos el espacio entre los botones de acción */
-    }
-    
-    .icon-btn {
-        width: 40px; 
-        height: 40px;
-    }
+  .search .icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .actions {
+    gap: 8px; /* Reducimos el espacio entre los botones de acción */
+  }
+  
+  .icon-btn {
+    width: 40px; 
+    height: 40px;
+  }
 }
+
 /* --- AJUSTES PARA MÓVILES (hasta 767px) --- */
-    
-    /* 1. Contenedor principal del header: Forzar alineación vertical al centro */
-    .header-wrap {
-        /* Usamos align-items: center; que ya estaba, pero lo confirmamos */
-        align-items: center; 
-        justify-content: space-between; 
-        padding: 10px 16px;
-        /* Quitamos el gap que podría influir si solo hay dos elementos grandes */
-        gap: 0; 
-        min-height: 58px; /* Damos una altura mínima fija para asegurar el espacio */
-    }
+@media screen and (max-width: 767px) {
+  /* 1. Contenedor principal del header: Forzar alineación vertical al centro */
+  .header-wrap {
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 10px 16px;
+    gap: 0; 
+    min-height: 58px; 
+  }
 
-    /* 2. Ocultar el Buscador (permanece igual) */
-    .search {
-        display: none; 
-    }
+  /* 2. Ocultar el Buscador (permanece igual) */
+  .search {
+    display: none; 
+  }
 
-    /* 3. Reducción de tamaño del Logo */
-    .logo {
-        gap: 6px; /* Ajuste aún más compacto */
-        /* Eliminamos cualquier margen vertical posible */
-        margin: 0; 
-    }
+  /* 3. Reducción de tamaño del Logo */
+  .logo {
+    gap: 6px; 
+    margin: 0; 
+  }
 
-    .brand {
-        font-size: 1.1rem; /* Título un poco más pequeño */
-    }
+  .brand {
+    font-size: 1.1rem; 
+  }
 
-    .tagline {
-        font-size: 0.65rem; /* Subtítulo muy pequeño */
-    }
-    
-    .logo-badge {
-        width: 36px; /* Icono del logo más pequeño */
-        height: 36px;
-    }
-    
-    .logo-badge svg {
-        width: 16px;
-        height: 16px;
-    }
+  .tagline {
+    font-size: 0.65rem; 
+  }
+  
+  .logo-badge {
+    width: 36px; 
+    height: 36px;
+  }
+  
+  .logo-badge svg {
+    width: 16px;
+    height: 16px;
+  }
 
-    /* 4. Ajuste de los Íconos de Acción */
-    .actions {
-        gap: 4px; /* Espacio mínimo entre los íconos */
-        /* Aseguramos que los botones dentro del flexbox también estén centrados */
-        align-items: center; 
-        /* Eliminamos cualquier margen vertical posible */
-        margin: 0; 
-    }
-    
-    .icon-btn {
-        width: 36px; /* Botones más pequeños para caber */
-        height: 36px;
-        border-radius: 8px;
-    }
+  /* 4. Ajuste de los Íconos de Acción */
+  .actions {
+    gap: 4px; 
+    align-items: center; 
+    margin: 0; 
+  }
+  
+  .icon-btn {
+    width: 36px; 
+    height: 36px;
+    border-radius: 8px;
+  }
 
-    .icon-btn svg {
-        width: 16px; 
-        height: 16px;
-    }
+  .icon-btn svg {
+    width: 16px; 
+    height: 16px;
+  }
 
-    .badge {
-        /* Ajustamos la posición de la burbuja del carrito */
-        transform: translate(8px, -8px); 
-    }
-}
-
-}
+  .badge {
+    transform: translate(8px, -8px); 
   }
 }
