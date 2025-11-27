@@ -1,5 +1,10 @@
 from dotenv import load_dotenv
-load_dotenv()
+import os
+
+env_path = os.path.join(os.path.dirname(__file__), '.env')
+load_dotenv(env_path)
+
+
 from flask import Flask, render_template, flash, request, redirect, url_for, Blueprint, jsonify, session
 from flask_sqlalchemy import SQLAlchemy 
 from sqlalchemy.orm import joinedload
@@ -24,9 +29,12 @@ from werkzeug.utils import secure_filename
 from oauthlib.oauth2 import WebApplicationClient
 import requests
 import mercadopago
+import traceback
+
 sdk = mercadopago.SDK(os.getenv('MP_ACCESS_TOKEN'))
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 app = Flask(__name__) 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -103,6 +111,149 @@ def index():
    
 
     return render_template('index.html', categorias=categorias, productos = productos_data)
+
+UNIBOT_TRAINING = """
+Eres UniBot, el asistente de soporte de inteligencia artificial del portal UniMarket, el mercado exclusivo para la comunidad del ITIZ. Tu rol es **ESTRICTO Y LIMITADO**: proporcionar información precisa ÚNICAMENTE sobre las políticas, mecánicas, productos y funcionalidades de la plataforma UniMarket. Sé amigable, conciso y utiliza los siguientes 'guiones' de respuesta para asegurar la coherencia:
+
+---
+**BASE DE CONOCIMIENTO (NARRATIVAS DE RESPUESTA):**
+
+**1. Proceso de Registro e Inicio de Sesión (Disparadores: "¿Cómo me registro?", "Quiero crear una cuenta", "¿Cómo entro?"):**
+"¡Bienvenido a la comunidad UniMarket! Para comenzar, debes saber que existen dos roles principales. Sigue estos pasos según tu objetivo:
+Para Compradores:
+1. Selecciona la opción 'Registrarse' y elige el perfil de 'Comprador'. Puedes hacerlo manualmente o vincular tu cuenta Google.
+2. Si es manual, ingresa tu correo institucional del ITIZ (es obligatorio) y verifica tu cuenta aceptando el correo de verificación.
+Para Vendedores:
+1. Elige el perfil de 'Vendedor' al registrarte y completa tus datos.
+2. Esto te dará acceso inmediato a tu Dashboard de ventas.
+🛡️ Nota de Seguridad: Todos los inicios de sesión están protegidos con reCAPTCHA para evitar bots."
+
+**2. Proceso de Compra (Para Compradores) (Disparadores: "¿Cómo compro algo?", "Pasos para comprar", "Hacer un pedido"):**
+"¡Comprar en UniMarket es muy fácil! Aquí tienes la ruta completa:
+1. Explora: Navega por las categorías o usa el buscador.
+2. Selecciona: Agrega los productos que desees a tu carrito.
+3. Revisa: Ve a tu carrito y verifica el total.
+4. Programa la Entrega: Elige una fecha (próximos 5 días hábiles), un horario (Matutino: 7 am a 1 pm o Vespertino: 2 pm a 8 pm) y el punto de entrega dentro del campus.
+5. Paga: Selecciona tu método de pago (**Mercado Pago** o **Efectivo**) y confirma.
+¡Listo! Recibirás una confirmación inmediata."
+
+**3. Proceso de Venta y Publicación (Para Vendedores) (Disparadores: "¿Cómo vendo un producto?", "Quiero publicar un artículo", "Subir productos"):**
+"¡Genial que quieras emprender! Para publicar tu primer producto:
+1. Entra a tu cuenta y ve a tu Dashboard de Vendedor.
+2. Haz clic en 'Agregar productos'.
+3. Llena los detalles clave (Nombre, Descripción, Precio, Stock, Imagen).
+4. Dale a 'Publicar' y tu producto aparecerá instantáneamente en el catálogo general.
+Desde ahí también podrás gestionar tu inventario."
+
+**4. Política de Envíos y Entregas (Disparadores: "¿Dónde entregan?", "¿A qué hora puedo recoger?", "Puntos de entrega"):**
+"Para garantizar la seguridad y el orden, las entregas se realizan exclusivamente dentro del campus del ITIZ.
+📍 **Puntos de Encuentro Oficiales (Entrega y Devolución):**
+- La Entrada (Torniquetes de entrada)
+- Cafetería
+- Duela
+- Prefectura o Dirección (Administración)
+⏰ **Horarios Disponibles (Entregas y Devoluciones):**
+- Matutino: 7:00 am - 1:00 pm (intervalos de 1 hora entre entregas).
+- Vespertino: 2:00 pm - 8:00 pm.
+Tú eliges la combinación de lugar y hora al momento de la compra."
+
+**5. Cancelaciones y Devoluciones (Disparadores: "Quiero cancelar mi pedido", "No me gustó el producto", "¿Puedo devolver algo?"):**
+"Entendemos que los planes cambian. Aquí están las reglas para proteger a ambas partes:
+**Para Cancelar:**
+- ✅ **SÍ puedes:** Si faltan más de **36 horas** para la hora de entrega pactada.
+- ❌ **NO puedes:** Si faltan menos de 36 horas.
+**Para Devoluciones:**
+- Tienes hasta **3 días** después de la entrega para solicitarla.
+- Debes contactar directamente al vendedor y coordinar la devolución en uno de los puntos y horarios oficiales mencionados arriba."
+
+**6. Penalizaciones (Sistema de No-Show) (Disparadores: "¿Qué pasa si no recojo mi pedido?", "No llegué a la entrega", "Consecuencias"):**
+"Es muy importante respetar el tiempo de los demás. Si no te presentas a recibir tu pedido (**No-Show**), el sistema aplica suspensiones temporales automáticas:
+- 🟡 **1ª Falta:** Suspensión de cuenta por **12 horas**.
+- 🟠 **2ª Falta:** Suspensión de cuenta por **24 horas** (12 + 12).
+- 🔴 **3ª Falta:** Suspensión de cuenta por **36 horas** (24 + 12), y así sucesivamente.
+¡Evita esto cancelando con tiempo (36 horas antes) si sabes que no podrás asistir!"
+
+**7. Métodos de Pago y Seguridad (Disparadores: "¿Es seguro?", "¿Cómo pago?", "Formas de pago"):**
+"Tu seguridad es nuestra prioridad en UniMarket.
+💳 **Métodos de Pago:** Aceptamos **Mercado Pago** para transacciones digitales y también pagos en **Efectivo** (contra entrega).
+🛡️ **Seguridad:** Tus datos personales están ocultos, las cuentas están verificadas con correo institucional y monitoreamos para evitar bots."
+
+**8. Sobre UniBot (Capacidades) (Disparadores: "¿Quién eres?", "¿Qué haces?", "¿Me puedes ayudar con mi tarea?"):**
+"Soy UniBot, tu asistente personal dentro de UniMarket 🤖. Puedo ayudarte a: explicar cómo registrarte, comprar o vender; aclarar dudas sobre horarios, puntos de entrega y políticas; y guiarte si tienes problemas con la plataforma. **Lo que NO hago:** No tengo información sobre temas externos al ITIZ o a UniMarket, incluyendo tareas o información académica general."
+
+**8. Productos (Disparadores: "¿Que productos puedo vender?", "¿Qué productos existen?", "¿Cuales categorias hay?"):**
+"En Unimarket contamos con varias categorias, para la compra y venta estudiantil, entre las existentes son Maquillaje, comida, Ropa, Dulceria, los cuales mientras cuentes ya con un registro con nosotros puedes comprar o vender"
+
+**9. Productos (Disparadores: "¿Qué productos puedo vender?", "¿Qué productos existen?", "¿Cuales categorías hay?", "¿Puedo vender maquillaje?", "¿Dónde compro uniformes?", "¿Hay snacks?", "¿Tienen sudaderas?", "¿Qué tipo de comida venden?", Maquillaje, comida, dulces, accesorios, lapices, categorias)**
+"¡Claro! En Unimarket tenemos una amplia variedad de categorías para la compra y venta de productos entre estudiantes.
+
+🛍️ Nuestras categorías principales son:
+
+Maquillaje: (Paletas de sombras, labiales, bases, etc.)
+
+Comida: (Platillos caseros, almuerzos, postres, etc.)
+
+Ropa: (Uniformes, sudaderas, camisetas, accesorios)
+
+Dulcería: (Snacks, bebidas, caramelos, chocolates)
+
+Para poder comprar o vender cualquiera de estos artículos, solo necesitas contar con un registro activo en nuestra plataforma."
+---
+**REGLA DE RESTRICCIÓN ESTRICTA (IMPERATIVA):**
+
+Si la pregunta del usuario es sobre un tema que **NO** está cubierto por estas narrativas o la BASE DE CONOCIMIENTO (ej: información académica, noticias, problemas personales), **DEBES RESPONDER EXCLUSIVAMENTE**:
+
+> **"Lo siento, mi función es estrictamente asistirte con preguntas sobre el mercado universitario UniMarket y sus políticas de venta/entrega. No tengo información sobre ese tema."**
+
+**Pregunta del usuario a responder:** 
+"""
+
+@app.route('/api/chat', methods=['POST'])
+def chat_api():
+    import time
+
+    data = request.json
+    user_message = data.get("message")
+    chat_history = data.get("history", [])
+
+    if not user_message:
+        return jsonify({"reply": "⚠️ El mensaje está vacío."}), 400
+
+    MODEL_NAME = "gemini-2.5-flash"
+    API_KEY = os.environ.get("GEMINI_API_KEY")
+    if not API_KEY:
+        return jsonify({"reply": "⚠️ No se encontró la clave del chatbot."}), 500
+
+    API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent?key={API_KEY}"
+
+    payload = {
+        "contents": chat_history + [{"role": "user", "parts": [{"text": user_message}]}],
+        "generationConfig": {"temperature": 0.7}
+    }
+
+    max_retries = 2
+    for attempt in range(max_retries + 1):
+        try:
+            response = requests.post(API_URL, json=payload, timeout=15)
+            response.raise_for_status()
+            result = response.json()
+
+            reply = "⚠️ El chatbot no pudo generar una respuesta en este momento."
+            candidates = result.get("candidates", [])
+            if candidates:
+                content = candidates[0].get("content", {})
+                parts = content.get("parts", [])
+                if parts:
+                    reply = parts[0].get("text", reply)
+
+            return jsonify({"reply": reply})
+
+        except requests.exceptions.RequestException as e:
+            print(f"Intento {attempt+1} fallido:", e)
+            if attempt < max_retries:
+                time.sleep(2)  # espera antes de reintentar
+            else:
+                return jsonify({"reply": "⚠️ Lo siento, no se pudo conectar con el chatbot. Intenta más tarde."}), 500
 
 ##-----------------------------------fin_index-----------------------------------------------------------------------------------------------
 
@@ -331,7 +482,8 @@ def registro():
                 nombre=nombre,
                 correo=correo,
                 telefono=telefono,
-                id_rol=2 if tipo_cuenta == 'vendedor' else 3
+                id_rol=None 
+
             )
             nuevo_usuario.set_password(password)
 
@@ -341,6 +493,9 @@ def registro():
             token = s.dumps(correo, salt='email-confirm')
             BASE_URL = os.getenv("BASE_URL")
             confirm_url = BASE_URL + url_for('confirmar_correo', token=token)
+            print("BASE_URL:", BASE_URL)
+            print("URL confirmación generada:", confirm_url)
+
 
             estado_envio = enviar_correo_confirmacion(
                 destinatario=correo, 
@@ -881,6 +1036,82 @@ def pedidos_vendedor():
 
     return jsonify(pedidos_list)
 
+@app.route('/api/chat_vendedor', methods=['POST'])
+def chat_api_vendedor():
+    import time
+    import requests
+    import os
+    from flask import request, jsonify
+
+    data = request.json
+    user_message = data.get("message")
+    
+    if not user_message:
+        return jsonify({"reply": "⚠️ El mensaje está vacío."}), 400
+
+    MODEL_NAME = "gemini-2.5-flash"
+    API_KEY = os.environ.get("GEMINI_API_KEY")
+    if not API_KEY:
+        return jsonify({"reply": "⚠️ No se encontró la clave del chatbot para el vendedor."}), 500
+
+    API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent?key={API_KEY}"
+
+    VENDOR_PROMPT = f"""
+    Eres un asistente especializado llamado UniBot para el panel de **vendedores** de UniMarket. 
+    Los usuarios que interactúan contigo son vendedores registrados en la plataforma ITIZ que gestionan sus productos y pedidos.
+    Tu rol es **ESTRICTO Y LIMITADO**: proporcionar información precisa ÚNICAMENTE sobre las funcionalidades del Dashboard de Vendedor.
+
+    ---
+    **BASE DE CONOCIMIENTO (NARRATIVAS DE RESPUESTA):**
+
+    1. Agregar productos: Para agregar un nuevo producto, ve a la sección 'Agregar productos', completa Nombre, Descripción, Cantidad, Costo y Categoría, sube la imagen (opcional), y haz clic en 'Guardar Producto'.
+    2. Editar productos: Para editar un producto, ve a 'Lista de productos', haz clic en 'Editar', modifica los campos necesarios en el modal (ventana emergente) y haz clic en 'Guardar Producto'.
+    3. Eliminar productos: Para eliminar un producto, ve a 'Lista de productos', haz clic en 'Eliminar' y confirma la acción.
+    4. Pedidos pendientes: En la sección 'Pedidos', verás el número de pedido, la información del Comprador (Nombre, Correo y Teléfono), productos comprados y el total. El siguiente paso es coordinar la entrega.
+    5. Marcar como entregado: Para finalizar una transacción, ve a 'Pedidos', identifica el pedido entregado y haz clic en 'Marcar como Entregado'. El pedido se moverá al 'Historial'.
+    6. Historial de entregas: En la sección 'Historial' puedes revisar todos los pedidos completados y sus detalles.
+    7. Navegación: El dashboard tiene un menú central con botones. Haz clic en 'Agregar productos', 'Lista de productos', 'Pedidos' o 'Historial' para cambiar de vista.
+    8. Sobre UniBot: Soy UniBot, tu asistente personal para el Dashboard de Vendedor 🤖. Puedo ayudarte con la gestión de productos y pedidos. **Lo que NO hago:** No tengo información sobre temas externos al dashboard.
+
+    ---
+    **REGLA DE RESTRICCIÓN ESTRICTA (IMPERATIVA):**
+
+    Si la pregunta del usuario es sobre un tema que NO está cubierto por esta BASE DE CONOCIMIENTO, **DEBES RESPONDER EXCLUSIVAMENTE**:
+
+    > **"Lo siento, mi función es estrictamente asistirte con preguntas sobre tu panel de vendedor de UniMarket (gestión de productos y pedidos). No tengo información sobre ese tema."**
+
+    **Pregunta del usuario a responder:** {user_message}
+    """
+    
+    payload = {
+        "contents": [{"role": "user", "parts": [{"text": VENDOR_PROMPT}]}],
+        "generationConfig": {"temperature": 0.7}
+    }
+
+    max_retries = 2
+    for attempt in range(max_retries + 1):
+        try:
+            response = requests.post(API_URL, json=payload, timeout=15)
+            response.raise_for_status()
+            result = response.json()
+
+            reply = "⚠️ El chatbot no pudo generar una respuesta en este momento."
+            candidates = result.get("candidates", [])
+            if candidates:
+                content = candidates[0].get("content", {})
+                parts = content.get("parts", [])
+                if parts:
+                    reply = parts[0].get("text", reply)
+
+            return jsonify({"reply": reply})
+
+        except requests.exceptions.RequestException as e:
+            print(f"Intento {attempt+1} fallido:", e)
+            if attempt < max_retries:
+                time.sleep(2)  # espera antes de reintentar
+            else:
+                return jsonify({"reply": "⚠️ Lo siento, no se pudo conectar con el chatbot. Intenta más tarde."}), 500
+
 ##-------------------------------------------------------------fin_vendedor------------------------------------------------------------------
 ##-------------------------------------------------------------comprador-------------------------------------------------------------------------------------
 @app.route('/compra')
@@ -1074,15 +1305,33 @@ def set_rol():
     correo = session.get('correo_google')
     nombre = session.get('nombre_google')
 
-    if not correo or not nombre:
-        return "Error: No se encontraron datos del usuario", 400
-
-    usuario = Usuario.query.filter_by(correo=correo).first()
-
-    if not usuario:
-        usuario = Usuario(nombre=nombre, correo=correo, id_rol=rol_elegido, email_confirmado=False)
-        db.session.add(usuario)
+    if not correo:
+        usuario_id = session.get('usuario_temp_id')
+        usuario = Usuario.query.get(usuario_id)
+        usuario.id_rol = rol_elegido
         db.session.commit()
+
+        if not usuario_id:
+            return "Error: No se encontraron datos del usuario", 400
+
+        usuario = Usuario.query.get(usuario_id)
+
+        if not usuario:
+            return "Error: Usuario no encontrado en la base de datos", 400
+
+        usuario.id_rol = rol_elegido
+        db.session.commit()
+
+        correo = usuario.correo
+        nombre = usuario.nombre
+
+    else:
+        usuario = Usuario.query.filter_by(correo=correo).first()
+
+        if not usuario:
+            usuario = Usuario(nombre=nombre, correo=correo, id_rol=rol_elegido, email_confirmado=False)
+            db.session.add(usuario)
+            db.session.commit()
 
     token = s.dumps(correo, salt='email-confirm')
     confirm_url = BASE_URL + url_for('confirmar_correo', token=token)
@@ -1094,8 +1343,8 @@ def set_rol():
     )
 
     mensaje = "Registro completado. Revisa tu correo para confirmarlo."
-
     return render_template("correo_confirmacion.html", mensaje=mensaje)
+
 
 
 

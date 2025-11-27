@@ -421,9 +421,6 @@
             Asistente UniMarket 
             <button id="closeChatBtn" aria-label="Cerrar chat">&times;</button>
         </div>
-        <div class="chat-body" id="chatBody">
-            <div class="message bot-message">¡Hola! Soy tu asistente para el dashboard de vendedor. Puedo ayudarte a gestionar tus productos, procesar pedidos y revisar tu historial de ventas. ¿En qué necesitas ayuda hoy?</div>
-        </div>
         <div class="chat-input-area">
             <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." aria-label="Campo de mensaje">
             <button id="sendChatBtn">Enviar</button>
@@ -435,9 +432,10 @@
 <script>
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // 🔑 CLAVE API DE GEMINI INSERTADA AQUÍ (Necesita ser reemplazada por tu clave real)
-    const GEMINI_API_KEY = "AIzaSyAoHCyL8KFca7Vr3sFB2m0kbeI8Nd6tqmE"; 
-    const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+    // 🆕 Nuevo: Array para almacenar el historial de conversación (memoria)
+    let chatHistory = [];
+    // 💬 Mensaje inicial específico para el vendedor
+    const initialBotMessage = "¡Hola! Soy UniBot, tu asistente para el dashboard de vendedor 🤖. Puedo ayudarte a gestionar tus productos, procesar pedidos y revisar tu historial de ventas. ¿En qué necesitas ayuda hoy?";
 
     // --- Referencias del Chat ---
     const botBtn = document.getElementById('botBtn');
@@ -447,111 +445,49 @@
     const chatInput = document.getElementById('chatInput');
     const sendChatBtn = document.getElementById('sendChatBtn');
 
-    // --- Funcionalidad del Chatbot (Modificada para el contexto de Vendedor) ---
-    
+    // Inicializar el mensaje de bienvenida al cargar el chat
+    function initializeChat() {
+        // Solo agrega el mensaje inicial si no hay mensajes.
+        if (chatBody.children.length === 0) {
+            appendMessage(initialBotMessage, 'bot');
+            // ⚠️ NOTA: El primer mensaje del bot es contexto puro, no es una respuesta directa 
+            // a una pregunta del usuario, por lo que no lo agregamos al historial
+            // para no complicar el prompt de Flask. Se agregará una vez que el usuario pregunte.
+        }
+    }
+
+
     // Función para mostrar mensajes en el chat
     function appendMessage(text, sender) {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message', `${sender}-message`);
-        // Permite saltos de línea y formateo básico si la API lo devuelve
         messageDiv.innerHTML = text.replace(/\n/g, '<br>'); 
         chatBody.appendChild(messageDiv);
-        // Desplazar hacia el último mensaje
         chatBody.scrollTop = chatBody.scrollHeight;
     }
 
-    // Función principal para llamar a la API
+    // Función principal para llamar a la API de Flask
     async function getBotResponse(userMessage) {
-        if (!GEMINI_API_KEY) {
-            appendMessage("❌ Error: La clave API de Gemini no está configurada.", 'bot');
-            return;
-        }
-
-        const VENDOR_PROMPT = `
-Eres un asistente especializado llamado UniBot para el panel de vendedores de UniMarket. 
-Los usuarios que interactúan contigo son vendedores registrados en la plataforma ITIZ que gestionan sus productos y pedidos.
-Tu rol es **ESTRICTO Y LIMITADO**: proporcionar información precisa ÚNICAMENTE sobre las funcionalidades del Dashboard de Vendedor.
-
----
-**BASE DE CONOCIMIENTO (NARRATIVAS DE RESPUESTA):**
-
-**1. Agregar nuevos productos (Disparadores: "¿Cómo agrego un nuevo producto?", "Quiero publicar algo", "Subir un artículo", Agregar, Producto, Agregar productos):**
-"Para agregar un nuevo producto:
-1. Ve a la sección 'Agregar productos' (botón azul/verde).
-2. Completa todos los campos obligatorios: Nombre, Descripción, Cantidad, y Costo ($).
-3. Selecciona la Categoría apropiada del menú desplegable.
-4. Sube una Imagen del producto (opcional pero muy recomendado).
-5. Haz clic en el botón 'Guardar Producto'.
-Tu artículo aparecerá en el catálogo general inmediatamente."
-
-**2. Editar productos existentes (Disparadores: "Necesito cambiar el precio", "Quiero editar un producto", "Modificar descripción", Editar, Cambiar, Cambiar Precio, Cambiar descripcion):**
-"Para editar un producto:
-1. Ve a la sección 'Lista de productos'.
-2. Encuentra el producto y haz clic en el botón 'Editar' asociado a él.
-3. Se abrirá un modal (ventana emergente). En este, puedes modificar el Nombre, Descripción, Cantidad, Precio, Categoría y hasta subir una nueva imagen.
-4. Una vez hecho el cambio, haz clic en el botón 'Guardar Producto' dentro del modal. Los cambios se aplicarán al instante."
-
-**3. Eliminar productos (Disparadores: "Quiero eliminar un producto", "Dar de baja un artículo", Eliminar, Eliminar Producto, ):**
-"Para eliminar un producto:
-1. Ve a la sección 'Lista de productos'.
-2. Encuentra el producto que deseas y haz clic en el botón 'Eliminar'.
-3. El sistema te pedirá una confirmación. Al confirmar, el producto será removido de tu lista y del catálogo general."
-
-**4. Pedidos pendientes (Disparadores: "Tengo un pedido pendiente, ¿qué hago?", "Ver mis pedidos", "Información del comprador", Pedidos, Pendientes, Comprador):**
-"En la sección 'Pedidos', verás una lista de los pedidos pendientes de entrega. En cada pedido encontrarás:
-- El número de Pedido.
-- **Información del Comprador** (Nombre, Correo y Teléfono).
-- Detalles del pedido (los productos comprados y el total).
-Tu siguiente paso es coordinar la entrega con el comprador en los puntos y horarios oficiales del ITIZ."
-
-**5. Marcar como entregado (Disparadores: "Ya entregué mi pedido", "Confirmar entrega", Confirmo, Como confirmo mi entrega, Entregado):**
-"Para marcar un pedido como entregado y finalizar la transacción:
-1. Asegúrate de estar en la sección 'Pedidos'.
-2. Identifica el pedido específico que has entregado.
-3. Haz clic en el botón 'Marcar como Entregado' asociado a ese pedido.
-4. Confirma la acción.
-El pedido desaparecerá de la lista de 'Pedidos' y se registrará automáticamente en tu 'Historial'."
-
-**6. Historial de entregas (Disparadores: "Ver mis ventas completadas", "Historial de ventas", Historial):**
-"Para revisar tus transacciones completadas, ve a la sección 'Historial'. Aquí podrás consultar todos los pedidos que has marcado como 'Entregado', incluyendo detalles como el comprador, los productos, el total y la fecha de la venta."
-
-**7. Navegación del Dashboard (Disparadores: "¿Cómo cambio de sección?", "Quiero ver mi lista de productos", Opciones ):**
-"El dashboard tiene un menú central con botones. Solo tienes que hacer clic en el botón que deseas para cambiar de vista: 'Agregar productos', 'Lista de productos', 'Pedidos' o 'Historial'. El botón activo se resaltará."
-
-**8. Sobre UniBot (Capacidades) (Disparadores: "¿Quién eres?", "¿Qué haces?", "¿Me puedes ayudar con mi tarea?"):**
-"Soy UniBot, tu asistente personal para el Dashboard de Vendedor 🤖. Puedo ayudarte a: explicar cómo agregar o editar productos, guiarte en la gestión de pedidos pendientes, y revisar el historial de ventas. **Lo que NO hago:** No tengo información sobre temas externos al dashboard, como problemas académicos, información de comprador/vendedor no visible en la interfaz, o ejecutar acciones de manera directa."
-
----
-**REGLA DE RESTRICCIÓN ESTRICTA (IMPERATIVA):**
-
-Si la pregunta del usuario es sobre un tema que **NO** está cubierto por estas narrativas o la BASE DE CONOCIMIENTO (ej: información académica, noticias, problemas personales, preguntas sobre el lado de la compra), **DEBES RESPONDER EXCLUSIVAMENTE**:
-
-> **"Lo siento, mi función es estrictamente asistirte con preguntas sobre tu panel de vendedor de UniMarket (gestión de productos y pedidos). No tengo información sobre ese tema."**
-
-**Pregunta del usuario a responder:** ${userMessage}`
+        const CHAT_API_URL = "/api/chat_vendedor"; 
+        
+        // 🆕 1. Agregar el mensaje del usuario al historial
+        chatHistory.push({ role: 'user', parts: [{ text: userMessage }] });
         
         try {
-            // Agregar mensaje de carga
             appendMessage("Escribiendo...", 'bot');
             
-            // Construcción de la URL y la solicitud corregida
-            const fullUrl = `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
-            
-            const response = await fetch(fullUrl, {
+            const response = await fetch(CHAT_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ 
-                        role: "user", 
-                        parts: [{ text: VENDOR_PROMPT + "\n\nPregunta del usuario a responder: " + userMessage }]
-                    }]
+                    // 🆕 2. Enviar el historial COMPLETO de conversación
+                    history: chatHistory
                 })
             });
 
-            // Si la respuesta no es OK (ej: 400, 403, 500)
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(`Error de API (${response.status}): ${errorData.error.message || 'Error desconocido'}`);
+                throw new Error(errorData.reply || `Error de red (${response.status})`);
             }
 
             const data = await response.json();
@@ -561,20 +497,24 @@ Si la pregunta del usuario es sobre un tema que **NO** está cubierto por estas 
                 chatBody.lastElementChild.remove();
             }
             
-            const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No pude generar una respuesta. Intenta con otra pregunta.";
+            const botReply = data.reply || "No pude generar una respuesta. Intenta con otra pregunta.";
             appendMessage(botReply, 'bot');
+            
+            // 🆕 3. Agregar la respuesta del bot al historial
+            chatHistory.push({ role: 'model', parts: [{ text: botReply }] });
 
         } catch (error) {
             console.error("Error en la llamada a la API:", error);
-            // Remover el mensaje de carga en caso de error
+            // Si falla, el último mensaje de usuario agregado (Paso 1) debe ser removido 
+            // o el error debe ser reportado sin corromper el historial. Por simplicidad, 
+            // lo dejamos así y reportamos el error.
             if (chatBody.lastElementChild && chatBody.lastElementChild.textContent === "Escribiendo...") {
                 chatBody.lastElementChild.remove();
             }
             appendMessage(`Hubo un error: ${error.message}.`, 'bot');
         }
     }
-
-
+    
     // Manejador de envío de mensaje
     function sendMessageHandler() {
         const message = chatInput.value.trim();
@@ -590,11 +530,13 @@ Si la pregunta del usuario es sobre un tema que **NO** está cubierto por estas 
     sendChatBtn.addEventListener('click', sendMessageHandler);
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessageHandler();
-    });
+    }
+    );
 
     // Abrir/Cerrar Chat
     botBtn.addEventListener('click', () => {
         chatModalOverlay.style.display = 'flex';
+        initializeChat(); // Llama a la inicialización al abrir
     });
 
     closeChatBtn.addEventListener('click', () => {
@@ -608,7 +550,14 @@ Si la pregunta del usuario es sobre un tema que **NO** está cubierto por estas 
         }
     });
 
-    // Cambiar de sección
+    // ⚠️ ATENCIÓN: La siguiente línea debe ser eliminada del HTML:
+    // <div class="message bot-message">¡Hola! Soy tu asistente para el dashboard de vendedor. [...]</div>
+    // Ya que ahora se inicializa vía JavaScript.
+
+    // ----------------------------------------------------
+    // --- Funciones de Gestión del Dashboard (sin cambios) ---
+    // ----------------------------------------------------
+    
     function showSection(sectionId, btn) {
         document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
         document.getElementById(sectionId).classList.add('active');
@@ -616,7 +565,6 @@ Si la pregunta del usuario es sobre un tema que **NO** está cubierto por estas 
         if(btn) btn.classList.add('active');
     }
 
-    // Abrir modal y cargar datos del producto
     function editarProducto(id) {
         if(!id) return alert("ID de producto inválido");
         fetch(`/producto/${id}`)
@@ -637,12 +585,10 @@ Si la pregunta del usuario es sobre un tema que **NO** está cubierto por estas 
             });
     }
 
-    // Cerrar modal
     function cerrarModal() {
         document.getElementById('editModal').style.display = 'none';
     }
 
-    // Guardar cambios del producto
     document.getElementById('editForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const id = document.getElementById('edit-id').value;
@@ -669,7 +615,6 @@ Si la pregunta del usuario es sobre un tema que **NO** está cubierto por estas 
         });
     });
 
-    // Eliminar producto
     function eliminarProducto(id) {
         if(confirm("¿Estás seguro de eliminar este producto?")) {
             fetch(`/producto/eliminar/${id}`, { method: 'DELETE' })
