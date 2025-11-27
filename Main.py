@@ -336,7 +336,8 @@ def registro():
             db.session.commit()
 
             token = s.dumps(correo, salt='email-confirm')
-            confirm_url = url_for('confirmar_correo', token=token, _external=True)
+            BASE_URL = os.getenv("BASE_URL")
+            url = BASE_URL + url_for('confirmar_correo', token=token)
 
             estado_envio = enviar_correo_confirmacion(
                 destinatario=correo, 
@@ -446,7 +447,7 @@ def reenviar_confirmacion():
             return redirect(url_for('inicio_sesion'))
 
         token = s.dumps(correo, salt='email-confirm')
-        confirm_url = url_for('confirmar_correo', token=token, _external=True)
+        confirm_url = BASE_URL + url_for('confirmar_correo', token=token)
         
         estado_envio = enviar_correo_confirmacion(
             destinatario=correo, 
@@ -866,9 +867,6 @@ def marcar_entregado(id):
             'productos': lista_productos
         }
     })
-
-
-
 @app.route('/vendedor/pedidos')
 @login_required
 def pedidos_vendedor():
@@ -895,10 +893,10 @@ def pedidos_vendedor():
 
 ##-------------------------------------------------------------fin_vendedor------------------------------------------------------------------
 ##-------------------------------------------------------------comprador-------------------------------------------------------------------------------------
-@app.route('/comprador')
+@app.route('/compra')
 @login_required
 def comprador():
-    return render_template('usuariocomprador.html')
+    return render_template('compra.html')
 ##-------------------------------------------------------------fin_comprador------------------------------------------------------------------
 ##-------------------------------------------------------------compra-------------------------------------------------------------------------
 @app.route('/procesar_compra', methods=['POST'])
