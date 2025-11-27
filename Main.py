@@ -160,7 +160,10 @@ def google_callback():
             "correo":correo,
             "telefono":'',
             }
+        session['correo_google'] = email
+        session['nombre_google'] = nombre
         return redirect(url_for('choose_role'))
+
 
     login_user(usuario)
     flash("Inicio de sesión exitoso con Google", "login")
@@ -337,13 +340,14 @@ def registro():
 
             token = s.dumps(correo, salt='email-confirm')
             BASE_URL = os.getenv("BASE_URL")
-            url = BASE_URL + url_for('confirmar_correo', token=token)
+            confirm_url = BASE_URL + url_for('confirmar_correo', token=token)
 
             estado_envio = enviar_correo_confirmacion(
                 destinatario=correo, 
                 nombre_usuario=nombre, 
                 confirm_url=confirm_url
             )
+
 
             if estado_envio == 200:
                 flash("Registro creado. Revisa tu correo para confirmar la cuenta.", "success")
@@ -376,93 +380,79 @@ mailjet = Client(auth=(API_KEY, API_SECRET), version='v3.1')
 
 mailjet = Client(auth=(API_KEY, API_SECRET), version='v3.1')
 def enviar_correo_confirmacion(destinatario, nombre_usuario, confirm_url):
-    data = {
-      'Messages': [
-        {
-          "From": {
-            "Email": MAILJET_SENDER,
-            "Name": "UniMarket Soporte"
-          },
-          "To": [
-            {
-              "Email": destinatario,
-              "Name": nombre_usuario
-            }
-          ],
-          "Subject": "Confirma tu correo - UniMarket",
-          "TextPart": f"Hola {nombre_usuario}, por favor confirma tu correo aquí: {confirm_url}",
-          "HTMLPart": f"""
-            <h3>Hola {nombre_usuario}!</h3>
-            <p>Haz clic en el siguiente enlace para confirmar tu cuenta en UniMarket:</p>
-            <a href="{confirm_url}">Confirmar mi cuenta</a>
-            <p>Si no solicitaste esto, ignora este correo.</p>
-          """
+        data = {
+            'Messages': [
+                {
+                    "From": {"Email": MAILJET_SENDER, "Name": "UniMarket Soporte"},
+                    "To": [{"Email": destinatario, "Name": nombre_usuario}],
+                    "Subject": "Confirma tu correo - UniMarket",
+                    "HTMLPart": f"""
+                        <h3>Hola {nombre_usuario}!</h3>
+                        <p>Haz clic en el siguiente enlace para confirmar tu cuenta:</p>
+                        <a href="{confirm_url}">Confirmar mi cuenta</a>
+                    """
+                }
+            ]
         }
-      ]
-    }
-    try:
-        result = mailjet.send.create(data=data)
-        return result.status_code
-    except Exception as e:
-        print(f"Error enviando mailjet: {e}")
-        return 500
 
-@app.route('/confirmar/<token>')
+        try:
+            result = mailjet.send.create(data=data)
+            return result.status_code
+        except Exception as e:
+            print("ERROR MAILJET:", e)
+            return 500
+
+@app.route("/confirmar/<token>")
 def confirmar_correo(token):
-    try:
-        correo = s.loads(token, salt='email-confirm', max_age= 60*60*24)
-    except SignatureExpired:
-        flash("El enlace ha expirado. Solicita uno nuevo", "error")
-        return redirect(url_for('reenviar_confirmacion'))
-    except BadSignature:
-        flash("Enlace inválido.", "error")
-        return redirect(url_for('inicio_sesion'))
+        try:
+            correo = s.loads(token, salt="email-confirm", max_age=60*60*24)
+        except SignatureExpired:
+            flash("El enlace ha expirado.", "error")
+            return redirect(url_for("reenviar_confirmacion"))
+        except BadSignature:
+            flash("Token inválido.", "error")
+            return redirect(url_for("login"))
 
-    usuario= Usuario.query.filter_by(correo=correo).first()
-    if not usuario:
-        flash("Usuario no encontrado.", "error")
-        return redirect(url_for('registro'))
-
-    if usuario.email_confirmado:
-        mensaje = "El correo ya se confirmo. Redirigiendo al inicio de sesion"
-    else:
-        usuario.email_confirmado = True
-        db.session.commit()
-        mensaje = "Correo confirmado con éxito. Ya puedes iniciar sesión."
-    
-    return render_template('correo_confirmacion.html', mensaje=mensaje)
-
-@app.route('/reenviar_confirmacion', methods=['GET', 'POST'])
-def reenviar_confirmacion():
-    if request.method == 'POST':
-        correo = request.form.get('email')
         usuario = Usuario.query.filter_by(correo=correo).first()
-        
+
         if not usuario:
-            flash("No existe usuario con ese correo", "error")
-            return redirect(url_for('reenviar_confirmacion'))
-        
+            flash("Usuario no encontrado.", "error")
+            return redirect(url_for("registro"))
+
         if usuario.email_confirmado:
-            flash("El correo ya está confirmado", "info")
-            return redirect(url_for('inicio_sesion'))
-
-        token = s.dumps(correo, salt='email-confirm')
-        confirm_url = BASE_URL + url_for('confirmar_correo', token=token)
-        
-        estado_envio = enviar_correo_confirmacion(
-            destinatario=correo, 
-            nombre_usuario=usuario.nombre, 
-            confirm_url=confirm_url
-        )
-
-        if estado_envio == 200:
-            flash("Se ha reenviado el correo de confirmación.", "success")
+            mensaje = "Tu correo ya estaba confirmado."
         else:
-            flash("Hubo un problema al enviar el correo.", "error")
+            usuario.email_confirmado = True
+            db.session.commit()
+            mensaje = "Correo confirmado exitosamente."
 
-        return redirect(url_for('inicio_sesion'))
-    
-    return render_template('reenviar_confirmacion.html')
+        return render_template("correo_confirmacion.html", mensaje=mensaje)
+
+@app.route("/reenviar_confirmacion", methods=["GET", "POST"])
+def reenviar_confirmacion():
+        if request.method == "POST":
+            correo = request.form.get("email")
+            usuario = Usuario.query.filter_by(correo=correo).first()
+
+            if not usuario:
+                flash("Correo no registrado.", "error")
+                return redirect(url_for("reenviar_confirmacion"))
+
+            token = s.dumps(correo, salt='email-confirm')
+
+            # 🚀  URL Correcta con BASE_URL (importante para Render)
+            confirm_url = f"{BASE_URL}/confirmar/{token}"
+
+            enviar_correo_confirmacion(
+                destinatario=correo,
+                nombre_usuario=usuario.nombre,
+                confirm_url=confirm_url
+            )
+
+            flash("Correo reenviado.", "success")
+            return redirect(url_for("login"))
+
+        return render_template("reenviar_confirmacion.html")
 ##--------------------------------------------------------------registro_administrador--------------------------------------------------------------
 @app.route('/RA', methods=['GET','POST'])
 
@@ -994,7 +984,72 @@ def procesar_compra():
 ##-------------------------------------------------------------compra_exitosa_mp-------------------------------------------------------------------------
 @app.route('/mp/success')
 def compra_exitosa_mp():
-    return "<h1>Pago aprobado con Mercado Pago</h1>"
+    payment_id = request.args.get("payment_id")
+    status = request.args.get("status")
+
+    if status != "approved":
+        return "<h1>El pago no fue aprobado</h1>"
+
+    sdk = mercadopago.SDK(os.getenv("MP_ACCESS_TOKEN"))
+    pago = sdk.payment().get(payment_id)
+
+    metadata = pago["response"]["metadata"]
+
+    id_usuario = metadata["id_usuario"]
+    cart = json.loads(metadata["cart"])
+    turno = metadata["turno"]
+    horas = json.loads(metadata["horas"])
+
+    productos_por_vendedor = defaultdict(list)
+
+    for item in cart:
+        vendedor_id = db.session.query(Producto.id_vendedor)\
+                                .filter_by(id_producto=item['id']).scalar()
+        productos_por_vendedor[vendedor_id].append(item)
+
+    for vendedor_id, items in productos_por_vendedor.items():
+        total = sum(item['price'] * item['quantity'] for item in items)
+
+        pedido = Pedido(
+            id_comprador=id_usuario,
+            id_vendedor=vendedor_id,
+            total=total,
+            metodo_pago="mercadopago",
+            estado="Pagado"
+        )
+        db.session.add(pedido)
+        db.session.flush()
+
+        for item in items:
+            detalle = DetallePedido(
+                id_pedido=pedido.id_pedido,
+                id_producto=item['id'],
+                cantidad=item['quantity'],
+                precio_unitario=item['price'],
+                subtotal=item['price'] * item['quantity']
+            )
+            db.session.add(detalle)
+
+            notificacion = Notificacion(
+                id_vendedor=vendedor_id,
+                id_pedido=pedido.id_pedido
+            )
+            db.session.add(notificacion)
+
+    db.session.commit()
+
+    usuario = Usuario.query.get(id_usuario)
+
+    enviar_correo_compra(
+        destinatario=usuario.correo,
+        nombre_usuario=usuario.nombre,
+        cart=cart,
+        turno=turno,
+        horas=horas
+    )
+
+    return render_template("compra_exitosa.html", usuario=usuario)
+
 
 @app.route('/mp/failure')
 def compra_fallida_mp():
@@ -1016,9 +1071,32 @@ def set_rol():
     rol_elegido = int(request.form.get("rol"))
     session['rol_elegido'] = rol_elegido
 
-    mensaje = session.pop('mensaje_confirmacion', "Registro completado correctamente.")
+    correo = session.get('correo_google')
+    nombre = session.get('nombre_google')
+
+    if not correo or not nombre:
+        return "Error: No se encontraron datos del usuario", 400
+
+    usuario = Usuario.query.filter_by(correo=correo).first()
+
+    if not usuario:
+        usuario = Usuario(nombre=nombre, correo=correo, id_rol=rol_elegido, email_confirmado=False)
+        db.session.add(usuario)
+        db.session.commit()
+
+    token = s.dumps(correo, salt='email-confirm')
+    confirm_url = BASE_URL + url_for('confirmar_correo', token=token)
+
+    enviar_correo_confirmacion(
+        destinatario=correo,
+        nombre_usuario=nombre,
+        confirm_url=confirm_url
+    )
+
+    mensaje = "Registro completado. Revisa tu correo para confirmarlo."
 
     return render_template("correo_confirmacion.html", mensaje=mensaje)
+
 
 
 ##-------------------------------------------------------------fin_Rol------------------------------------------------------------------
