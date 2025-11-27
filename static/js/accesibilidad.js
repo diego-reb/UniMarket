@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggleBtn = document.createElement('button');
   toggleBtn.id = 'accesibility-toggle';
   toggleBtn.title = 'Opciones de accesibilidad';
-  toggleBtn.innerHTML = '♿';
+toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><circle cx="12" cy="6" r="3.5"/><path d="M5 14c0-2.5 3-4 7-4s7 1.5 7 4v3h-2v-2c0-1-2-1.5-5-1.5s-5 .5-5 1.5v2H5v-3z"/><path d="M10 18v4"/><path d="M14 18v4"/></svg>`;
   document.body.appendChild(toggleBtn);
 
   // Crear panel
