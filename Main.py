@@ -30,9 +30,11 @@ from oauthlib.oauth2 import WebApplicationClient
 import requests
 import mercadopago
 import traceback
-
-sdk = mercadopago.SDK(os.getenv('MP_ACCESS_TOKEN'))
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+
+MP_ACCESS_TOKEN = os.getenv("MP_ACCESS_TOKEN")
+MP_PUBLIC_KEY = os.getenv("MP_PUBLIC_KEY")
+sdk = mercadopago.SDK(os.getenv('MP_ACCESS_TOKEN'))
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 app = Flask(__name__) 
@@ -455,70 +457,77 @@ def logout():
     return redirect(url_for('index'))
 ##-----------------------------------fin_cerrar_sesion-----------------------------------------------------------------------------------------------
 ##-----------------------------------registro-------------------------------------------------------------------------------------
-@app.route('/registro', methods=['GET','POST'])
+@app.route("/registro", methods=["GET", "POST"])
 def registro():
-    if request.method == 'POST':
-        nombre = request.form['name'].strip()
-        correo = request.form['email'].strip()
-        telefono = request.form['phone'].strip()
-        password = request.form['password'].strip()
-        confirm_password = request.form['confirm-password'].strip()
-        tipo_cuenta = request.form.get('tipo')  
+    if request.method == "POST":
+        nombre = request.form.get("name")
+        correo = request.form.get("email")
+        telefono = request.form.get("phone")
+        password = request.form.get("password")
+        confirm_pass = request.form.get("confirm-password")
+        tipo_cuenta = request.form.get("tipo")  # Comprador o Vendedor
 
-        if password != confirm_password:
-            flash("Las contraseñas no coinciden", "error")
-            return redirect(url_for('registro'))
+        if not tipo_cuenta:
+            flash("Debes seleccionar un tipo de cuenta (Comprador o Vendedor).")
+            return redirect(url_for("registro"))
 
-        usuario_existente = db.session.scalar(
+        if password != confirm_pass:
+            flash("Las contraseñas no coinciden.")
+            return redirect(url_for("registro"))
+
+        correo_existente = db.session.scalar(
             db.select(Usuario).where(Usuario.correo == correo)
         )
+        if correo_existente:
+            flash("El correo ya está registrado.")
+            return redirect(url_for("registro"))
 
-        if usuario_existente:
-            flash("Ese correo electrónico ya está en uso. Por favor, inicia sesión.", "error")
-            return redirect(url_for('registro'))
+        rol_obj = db.session.scalar(
+            db.select(Rol).where(Rol.nombre.ilike(tipo_cuenta))
+        )
+
+        if not rol_obj:
+            flash("Error: El rol seleccionado no existe en la base de datos.")
+            return redirect(url_for("registro"))
+
+        nuevo_usuario = Usuario(
+            nombre=nombre,
+            correo=correo,
+            telefono=telefono,
+            password=generate_password_hash(password),
+            id_rol=rol_obj.id_rol,
+            estado=True,
+            email_confirmado=False,
+            intentos=0,
+            bloqueo_hasta=None
+        )
 
         try:
-            nuevo_usuario = Usuario(
-                nombre=nombre,
-                correo=correo,
-                telefono=telefono,
-                id_rol=None 
-
-            )
-            nuevo_usuario.set_password(password)
-
             db.session.add(nuevo_usuario)
             db.session.commit()
 
+            # 🔥 ENVIAR CORREO DESPUÉS DEL COMMIT
             token = s.dumps(correo, salt='email-confirm')
-            BASE_URL = os.getenv("BASE_URL")
-            confirm_url = BASE_URL + url_for('confirmar_correo', token=token)
-            print("BASE_URL:", BASE_URL)
-            print("URL confirmación generada:", confirm_url)
+            confirm_url = url_for('confirmar_correo', token=token, _external=True)
 
-
-            estado_envio = enviar_correo_confirmacion(
-                destinatario=correo, 
-                nombre_usuario=nombre, 
+            enviar_correo_confirmacion(
+                destinatario=correo,
+                nombre_usuario=nombre,
                 confirm_url=confirm_url
             )
 
-
-            if estado_envio == 200:
-                flash("Registro creado. Revisa tu correo para confirmar la cuenta.", "success")
-            else:
-                flash("Registro creado, pero hubo un problema al enviar el correo de confirmación.", "error")
-
-            session['usuario_temp_id'] = nuevo_usuario.id_usuario
-            return redirect(url_for('choose_role'))
+            flash("Cuenta creada correctamente. Revisa tu correo para verificar tu cuenta.")
+            return redirect(url_for("inicio_sesion"))
 
 
         except Exception as e:
             db.session.rollback()
-            flash(f"Error al crear la cuenta: {e}. Por favor, inténtalo de nuevo.", "error")
-            return redirect(url_for('registro'))
+            print("Error al registrar usuario:", e)
+            flash("Ocurrió un error al crear la cuenta. Intenta nuevamente.")
+            return redirect(url_for("registro"))
 
-    return render_template('registro.html')
+    return render_template("registro.html")
+
 
 ##-------------------------------------------------------------fin_registro------------------------------------------------------------------
 
@@ -535,79 +544,76 @@ mailjet = Client(auth=(API_KEY, API_SECRET), version='v3.1')
 
 mailjet = Client(auth=(API_KEY, API_SECRET), version='v3.1')
 def enviar_correo_confirmacion(destinatario, nombre_usuario, confirm_url):
-        data = {
-            'Messages': [
-                {
-                    "From": {"Email": MAILJET_SENDER, "Name": "UniMarket Soporte"},
-                    "To": [{"Email": destinatario, "Name": nombre_usuario}],
-                    "Subject": "Confirma tu correo - UniMarket",
-                    "HTMLPart": f"""
-                        <h3>Hola {nombre_usuario}!</h3>
-                        <p>Haz clic en el siguiente enlace para confirmar tu cuenta:</p>
-                        <a href="{confirm_url}">Confirmar mi cuenta</a>
-                    """
-                }
-            ]
-        }
+    data = {
+        'Messages': [
+            {
+                "From": {"Email": MAILJET_SENDER, "Name": "UniMarket Soporte"},
+                "To": [{"Email": destinatario, "Name": nombre_usuario}],
+                "Subject": "Confirma tu correo - UniMarket",
+                "HTMLPart": f"""
+                    <h3>Hola {nombre_usuario}!</h3>
+                    <p>Haz clic en el siguiente enlace para confirmar tu cuenta:</p>
+                    <a href="{confirm_url}">Confirmar mi cuenta</a>
+                """
+            }
+        ]
+    }
+    try:
+        result = mailjet.send.create(data=data)
+        return result.status_code
 
-        try:
-            result = mailjet.send.create(data=data)
-            return result.status_code
-        except Exception as e:
-            print("ERROR MAILJET:", e)
-            return 500
+    except Exception as e:
+        print("ERROR MAILJET:", e)
+        return 500
 
 @app.route("/confirmar/<token>")
 def confirmar_correo(token):
-        try:
-            correo = s.loads(token, salt="email-confirm", max_age=60*60*24)
-        except SignatureExpired:
-            flash("El enlace ha expirado.", "error")
-            return redirect(url_for("reenviar_confirmacion"))
-        except BadSignature:
-            flash("Token inválido.", "error")
-            return redirect(url_for("login"))
+    try:
+        correo = s.loads(token, salt="email-confirm", max_age=60*60*24)
+    except SignatureExpired:
+        flash("El enlace ha expirado.", "error")
+        return redirect(url_for("reenviar_confirmacion"))
+    except BadSignature:
+        flash("Token inválido.", "error")
+        return redirect(url_for("login"))
 
-        usuario = Usuario.query.filter_by(correo=correo).first()
+    usuario = Usuario.query.filter_by(correo=correo).first()
+    if not usuario:
+        flash("Usuario no encontrado.", "error")
+        return redirect(url_for("registro"))
 
-        if not usuario:
-            flash("Usuario no encontrado.", "error")
-            return redirect(url_for("registro"))
+    if usuario.email_confirmado:
+        mensaje = "Tu correo ya estaba confirmado."
+    else:
+        usuario.email_confirmado = True
+        db.session.commit()
+        mensaje = "Correo confirmado exitosamente."
 
-        if usuario.email_confirmado:
-            mensaje = "Tu correo ya estaba confirmado."
-        else:
-            usuario.email_confirmado = True
-            db.session.commit()
-            mensaje = "Correo confirmado exitosamente."
-
-        return render_template("correo_confirmacion.html", mensaje=mensaje)
+    return render_template("correo_confirmacion.html", mensaje=mensaje)
 
 @app.route("/reenviar_confirmacion", methods=["GET", "POST"])
 def reenviar_confirmacion():
-        if request.method == "POST":
-            correo = request.form.get("email")
-            usuario = Usuario.query.filter_by(correo=correo).first()
+    if request.method == "POST":
+        correo = request.form.get("email")
+        usuario = Usuario.query.filter_by(correo=correo).first()
+        if not usuario:
+            flash("Correo no registrado.", "error")
+            return redirect(url_for("reenviar_confirmacion"))
 
-            if not usuario:
-                flash("Correo no registrado.", "error")
-                return redirect(url_for("reenviar_confirmacion"))
+        token = s.dumps(correo, salt='email-confirm')
+        confirm_url = url_for('confirmar_correo', token=token, _external=True)
 
-            token = s.dumps(correo, salt='email-confirm')
+        enviar_correo_confirmacion(
+            destinatario=correo,
+            nombre_usuario=usuario.nombre,
+            confirm_url=confirm_url
+        )
 
-            # 🚀  URL Correcta con BASE_URL (importante para Render)
-            confirm_url = f"{BASE_URL}/confirmar/{token}"
+        flash("Correo reenviado. Revisa tu bandeja de entrada.", "success")
+        return redirect(url_for("login"))
 
-            enviar_correo_confirmacion(
-                destinatario=correo,
-                nombre_usuario=usuario.nombre,
-                confirm_url=confirm_url
-            )
-
-            flash("Correo reenviado.", "success")
-            return redirect(url_for("login"))
-
-        return render_template("reenviar_confirmacion.html")
+    return render_template("reenviar_confirmacion.html")
+    
 ##--------------------------------------------------------------registro_administrador--------------------------------------------------------------
 @app.route('/RA', methods=['GET','POST'])
 
@@ -1129,7 +1135,6 @@ def procesar_compra():
     horas = request.form.getlist("horas")
 
     if pago == "mercadopago":
-        sdk = mercadopago.SDK(os.getenv("MP_ACCESS_TOKEN"))
 
         items_mp = [{
             "title": item["name"],
@@ -1139,77 +1144,32 @@ def procesar_compra():
 
         preference = {
             "items": items_mp,
-
             "payer": {
-                "email": "test_user_123456@testuser.com"
+                "email": current_user.correo
             },
+        "back_urls": {
+            "success": "https://unimarket-620z.onrender.com/mp/success",
+            "failure": "https://unimarket-620z.onrender.com/mp/failure",
+            "pending": "https://unimarket-620z.onrender.com/mp/failure"
+        },
 
-            "back_urls": {
-                "success": url_for("compra_exitosa_mp", _external=True),
-                "failure": url_for("compra_fallida_mp", _external=True)
-            },
             "auto_return": "approved",
-
             "metadata": {
-                "id_usuario": current_user.id_usuario,
+                "id_usuario": str(current_user.id_usuario),
                 "cart": json.dumps(cart),
-                "turno": turno,
+                "turno": str(turno),
                 "horas": json.dumps(horas)
             }
         }
 
         respuesta = sdk.preference().create(preference)
+        print("RESPUESTA MP:", respuesta)
+
+        if respuesta["status"] != 201:
+            return f"<h1>Error al crear preferencia MP</h1><pre>{respuesta}</pre>"
 
         init_point = respuesta["response"]["init_point"]
         return redirect(init_point)
-
-    productos_por_vendedor = defaultdict(list)
-    for item in cart:
-        vendedor_id = db.session.query(Producto.id_vendedor)\
-                                .filter_by(id_producto=item['id']).scalar()
-        productos_por_vendedor[vendedor_id].append(item)
-
-    for vendedor_id, items in productos_por_vendedor.items():
-        total = sum(item['price'] * item['quantity'] for item in items)
-
-        pedido = Pedido(
-            id_comprador=current_user.id_usuario,
-            id_vendedor=vendedor_id,
-            total=total,
-            metodo_pago=pago
-        )
-        db.session.add(pedido)
-        db.session.flush()
-
-        for item in items:
-            detalle = DetallePedido(
-                id_pedido=pedido.id_pedido,
-                id_producto=item['id'],
-                cantidad=item['quantity'],
-                precio_unitario=item['price'],
-                subtotal=item['price'] * item['quantity']
-            )
-            db.session.add(detalle)
-
-            notificacion = Notificacion(
-                id_vendedor=vendedor_id,
-                id_pedido=pedido.id_pedido
-            )
-            db.session.add(notificacion)
-
-    db.session.commit()
-
-    estado_envio = enviar_correo_compra(
-        destinatario=current_user.correo,
-        nombre_usuario=current_user.nombre,
-        cart=cart,
-        turno=turno,
-        horas=horas
-    )
-
-    mensaje_envio = "Correo enviado" if estado_envio == 200 else "Error al enviar correo"
-
-    return f"<h1>Compra finalizada</h1><p>{mensaje_envio}</p><a href='/'>Volver</a>"
 
 ##-------------------------------------------------------------fin_compra------------------------------------------------------------------
 ##-------------------------------------------------------------compra_exitosa_mp-------------------------------------------------------------------------
@@ -1221,15 +1181,15 @@ def compra_exitosa_mp():
     if status != "approved":
         return "<h1>El pago no fue aprobado</h1>"
 
-    sdk = mercadopago.SDK(os.getenv("MP_ACCESS_TOKEN"))
     pago = sdk.payment().get(payment_id)
+    print("PAGO:", pago)
 
-    metadata = pago["response"]["metadata"]
+    metadata = pago["response"].get("metadata", {})
 
-    id_usuario = metadata["id_usuario"]
-    cart = json.loads(metadata["cart"])
-    turno = metadata["turno"]
-    horas = json.loads(metadata["horas"])
+    id_usuario = metadata.get("id_usuario")
+    cart = json.loads(metadata.get("cart", "[]"))
+    turno = metadata.get("turno")
+    horas = json.loads(metadata.get("horas", "[]"))
 
     productos_por_vendedor = defaultdict(list)
 
@@ -1291,64 +1251,7 @@ def compra_fallida_mp():
 def page_not_found(e):
     return render_template('404.html'),404
 ##-------------------------------------------------------------fin_error_404------------------------------------------------------------------
-##-------------------------------------------------------------Rol-------------------------------------------------------------------------------------
-@app.route('/choose_role')
-def choose_role():
-    
-    return render_template("Rol.html")
 
-@app.route('/set_rol', methods=['POST'])
-def set_rol():
-    rol_elegido = int(request.form.get("rol"))
-    session['rol_elegido'] = rol_elegido
-
-    correo = session.get('correo_google')
-    nombre = session.get('nombre_google')
-
-    if not correo:
-        usuario_id = session.get('usuario_temp_id')
-        usuario = Usuario.query.get(usuario_id)
-        usuario.id_rol = rol_elegido
-        db.session.commit()
-
-        if not usuario_id:
-            return "Error: No se encontraron datos del usuario", 400
-
-        usuario = Usuario.query.get(usuario_id)
-
-        if not usuario:
-            return "Error: Usuario no encontrado en la base de datos", 400
-
-        usuario.id_rol = rol_elegido
-        db.session.commit()
-
-        correo = usuario.correo
-        nombre = usuario.nombre
-
-    else:
-        usuario = Usuario.query.filter_by(correo=correo).first()
-
-        if not usuario:
-            usuario = Usuario(nombre=nombre, correo=correo, id_rol=rol_elegido, email_confirmado=False)
-            db.session.add(usuario)
-            db.session.commit()
-
-    token = s.dumps(correo, salt='email-confirm')
-    confirm_url = BASE_URL + url_for('confirmar_correo', token=token)
-
-    enviar_correo_confirmacion(
-        destinatario=correo,
-        nombre_usuario=nombre,
-        confirm_url=confirm_url
-    )
-
-    mensaje = "Registro completado. Revisa tu correo para confirmarlo."
-    return render_template("correo_confirmacion.html", mensaje=mensaje)
-
-
-
-
-##-------------------------------------------------------------fin_Rol------------------------------------------------------------------
 
 @app.route('/test_mailjet')
 def test_mailjet():
