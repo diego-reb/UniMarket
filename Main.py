@@ -4,7 +4,7 @@ import os
 env_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(env_path)
 
-
+import paypalrestsdk
 from flask import Flask, render_template, flash, request, redirect, url_for, Blueprint, jsonify, session
 from flask_sqlalchemy import SQLAlchemy 
 from sqlalchemy.orm import joinedload
@@ -28,13 +28,12 @@ import os
 from werkzeug.utils import secure_filename
 from oauthlib.oauth2 import WebApplicationClient
 import requests
-import mercadopago
 import traceback
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
-MP_ACCESS_TOKEN = os.getenv("MP_ACCESS_TOKEN")
-MP_PUBLIC_KEY = os.getenv("MP_PUBLIC_KEY")
-sdk = mercadopago.SDK(os.getenv('MP_ACCESS_TOKEN'))
+PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
+PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET')
+PAYPAL_BASE_URL = "https://api-m.sandbox.paypal.com" 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 app = Flask(__name__) 
@@ -1120,132 +1119,256 @@ def chat_api_vendedor():
 
 ##-------------------------------------------------------------fin_vendedor------------------------------------------------------------------
 ##-------------------------------------------------------------comprador-------------------------------------------------------------------------------------
+def get_paypal_access_token():
+    """
+    Obtiene un token de acceso de PayPal para autenticar las llamadas a la API.
+    """
+    if not PAYPAL_CLIENT_ID or not PAYPAL_CLIENT_SECRET:
+        print("ERROR: PAYPAL_CLIENT_ID o PAYPAL_CLIENT_SECRET no están configurados.")
+        return None
+        
+    auth_url = f"{PAYPAL_BASE_URL}/v1/oauth2/token"  # URL corregida
+    
+    try:
+        response = requests.post(
+            auth_url,
+            headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json',
+            },
+            auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
+            data={'grant_type': 'client_credentials'}
+        )
+        response.raise_for_status() 
+        data = response.json()
+        print(f"✅ Token de acceso obtenido exitosamente")
+        return data.get('access_token')
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Error al obtener el token de PayPal: {e}")
+        if hasattr(e, 'response') and e.response:
+            print(f"Respuesta de error: {e.response.text}")
+        return None
+
 @app.route('/compra')
 @login_required
 def comprador():
-    return render_template('compra.html')
-##-------------------------------------------------------------fin_comprador------------------------------------------------------------------
-##-------------------------------------------------------------compra-------------------------------------------------------------------------
-@app.route('/procesar_compra', methods=['POST'])
+    return render_template('compra.html', paypal_client_id=PAYPAL_CLIENT_ID)
+
+@app.route('/create-order', methods=['POST'])
 @login_required
-def procesar_compra():
-    cart = json.loads(request.form["cartData"])
-    pago = request.form.get("pago")
-    turno = request.form.get("turno")
-    horas = request.form.getlist("horas")
+def create_order():
+    """
+    Ruta llamada por el frontend para crear una orden de PayPal.
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No se recibieron datos'}), 400
+            
+        total_amount = data.get('total', '10.00')
 
-    if pago == "mercadopago":
+        # Validar que el total sea un número válido
+        try:
+            amount_float = float(total_amount)
+            if amount_float <= 0:
+                return jsonify({'error': 'El monto debe ser mayor a 0'}), 400
+        except ValueError:
+            return jsonify({'error': 'Monto inválido'}), 400
 
-        items_mp = [{
-            "title": item["name"],
-            "quantity": int(item["quantity"]),
-            "unit_price": float(item["price"])
-        } for item in cart]
+        print(f"🔄 Creando orden de PayPal por: ${total_amount}")
 
-        preference = {
-            "items": items_mp,
-            "payer": {
-                "email": current_user.correo
-            },
-        "back_urls": {
-            "success": "https://unimarket-620z.onrender.com/mp/success",
-            "failure": "https://unimarket-620z.onrender.com/mp/failure",
-            "pending": "https://unimarket-620z.onrender.com/mp/failure"
-        },
+        access_token = get_paypal_access_token()
+        if not access_token:
+            return jsonify({'error': 'No se pudo autenticar con PayPal. Verifica tus credenciales.'}), 500
 
-            "auto_return": "approved",
-            "metadata": {
-                "id_usuario": str(current_user.id_usuario),
-                "cart": json.dumps(cart),
-                "turno": str(turno),
-                "horas": json.dumps(horas)
+        order_data = {
+            "intent": "CAPTURE",
+            "purchase_units": [{
+                "amount": {
+                    "currency_code": "USD", 
+                    "value": total_amount
+                },
+                "description": "Compra en UniMarket"
+            }],
+            "application_context": {
+                "brand_name": "UniMarket",
+                "return_url": url_for('pago_exitoso', _external=True),
+                "cancel_url": url_for('comprador', _external=True)
             }
         }
 
-        respuesta = sdk.preference().create(preference)
-        print("RESPUESTA MP:", respuesta)
-
-        if respuesta["status"] != 201:
-            return f"<h1>Error al crear preferencia MP</h1><pre>{respuesta}</pre>"
-
-        init_point = respuesta["response"]["init_point"]
-        return redirect(init_point)
-
-##-------------------------------------------------------------fin_compra------------------------------------------------------------------
-##-------------------------------------------------------------compra_exitosa_mp-------------------------------------------------------------------------
-@app.route('/mp/success')
-def compra_exitosa_mp():
-    payment_id = request.args.get("payment_id")
-    status = request.args.get("status")
-
-    if status != "approved":
-        return "<h1>El pago no fue aprobado</h1>"
-
-    pago = sdk.payment().get(payment_id)
-    print("PAGO:", pago)
-
-    metadata = pago["response"].get("metadata", {})
-
-    id_usuario = metadata.get("id_usuario")
-    cart = json.loads(metadata.get("cart", "[]"))
-    turno = metadata.get("turno")
-    horas = json.loads(metadata.get("horas", "[]"))
-
-    productos_por_vendedor = defaultdict(list)
-
-    for item in cart:
-        vendedor_id = db.session.query(Producto.id_vendedor)\
-                                .filter_by(id_producto=item['id']).scalar()
-        productos_por_vendedor[vendedor_id].append(item)
-
-    for vendedor_id, items in productos_por_vendedor.items():
-        total = sum(item['price'] * item['quantity'] for item in items)
-
-        pedido = Pedido(
-            id_comprador=id_usuario,
-            id_vendedor=vendedor_id,
-            total=total,
-            metodo_pago="mercadopago",
-            estado="Pagado"
+        create_url = f"{PAYPAL_BASE_URL}/v2/checkout/orders"
+        
+        print(f"📤 Enviando solicitud a PayPal...")
+        response = requests.post(
+            create_url,
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {access_token}',
+            },
+            json=order_data,
+            timeout=30
         )
-        db.session.add(pedido)
-        db.session.flush()
+        
+        if response.status_code != 201:
+            error_detail = response.json() if response.content else 'Sin detalles'
+            print(f"❌ Error PayPal API: {response.status_code} - {error_detail}")
+            return jsonify({'error': f'Error de PayPal: {response.status_code}'}), 500
+            
+        order = response.json()
+        print(f"✅ Orden creada exitosamente - ID: {order.get('id')}")
+        
+        return jsonify(order), 201
+        
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Error de conexión con PayPal: {e}")
+        return jsonify({'error': 'Error de conexión con PayPal'}), 500
+    except Exception as e:
+        print(f"❌ Error inesperado en create-order: {e}")
+        return jsonify({'error': 'Error interno del servidor'}), 500
 
-        for item in items:
-            detalle = DetallePedido(
-                id_pedido=pedido.id_pedido,
-                id_producto=item['id'],
-                cantidad=item['quantity'],
-                precio_unitario=item['price'],
-                subtotal=item['price'] * item['quantity']
-            )
-            db.session.add(detalle)
+@app.route('/capture-order', methods=['POST'])
+@login_required
+def capture_order():
+    """
+    Ruta llamada por el frontend para capturar el pago de PayPal.
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No se recibieron datos'}), 400
+            
+        order_id = data.get('orderID')
 
-            notificacion = Notificacion(
-                id_vendedor=vendedor_id,
-                id_pedido=pedido.id_pedido
-            )
-            db.session.add(notificacion)
+        if not order_id:
+            return jsonify({'error': 'ID de orden faltante'}), 400
 
-    db.session.commit()
+        print(f"🔄 Capturando orden PayPal: {order_id}")
 
-    usuario = Usuario.query.get(id_usuario)
+        access_token = get_paypal_access_token()
+        if not access_token:
+            return jsonify({'error': 'No se pudo autenticar con PayPal'}), 500
+        
+        capture_url = f"{PAYPAL_BASE_URL}/v2/checkout/orders/{order_id}/capture"
+        
+        print(f"📤 Enviando captura a PayPal...")
+        response = requests.post(
+            capture_url,
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {access_token}',
+            },
+            timeout=30
+        )
+        
+        if response.status_code != 201:
+            error_detail = response.json() if response.content else 'Sin detalles'
+            print(f"❌ Error PayPal Capture: {response.status_code} - {error_detail}")
+            return jsonify({'error': f'Error al procesar pago: {response.status_code}'}), 500
+            
+        capture_data = response.json()
 
-    enviar_correo_compra(
-        destinatario=usuario.correo,
-        nombre_usuario=usuario.nombre,
-        cart=cart,
-        turno=turno,
-        horas=horas
-    )
+        # Aquí puedes guardar la información de la transacción en tu BD
+        if capture_data.get('status') == 'COMPLETED':
+            print(f"✅ Pago COMPLETADO - ID: {capture_data['id']}")
+            # Guardar en base de datos, enviar email, etc.
+            
+        return jsonify(capture_data)
+        
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Error de conexión al capturar orden: {e}")
+        return jsonify({'error': 'Error al procesar el pago'}), 500
+    except Exception as e:
+        print(f"❌ Error inesperado en capture-order: {e}")
+        return jsonify({'error': 'Error interno del servidor'}), 500
 
-    return render_template("compra_exitosa.html", usuario=usuario)
+@app.route('/pago-exitoso')
+@login_required
+def pago_exitoso():
+    """Página de éxito después del pago"""
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Pago Exitoso - UniMarket</title>
+        <style>
+            body { font-family: Arial, sans-serif; background: #0f172a; color: #e5e7eb; padding: 40px; text-align: center; }
+            .container { max-width: 500px; margin: 100px auto; background: #111827; padding: 40px; border-radius: 16px; }
+            .success { color: #22c55e; font-size: 48px; margin-bottom: 20px; }
+            .btn { background: #22c55e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 20px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="success">✓</div>
+            <h1>¡Pago Completado Exitosamente!</h1>
+            <p>Tu compra ha sido procesada correctamente.</p>
+            <a href="/" class="btn">Volver a Comprar</a>
+        </div>
+    </body>
+    </html>
+    """
 
+@app.route('/procesar_compra', methods=['POST'])
+@login_required
+def procesar_compra():
+    """
+    Procesa compras con otros métodos de pago (no PayPal)
+    """
+    try:
+        cart_data = request.form.get('cartData')
+        metodo_pago = request.form.get('pago')
+        turno = request.form.get('turno')
+        horas = request.form.getlist('horas')
+        
+        print(f"✅ Procesando compra con {metodo_pago}")
+        print(f"📅 Turno: {turno}")
+        print(f"⏰ Horas: {horas}")
+        print(f"🛒 Carrito: {cart_data}")
+        
+        # Aquí procesas la compra según el método de pago
+        # Guardar en base de datos, etc.
+        
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Compra Exitosa - UniMarket</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; background: #0f172a; color: #e5e7eb; padding: 40px; text-align: center; }}
+                .container {{ max-width: 500px; margin: 100px auto; background: #111827; padding: 40px; border-radius: 16px; }}
+                .success {{ color: #22c55e; font-size: 48px; margin-bottom: 20px; }}
+                .btn {{ background: #22c55e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 20px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="success">✓</div>
+                <h1>¡Compra Procesada Exitosamente!</h1>
+                <p>Método de pago: {metodo_pago.title()}</p>
+                <p>Tu pedido ha sido recibido y está siendo procesado.</p>
+                <a href="/compra" class="btn">Volver a Comprar</a>
+            </div>
+        </body>
+        </html>
+        """
+        
+    except Exception as e:
+        print(f"❌ Error en procesar_compra: {e}")
+        return "Error al procesar la compra", 500
 
-@app.route('/mp/failure')
-def compra_fallida_mp():
-    return "<h1>El pago no se completó</h1>"
-##-------------------------------------------------------------fin_compra_exitosa_mp------------------------------------------------------------------
+# Ruta para verificar la configuración
+@app.route('/config')
+def config():
+    """Ruta para verificar la configuración de PayPal"""
+    config_info = {
+        'paypal_client_id_set': bool(PAYPAL_CLIENT_ID),
+        'paypal_client_secret_set': bool(PAYPAL_CLIENT_SECRET),
+        'paypal_base_url': PAYPAL_BASE_URL
+    }
+    return jsonify(config_info)
+##-------------------------------------------------------------fin_comprador------------------------------------------------------------------
+
 ##-------------------------------------------------------------error_404------------------------------------------------------------------
 @app.errorhandler(404)
 def page_not_found(e):
