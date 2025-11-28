@@ -944,7 +944,7 @@ def crear_producto():
         descripcion=descripcion,
         precio=precio,
         stock=stock,
-        foto=foto_url,
+        foto=foto_path,
         id_categoria=id_categoria,
         id_vendedor=current_user.id_usuario,
         estado=True
