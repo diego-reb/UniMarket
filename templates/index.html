@@ -673,7 +673,7 @@
                         <button class="btn primary" data-add data-id="{{ p.id }}" data-name="{{ p.nombre }}"
                             data-price="{{ p.precio }}" data-vendedor="{{ p.vendedor }}"
                             data-descripcion="{{p.descripcion}}"
-                            data-image="{{ url_for('static', filename='uploads/' ~ p.foto) }}">
+                            data-image="{{ p.foto }}">
                             Agregar
                         </button>
                     </div>

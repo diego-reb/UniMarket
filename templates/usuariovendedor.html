@@ -285,7 +285,7 @@
                 {% for p in productos %}
                 {% if not p.entregado %}
                 <div class="product-item" id="producto-{{ p.id_producto }}">
-                   <img src="{{ url_for('static', filename='uploads/' ~ p.foto) }}" alt="{{ p.nombre }}">
+                   <img src="{{ p.foto }}" alt="{{ p.nombre }}">
 
                     <div class="product-details">
                         <h3>{{ p.nombre }}</h3>

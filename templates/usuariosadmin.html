@@ -331,7 +331,7 @@ html,body { height:100%; margin:0; font-family:'Inter',sans-serif; color:var(--t
                               <p><strong>Vendedor:</strong> {{ p.vendedor.nombre }}</p>
                               <p><strong>Estado:</strong> {{ 'Publicado' if p.estado else 'Pendiente' }}</p>
                               {% if p.foto %}
-                              <img src="{{ url_for('static', filename='uploads/' ~ p.foto) }}" alt="{{ p.nombre }}" style="max-width:100%; border-radius:8px;">
+                              <img src="{{ p.foto }}" alt="{{ p.nombre }}" style="max-width:100%; border-radius:8px;">
                               {% endif %}
                               <div class="product-actions">
                                     <button class="edit-btn" onclick="abrirEditarProducto({{ p.id_producto }}, '{{ p.nombre }}', '{{ p.descripcion }}', {{ p.stock }}, {{ p.precio }}, {{ p.id_vendedor }}, {{ p.id_categoria }})">Editar</button>
