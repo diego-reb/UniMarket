@@ -29,6 +29,7 @@ from werkzeug.utils import secure_filename
 from oauthlib.oauth2 import WebApplicationClient
 import requests
 import traceback
+import cloudinary
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
 PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
@@ -45,6 +46,11 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     "pool_size": 5,
     "max_overflow": 10
 }
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET")
+)
 app.secret_key = 'contraseña_secreta'
 init_app(app)
 
@@ -665,11 +671,7 @@ def Admin():
 
     
 
-    return render_template('usuariosadmin.html',
-                           usuarios=usuarios,
-                           productos=productos,
-                           rol=rol, vendedores=vendedores,
-                           categorias=categorias)
+    return render_template('usuariosadmin.html',usuarios=usuarios,productos=productos,rol=rol, vendedores=vendedores,categorias=categorias)
 
 @app.route('/usuario/crear', methods=['POST'])
 @login_required
@@ -767,12 +769,10 @@ def crear_producto_post():
     id_categoria = int(request.form['id_categoria'])
     
     foto_file = request.files.get('foto')
-    filename = None
+    foto_url = None
     if foto_file:
-       filename = secure_filename(foto_file.filename)
-       upload_folder = os.path.join(app.root_path, 'static', 'uploads')
-       os.makedirs(upload_folder, exist_ok=True)
-       foto_file.save(os.path.join(upload_folder, filename))
+        upload_result = cloudinary.uploader.upload(foto_file)
+        foto_url = upload_result.get("secure_url")
 
     nuevo_producto = Producto(
         nombre=nombre,
@@ -780,7 +780,7 @@ def crear_producto_post():
         precio=precio,
         stock=stock,
         id_vendedor=id_vendedor,
-        foto=filename,
+        foto=foto_url,
         id_categoria=id_categoria, 
         estado=True
     )
@@ -803,12 +803,9 @@ def editar_producto(id):
         producto.id_categoria = int(request.form['id_categoria'])
 
         foto_file = request.files.get('foto')
-        if foto_file and foto_file.filename != '':
-            filename = secure_filename(foto_file.filename)
-            upload_folder = os.path.join(app.root_path, 'static', 'uploads')
-            os.makedirs(upload_folder, exist_ok=True)
-            foto_file.save(os.path.join(upload_folder, filename))
-            producto.foto = filename
+        if foto_file:
+            upload_result = cloudinary.uploader.upload(foto_file)
+            producto.foto = upload_result.get("secure_url")
 
         db.session.commit()
         flash('Producto actualizado correctamente', 'success')
@@ -820,13 +817,7 @@ def editar_producto(id):
     vendedores = Usuario.query.filter_by(id_rol=2).all()  
     categorias = Categoria.query.all()
 
-    return render_template('usuariosadmin.html',
-                           usuarios=usuarios,
-                           rol=rol,
-                           productos=productos,
-                           vendedores=vendedores,
-                           categorias=categorias,
-                           producto_editar=producto)
+    return render_template('usuariosadmin.html',usuarios=usuarios,rol=rol,productos=productos,vendedores=vendedores,categorias=categorias,producto_editar=producto)
 
 @app.route('/producto/eliminar/<int:id>', methods=['POST'])
 @login_required
@@ -917,11 +908,8 @@ def editar_producto_vendedor(id):
         
         foto = request.files.get('foto')
         if foto and foto.filename != '' and allowed_file(foto.filename):
-            filename = secure_filename(f"{current_user.id_usuario}_{foto.filename}")
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            foto.save(filepath)
-            
-            producto.foto = f'uploads/{filename}'
+            upload_result = cloudinary.uploader.upload(foto)
+            producto.foto = upload_result.get("secure_url")
 
         db.session.commit()
         return jsonify({'success': True})
@@ -940,18 +928,13 @@ def crear_producto():
     stock = int(request.form['stock'])
     id_categoria = int(request.form['id_categoria'])  
 
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')  
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
     foto = request.files.get('foto')
-    if foto and allowed_file(foto.filename):
-        filename = secure_filename(f"{current_user.id_usuario}_{foto.filename}")
-        filepath = os.path.join(UPLOAD_FOLDER, filename)  
-        foto.save(filepath)
-        foto_path = filename  
-    else:
-        foto_path = None
+    foto_path = None
+
+    if foto:
+        upload_result = cloudinary.uploader.upload(foto)
+        foto_path = upload_result.get("secure_url")
+
 
 
     producto = Producto(
@@ -959,7 +942,7 @@ def crear_producto():
         descripcion=descripcion,
         precio=precio,
         stock=stock,
-        foto=foto_path,
+        foto=foto_url,
         id_categoria=id_categoria,
         id_vendedor=current_user.id_usuario,
         estado=True
