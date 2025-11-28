@@ -30,6 +30,8 @@ from oauthlib.oauth2 import WebApplicationClient
 import requests
 import traceback
 import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
 PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
