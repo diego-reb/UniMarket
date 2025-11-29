@@ -659,8 +659,7 @@
             <article class="card" data-name="{{ p.nombre }}" data-category="{{ p.categoria_id }}">
                 <div class="thumb">
                     <div class="thumb">
-                        <img src="{{ url_for('static', filename='uploads/' ~ p.foto) }}" alt="{{ p.nombre }}"
-                            style="max-width:100%; border-radius:8px;">
+                        <img src="{{ p.foto }}" alt="{{ p.nombre }}" style="max-width:100%; border-radius:8px;">
                     </div>
 
                 </div>

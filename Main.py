@@ -56,18 +56,7 @@ cloudinary.config(
 app.secret_key = 'contraseña_secreta'
 init_app(app)
 
-##---------------------------------------------------foto------------------------------------------------------------------------------------------
 
-UPLOAD_FOLDER = 'static/uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
-
-##---------------------------------------------------fin_foto--------------------------------------------------------------------------------------
 ##---------------------------------------------------no cache--------------------------------------------------------------------------------------
 
 @app.after_request
@@ -78,7 +67,6 @@ def add_header(response):
     return response
 
 ##---------------------------------------------------fin_no_cache-----------------------------------------------------------------------------------
-
 
 ##----------------------------------------------------correo----------------------------------------------------------------------------------------
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])

@@ -285,7 +285,10 @@
                 {% for p in productos %}
                 {% if not p.entregado %}
                 <div class="product-item" id="producto-{{ p.id_producto }}">
-                   <img src="{{ p.foto }}" alt="{{ p.nombre }}">
+                   {% if p.foto %}
+                    <img src="{{ p.foto }}" alt="{{ p.nombre }}" style="max-width:100%; border-radius:8px;">
+                    {% endif %}
+
 
                     <div class="product-details">
                         <h3>{{ p.nombre }}</h3>
