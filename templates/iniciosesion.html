@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,331 +12,499 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
     <script src="{{ url_for('static', filename='js/accesibilidad.js')}}"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-        <style>
-    :root {
-        --bg: #0f172a;           /* slate-900 */
-        --card: #111827;         /* gray-900 */
-        --muted: #94a3b8;        /* slate-400 */
-        --text: #e5e7eb;         /* gray-200 */
-        --brand: #22c55e;        /* green-500 */
-        --brand-2: #38bdf8;      /* sky-400 */
-        --accent: #fde047;       /* yellow-300 */
-        --error: #ef4444;        /* red-500 */
-        --ok: #10b981;           /* emerald-500 */
-        --shadow: 0 10px 30px rgba(0, 0, 0, .35);
-        --radius: 16px;
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body { height: 100%; }
-
-    body {
-        margin: 0;
-        font-family: 'Inter', sans-serif;
-        background: radial-gradient(1200px 600px at 10% -10%, rgba(56,189,248,.25), rgba(56,189,248,0)),
-                    radial-gradient(900px 600px at 120% 10%, rgba(34,197,94,.20), rgba(34,197,94,0)),
-                    var(--bg);
-        color: var(--text);
-        min-height: 100vh;
-        padding: 16px 12px;
-    }
-
-    .container {
-        display: flex;
-        flex-direction: column;          /* mobile first */
-        width: 100%;
-        max-width: 480px;
-        margin: 0 auto;
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
-        overflow: hidden;
-        background: var(--card);
-    }
-
-    .brand-panel {
-        flex: 1;
-        display: none; /* Oculto por defecto en móviles */
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(to bottom right, var(--brand), var(--brand-2));
-        color: white;
-        text-align: center;
-        padding: 40px;
-        position: relative;
-    }
-
-    .brand-panel h1 { font-size: 3rem; margin: 0 0 10px; }
-    .brand-panel p { font-size: 1.1rem; max-width: 300px; line-height: 1.5; }
-
-    .form-panel {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: stretch;
-        padding: 24px 20px;
-    }
-
-    .logo-mobile {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        font-weight: 800;
-        letter-spacing: .2px;
-        margin-bottom: 24px;
-    }
-
-    .logo-badge {
-        width: 42px;
-        height: 42px;
-        border-radius: 12px;
-        display: grid;
-        place-items: center;
-        background: linear-gradient(135deg, var(--brand), var(--brand-2));
-        box-shadow: var(--shadow);
-    }
-
-    .logo-badge svg {
-        filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .35));
-    }
-
-    h2 { font-size: 2rem; margin: 0 0 8px; }
-
-    p.subtitle {
-        margin: 0 0 24px;
-        color: var(--muted);
-    }
-
-    .form-panel form {
-        width: 100%;
-        max-width: 400px;
-        text-align: left;
-        margin: 0 auto;
-    }
-
-    .form-group { margin-bottom: 20px; }
-
-    label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-    }
-
-    input[type="email"],
-    input[type="password"] {
-        width: 100%;
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px solid rgba(148,163,184,.25);
-        background: rgba(2,6,23,.6);
-        color: var(--text);
-        outline: none;
-        transition: border .2s ease;
-    }
-
-    input[type="email"]:focus,
-    input[type="password"]:focus {
-        border-color: var(--brand-2);
-    }
-
-    .user-type-group {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-
-    .radio-option {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px solid rgba(148,163,184,.25);
-        background: rgba(2,6,23,.6);
-        cursor: pointer;
-        transition: background .2s, border-color .2s;
-    }
-
-    .radio-option:hover { background: rgba(2,6,23,.8); }
-
-    .radio-option.selected {
-        border-color: var(--brand-2);
-        background: rgba(56,189,248,.1);
-    }
-
-    .radio-option input { display: none; }
-
-    .radio-option label {
-        margin: 0;
-        cursor: pointer;
-        font-weight: 400;
-    }
-
-    .g-recaptcha {
-        display: inline-block;
-        transform: none;           /* sin escala para no romper ancho */
-        transform-origin: center;
-    }
-
-    .btn-primary {
-        display: block;
-        margin: 0 auto;
-        width: 100%;
-        max-width: 400px;
-        padding: 12px 4px;
-        border: none;
-        border-radius: 12px;
-        background: linear-gradient(135deg, var(--brand), var(--brand-2));
-        color: white;
-        font-weight: 800;
-        cursor: pointer;
-        transition: filter .2s, transform .06s;
-    }
-
-    .btn-primary:hover { filter: brightness(1.05); }
-    .btn-primary:active { transform: translateY(1px); }
-
-    .separator {
-        margin: 24px 0;
-        font-size: .9rem;
-        color: var(--muted);
-        position: relative;
-        text-align: center;
-    }
-
-    .separator::before,
-    .separator::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        width: 40%;
-        height: 1px;
-        background: rgba(148,163,184,.2);
-    }
-
-    .separator::before { left: 0; }
-    .separator::after { right: 0; }
-
-    #message-box {
-        background-color: var(--error);
-        color: white;
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        display: none;
-        width: 100%;
-    }
-
-    .flash-message {
-        padding: 12px;
-        border-radius: 5px;
-        margin-bottom: 15px;
-        font-weight: bold;
-        text-align: center;
-    }
-
-    .flash-error {
-        background-color: #f44336;
-        color: white;
-    }
-
-    .flash-success {
-        background-color: #4caf50;
-        color: white;
-    }
-
-    @keyframes fade-down {
-        0% {
-            opacity: 0;
-            transform: translateY(-10px);
+    <style>
+        :root {
+            --bg: #0f172a;
+            /* slate-900 */
+            --card: #111827;
+            /* gray-900 */
+            --muted: #94a3b8;
+            /* slate-400 */
+            --text: #e5e7eb;
+            /* gray-200 */
+            --brand: #22c55e;
+            /* green-500 */
+            --brand-2: #38bdf8;
+            /* sky-400 */
+            --accent: #fde047;
+            /* yellow-300 */
+            --error: #ef4444;
+            /* red-500 */
+            --ok: #10b981;
+            /* emerald-500 */
+            --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+            --radius: 16px;
         }
-        100% {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
 
-    /* TABLET y DESKTOP */
-    @media (min-width: 768px) {
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
         body {
-            padding: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(1200px 600px at 10% -10%, rgba(56, 189, 248, .25), rgba(56, 189, 248, 0)),
+                radial-gradient(900px 600px at 120% 10%, rgba(34, 197, 94, .20), rgba(34, 197, 94, 0)),
+                var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 16px 12px;
         }
 
         .container {
-            flex-direction: row;
-            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            /* mobile first */
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            background: var(--card);
         }
 
         .brand-panel {
+            flex: 1;
+            display: none;
+            /* Oculto por defecto en móviles */
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(to bottom right, var(--brand), var(--brand-2));
+            color: white;
+            text-align: center;
+            padding: 40px;
+            position: relative;
+        }
+
+        .brand-panel h1 {
+            font-size: 3rem;
+            margin: 0 0 10px;
+        }
+
+        .brand-panel p {
+            font-size: 1.1rem;
+            max-width: 300px;
+            line-height: 1.5;
+        }
+
+        .form-panel {
+            flex: 1;
             display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: stretch;
+            padding: 24px 20px;
         }
 
         .logo-mobile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 800;
+            letter-spacing: .2px;
+            margin-bottom: 24px;
+        }
+
+        .logo-badge {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            box-shadow: var(--shadow);
+        }
+
+        .logo-badge svg {
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .35));
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin: 0 0 8px;
+        }
+
+        p.subtitle {
+            margin: 0 0 24px;
+            color: var(--muted);
+        }
+
+        .form-panel form {
+            width: 100%;
+            max-width: 400px;
+            text-align: left;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, .25);
+            background: rgba(2, 6, 23, .6);
+            color: var(--text);
+            outline: none;
+            transition: border .2s ease;
+        }
+
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            border-color: var(--brand-2);
+        }
+
+        .user-type-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .radio-option {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, .25);
+            background: rgba(2, 6, 23, .6);
+            cursor: pointer;
+            transition: background .2s, border-color .2s;
+        }
+
+        .radio-option:hover {
+            background: rgba(2, 6, 23, .8);
+        }
+
+        .radio-option.selected {
+            border-color: var(--brand-2);
+            background: rgba(56, 189, 248, .1);
+        }
+
+        .radio-option input {
             display: none;
         }
 
-        .form-panel {
-            border-radius: 0 var(--radius) var(--radius) 0;
-        }
-
-        .container {
-            border: 1px solid rgba(148,163,184,.20);
-        }
-    }
-
-    /* 🔧 ARREGLO FUERTE PARA MÓVIL */
-    @media (max-width: 767px) {
-
-        body {
-            margin: 0 !important;
-            padding: 0 !important;
-            display: block !important;
-        }
-
-        .container {
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            background: transparent !important;
-        }
-
-        .form-panel {
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding: 16px 12px !important;
-            border-radius: 0 !important;
+        .radio-option label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 400;
         }
 
         .g-recaptcha {
-            transform: none !important;
-            transform-origin: center !important;
+            display: inline-block;
+            transform: none;
+            /* sin escala para no romper ancho */
+            transform-origin: center;
         }
 
         .btn-primary {
-            width: 100% !important;
-            max-width: 100% !important;
+            display: block;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 4px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+            transition: filter .2s, transform .06s;
         }
-    }
-</style>
+
+        .btn-primary:hover {
+            filter: brightness(1.05);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        .separator {
+            margin: 24px 0;
+            font-size: .9rem;
+            color: var(--muted);
+            position: relative;
+            text-align: center;
+        }
+
+        .separator::before,
+        .separator::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: rgba(148, 163, 184, .2);
+        }
+
+        .separator::before {
+            left: 0;
+        }
+
+        .separator::after {
+            right: 0;
+        }
+
+        #message-box {
+            background-color: var(--error);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            width: 100%;
+        }
+
+        .flash-message {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .flash-error {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .flash-success {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        @keyframes fade-down {
+            0% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* TABLET y DESKTOP */
+        @media (min-width: 768px) {
+            body {
+                padding: 40px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .container {
+                flex-direction: row;
+                max-width: 1000px;
+            }
+
+            .brand-panel {
+                display: flex;
+            }
+
+            .logo-mobile {
+                display: none;
+            }
+
+            .form-panel {
+                border-radius: 0 var(--radius) var(--radius) 0;
+            }
+
+            .container {
+                border: 1px solid rgba(148, 163, 184, .20);
+            }
+        }
+
+        /* 🔧 ARREGLO FUERTE PARA MÓVIL */
+        @media (max-width: 767px) {
+
+            body {
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+            }
+
+            .container {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                background: transparent !important;
+            }
+
+            .form-panel {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 16px 12px !important;
+                border-radius: 0 !important;
+            }
+
+            .g-recaptcha {
+                transform: none !important;
+                transform-origin: center !important;
+            }
+
+            .btn-primary {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-content {
+            text-align: center;
+            max-width: 400px;
+            padding: 40px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: var(--radius);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .loading-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+
+        .loading-logo-inner {
+            width: 100%;
+            height: 100%;
+            border: 4px solid transparent;
+            border-top: 4px solid var(--brand);
+            border-right: 4px solid var(--brand-2);
+            border-radius: 50%;
+            animation: logo-spin 1.5s linear infinite;
+        }
+
+        .loading-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .loading-dot {
+            width: 12px;
+            height: 12px;
+            background: var(--brand-2);
+            border-radius: 50%;
+            animation: dot-pulse 1.4s ease-in-out infinite;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+            background: var(--brand);
+        }
+
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+            background: var(--accent);
+        }
+
+        .loading-text {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .loading-subtext {
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        @keyframes logo-spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes dot-pulse {
+
+            0%,
+            60%,
+            100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+
+            30% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive para móvil */
+        @media (max-width: 767px) {
+            .loading-content {
+                margin: 20px;
+                padding: 30px;
+            }
+        }
+    </style>
 
 </head>
+
 <body>
-    <div class="reading-guide" id= "reading-guide-mask"></div>
+    <div class="reading-guide" id="reading-guide-mask"></div>
     <div class="container">
-        
+
         <div class="brand-panel">
-            
+
             <div>
-                <button type="button" onclick="window.location.href='/'" 
-            style="
+                <button type="button" onclick="window.location.href='/'" style="
                 position: absolute;
                 top: 20px;
                 left: 20px;
@@ -352,12 +521,10 @@
                 cursor: pointer;
                 box-shadow: var(--shadow);
                 transition: transform .1s;
-            "
-            title="Volver al inicio"
-            onmouseover="this.style.transform='scale(1.1)';"
-            onmouseout="this.style.transform='scale(1)';">
-        &#8592; 
-    </button>
+            " title="Volver al inicio" onmouseover="this.style.transform='scale(1.1)';"
+                    onmouseout="this.style.transform='scale(1)';">
+                    &#8592;
+                </button>
                 <h1>UniMarket</h1>
                 <p>Tu plataforma para comprar y vender productos universitarios. ¡Conéctate con tu comunidad!</p>
 
@@ -365,131 +532,282 @@
         </div>
 
         <div class="form-panel">
-   
-        <div class="form-panel">
-            <div class="logo-mobile">
-                <div class="logo-badge" aria-hidden="true">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo UniMarket">
-                        <path d="M7 8V7a5 5 0 0 1 10 0v1" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
-                        <rect x="4" y="8" width="16" height="12" rx="3" fill="rgba(255,255,255,.90)"/>
-                        <path d="M7 13h10" stroke="#0b1020" stroke-width="2" stroke-linecap="round"/>
-                        <circle cx="10" cy="19" r="1.6" fill="#0b1020"/>
-                        <circle cx="16" cy="19" r="1.6" fill="#0b1020"/>
-                    </svg>
+
+            <div class="form-panel">
+                <div class="logo-mobile">
+                    <div class="logo-badge" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                            role="img" aria-label="Logo UniMarket">
+                            <path d="M7 8V7a5 5 0 0 1 10 0v1" stroke="#0b1020" stroke-width="2"
+                                stroke-linecap="round" />
+                            <rect x="4" y="8" width="16" height="12" rx="3" fill="rgba(255,255,255,.90)" />
+                            <path d="M7 13h10" stroke="#0b1020" stroke-width="2" stroke-linecap="round" />
+                            <circle cx="10" cy="19" r="1.6" fill="#0b1020" />
+                            <circle cx="16" cy="19" r="1.6" fill="#0b1020" />
+                        </svg>
+                    </div>
+                    <div>UniMarket</div>
                 </div>
-                <div>UniMarket</div>
-            </div>
 
-            <h2 style="margin-top: 0;">Iniciar Sesión</h2>
+                <h2 style="margin-top: 0;">Iniciar Sesión</h2>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            <div class="flash-message 
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash-message 
                 {% if category == 'error' %}flash-error
                 {% elif category == 'success' %}flash-success
                 {% endif %}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
 
-            <form id="login-form" method="POST" action="{{url_for('inicio_sesion')}}">
-                <div class="form-group user-type-group">
-        
-    </div>
+                <form id="login-form" method="POST" action="{{url_for('inicio_sesion')}}">
+                    <div class="form-group user-type-group">
 
-    <div class="form-group">
-        <label for="email">Correo electrónico</label>
-        <input type="email" id="email" name="correo" required>
-    </div>
-    <div class="form-group">
-        <label for="password">Contraseña</label>
-        <input type="password" id="password" name="password" required>
-    </div>
-    <div class="form-group" style="text-align:center; margin-bottom: 20px;">
-    <div class="g-recaptcha" data-sitekey="6LfABAksAAAAAHgAewWNg3-fITOyQcwxF9RZDC7m"></div>
-</div>
+                    </div>
 
-    <button type="submit" class="btn-primary">Continuar</button>
-            </form>
-            <div id="login-message-box" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 20px; color: white; background-color: #ef4444;">
-</div>
+                    <div class="form-group">
+                        <label for="email">Correo electrónico</label>
+                        <input type="email" id="email" name="correo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="form-group" style="text-align:center; margin-bottom: 20px;">
+                        <div class="g-recaptcha" data-sitekey="6LfABAksAAAAAHgAewWNg3-fITOyQcwxF9RZDC7m"></div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="submitBtn">Continuar</button>
+                </form>
+                <div id="login-message-box"
+                    style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 20px; color: white; background-color: #ef4444;">
+                </div>
 
 
 
-            <div class="separator">o</div>
-        <div style="text-align:center; ">
-  <a href="{{ url_for('google_login') }}" 
-     style="display:inline-flex; align-items:center; 
+                <div class="separator">o</div>
+                <div style="text-align:center; ">
+                    <a href="{{ url_for('google_login') }}" id="googleLoginBtn" style="display:inline-flex; align-items:center; 
             padding:10px 20px; border:1px solid rgba(148,163,184,.25); border-radius:8px;
             text-decoration:none; color:#ccc; font-weight:500;">
-    <img src="https://developers.google.com/identity/images/g-logo.png" 
-         alt="Google" width="20" style="margin-right:8px;">
-    Google
-  </a>
+                        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" width="20"
+                            style="margin-right:8px;">
+                        Google
+                    </a>
+                </div>
+
+                <button id="guest-login-btn" class="btn-primary"
+                    style="background: var(--card); border: 1px solid rgba(148,163,184,.25); width: 100%; max-width: 400px; margin-top: 15px;">Registrate</button>
+                    <div style="text-align: center; margin-top: 15px;">
+    <a href="{{ url_for('olvide_contrasena') }}" style="color: var(--brand-2); text-decoration: none; font-size: 14px;">
+        ¿Olvidaste tu contraseña?
+    </a>
 </div>
-
-            <button id="guest-login-btn" class="btn-primary" style="background: var(--card); border: 1px solid rgba(148,163,184,.25); width: 100%; max-width: 400px; margin-top: 15px;">Registrate</button>
+            </div>
         </div>
-    </div>
-<script>
-    document.getElementById("guest-login-btn").addEventListener("click", function() {
-    window.location.href = "/registro";  // tu ruta de registro en Flask
-});
-    const radioOptions = document.querySelectorAll('.radio-option');
+        <script>
+            document.getElementById("guest-login-btn").addEventListener("click", function () {
+                window.location.href = "/registro";  // tu ruta de registro en Flask
+            });
+            const radioOptions = document.querySelectorAll('.radio-option');
 
-    radioOptions.forEach(option => {
-        option.addEventListener('click', () => {
-            radioOptions.forEach(opt => opt.classList.remove('selected'));
-            option.classList.add('selected');
-            option.querySelector('input').checked = true;
+            radioOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    radioOptions.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                    option.querySelector('input').checked = true;
 
-    
-        });
-    });
-</script>
-<script>
-function showAlert(message, color) {
-    const box = document.getElementById("message-box");
-    box.innerText = message;
 
-    box.style.backgroundColor = color;
-    box.style.display = "block";
+                });
+            });
+        </script>
+        <script>
+            function showAlert(message, color) {
+                const box = document.getElementById("message-box");
+                box.innerText = message;
 
-    // Animación
-    setTimeout(() => {
-        box.style.opacity = "1";
-        box.style.transform = "translateY(0)";
-    }, 10);
+                box.style.backgroundColor = color;
+                box.style.display = "block";
 
-    // Auto-cerrar después de 4s
-    setTimeout(() => {
-        closeAlert();
-    }, 4000);
+                // Animación
+                setTimeout(() => {
+                    box.style.opacity = "1";
+                    box.style.transform = "translateY(0)";
+                }, 10);
 
-    // Agregar botón X
-    if (!document.getElementById("close-alert-btn")) {
-        const closeBtn = document.createElement("span");
-        closeBtn.id = "close-alert-btn";
-        closeBtn.innerHTML = "&times;";
-        closeBtn.classList.add("alert-close");
-        closeBtn.onclick = closeAlert;
-        box.appendChild(closeBtn);
-    }
-}
+                // Auto-cerrar después de 4s
+                setTimeout(() => {
+                    closeAlert();
+                }, 4000);
 
-function closeAlert() {
-    const box = document.getElementById("message-box");
-    box.style.opacity = "0";
-    box.style.transform = "translateY(-10px)";
-    setTimeout(() => {
-        box.style.display = "none";
-    }, 400);
-}
-</script>
+                // Agregar botón X
+                if (!document.getElementById("close-alert-btn")) {
+                    const closeBtn = document.createElement("span");
+                    closeBtn.id = "close-alert-btn";
+                    closeBtn.innerHTML = "&times;";
+                    closeBtn.classList.add("alert-close");
+                    closeBtn.onclick = closeAlert;
+                    box.appendChild(closeBtn);
+                }
+            }
 
-    
+            function closeAlert() {
+                const box = document.getElementById("message-box");
+                box.style.opacity = "0";
+                box.style.transform = "translateY(-10px)";
+                setTimeout(() => {
+                    box.style.display = "none";
+                }, 400);
+            }
+        </script>
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-content">
+                <div class="loading-logo">
+                    <div class="loading-logo-inner"></div>
+                </div>
+                <div class="loading-text" id="loadingText">Iniciando sesión</div>
+                <div class="loading-subtext" id="loadingSubtext">Estamos verificando tus credenciales...</div>
+                <div class="loading-dots">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>
+            </div>
+        </div>
+        <script>
+            // 🔴 FUNCIONALIDAD SIMPLIFICADA DE LA PANTALLA DE CARGA 🔴
+            document.addEventListener('DOMContentLoaded', function () {
+                console.log('Script cargado correctamente');
+
+                const loginForm = document.getElementById('login-form');
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                const loadingText = document.getElementById('loadingText');
+                const loadingSubtext = document.getElementById('loadingSubtext');
+
+                // Referencia al botón submit dentro del formulario
+                const submitBtn = loginForm ? loginForm.querySelector('button[type="submit"]') : null;
+                const originalBtnText = submitBtn ? submitBtn.textContent : 'Continuar';
+
+                // Función para mostrar la pantalla de carga
+                function showLoading(message = 'Iniciando sesión', submessage = 'Estamos verificando tus credenciales...') {
+                    console.log('Mostrando pantalla de carga:', message);
+                    if (loadingText) loadingText.textContent = message;
+                    if (loadingSubtext) loadingSubtext.textContent = submessage;
+                    loadingOverlay.classList.add('active');
+                    if (submitBtn) {
+                        submitBtn.textContent = 'Procesando...';
+                        submitBtn.disabled = true;
+                    }
+                    document.body.style.overflow = 'hidden';
+                }
+
+                // Función para ocultar la pantalla de carga
+                function hideLoading() {
+                    console.log('Ocultando pantalla de carga');
+                    loadingOverlay.classList.remove('active');
+                    if (submitBtn) {
+                        submitBtn.textContent = originalBtnText;
+                        submitBtn.disabled = false;
+                    }
+                    document.body.style.overflow = '';
+                }
+
+                // Manejar envío del formulario de login
+                if (loginForm) {
+                    console.log('Formulario encontrado, agregando event listener');
+                    loginForm.addEventListener('submit', function (e) {
+                        console.log('Formulario enviado');
+
+                        // Verificar campos obligatorios primero
+                        const email = document.getElementById('email').value;
+                        const password = document.getElementById('password').value;
+
+                        if (!email || !password) {
+                            console.log('Campos vacíos');
+                            return; // Permitir que el navegador muestre las validaciones HTML5
+                        }
+
+                        // Mostrar pantalla de carga inmediatamente
+                        showLoading('Verificando credenciales', 'Por favor espera...');
+
+                        // Verificar reCAPTCHA si está disponible
+                        setTimeout(function () {
+                            try {
+                                if (typeof grecaptcha !== 'undefined') {
+                                    console.log('reCAPTCHA disponible');
+                                    const recaptchaResponse = grecaptcha.getResponse();
+                                    console.log('Respuesta reCAPTCHA:', recaptchaResponse ? 'Completa' : 'Vacía');
+
+                                    if (!recaptchaResponse || recaptchaResponse.length === 0) {
+                                        console.log('reCAPTCHA no completado');
+                                        hideLoading();
+                                        alert('Por favor, completa el reCAPTCHA');
+                                        e.preventDefault();
+                                        return false;
+                                    }
+                                } else {
+                                    console.log('reCAPTCHA no disponible');
+                                }
+
+                                // Si llegamos aquí, todo está bien
+                                console.log('Todo validado, continuando...');
+                                showLoading('Accediendo a tu cuenta', 'Redirigiendo...');
+
+                            } catch (error) {
+                                console.error('Error:', error);
+                                hideLoading();
+                                alert('Error al verificar: ' + error.message);
+                                e.preventDefault();
+                            }
+                        }, 300);
+                    });
+                } else {
+                    console.error('No se encontró el formulario con id="login-form"');
+                }
+
+                // Manejar login con Google
+                const googleLink = document.querySelector('a[href*="google_login"]');
+                if (googleLink) {
+                    console.log('Enlace de Google encontrado');
+                    googleLink.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        console.log('Click en Google login');
+                        showLoading('Conectando con Google', 'Redirigiendo al servicio de autenticación...');
+
+                        // Redirigir después de mostrar la carga
+                        setTimeout(() => {
+                            console.log('Redirigiendo a Google');
+                            window.location.href = this.getAttribute('href');
+                        }, 500);
+                    });
+                }
+
+                // Botón de registro
+                const registerBtn = document.getElementById("guest-login-btn");
+                if (registerBtn) {
+                    console.log('Botón de registro encontrado');
+                    registerBtn.addEventListener("click", function (e) {
+                        e.preventDefault();
+                        showLoading('Redirigiendo al registro', 'Preparando formulario de registro...');
+                        setTimeout(() => {
+                            window.location.href = "/registro";
+                        }, 500);
+                    });
+                }
+
+                // Agregar console.log para depuración
+                console.log('Variables cargadas:', {
+                    loginForm: !!loginForm,
+                    loadingOverlay: !!loadingOverlay,
+                    googleLink: !!googleLink,
+                    registerBtn: !!registerBtn
+                });
+            });
+        </script>
 </body>
+
 </html>

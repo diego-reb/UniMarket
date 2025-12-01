@@ -421,7 +421,7 @@ def complete_registration():
         return redirect(url_for('vendedor'))
     else:
         return redirect(url_for('index'))
-        
+
 ##-------------------------------------fin_inicio_sesion google-------------------------------------------------------------------------------
 ##-----------------------------------inicio_sesion-------------------------------------------------------------------------------------
 login_manager = LoginManager()
@@ -473,7 +473,7 @@ def inicio_sesion():
 
         if usuario and not usuario.check_password(password):
             flash("Tu cuenta fue creada con Google. Restablece tu contraseña para iniciar sesión manualmente.", "error")
-            return redirect(url_for('restablecer_contraseña'))
+            return redirect(url_for('restablecer_contrasena'))
 
         if usuario and usuario.check_password(password):
 
@@ -509,7 +509,102 @@ def inicio_sesion():
     return render_template('iniciosesion.html')
 
 ##-----------------------------------fin_inicio_sesion-----------------------------------------------------------------------------------------------
+@app.route('/restablecer-contrasena')
+def restablecer_contrasena():
+    """Muestra el formulario para restablecer contraseña"""
+    return render_template('cambio_contrasena.html')
 
+@app.route('/restablecer-password-unificado', methods=['POST'])
+def procesar_restablecimiento():
+    """Procesa el restablecimiento de contraseña"""
+    try:
+        # Obtener datos del formulario
+        email = request.form.get('email', '').strip().lower()
+        new_password = request.form.get('new_password', '').strip()
+        confirm_password = request.form.get('confirm_password', '').strip()
+        
+        print(f"Procesando restablecimiento para: {email}")  # Para debugging
+        
+        # Validaciones básicas
+        if not email or not new_password or not confirm_password:
+            flash('Todos los campos son obligatorios', 'error')
+            return redirect(url_for('restablecer_contrasena'))
+        
+        # Verificar formato de email (ahora cualquier email válido)
+        import re
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            flash('Formato de correo electrónico inválido', 'error')
+            return redirect(url_for('restablecer_contrasena'))
+        
+        # Verificar que las contraseñas coincidan
+        if new_password != confirm_password:
+            flash('Las contraseñas no coinciden', 'error')
+            return redirect(url_for('restablecer_contrasena'))
+        
+        # Validar fortaleza de contraseña
+        if len(new_password) < 6:  # Cambiado a 6 caracteres mínimo
+            flash('La contraseña debe tener al menos 6 caracteres', 'error')
+            return redirect(url_for('restablecer_contrasena'))
+        
+        # Buscar usuario por email
+        usuario = Usuario.query.filter_by(correo=email).first()
+        
+        if not usuario:
+            flash('No existe una cuenta con ese correo electrónico', 'error')
+            return redirect(url_for('restablecer_contrasena'))
+        
+        # Verificar si el usuario está bloqueado
+        if usuario.bloqueo_hasta and usuario.bloqueo_hasta > datetime.now():
+            tiempo_restante = usuario.bloqueo_hasta - datetime.now()
+            minutos = int(tiempo_restante.total_seconds() / 60)
+            flash(f'Tu cuenta está bloqueada. Intenta nuevamente en {minutos} minutos', 'error')
+            return redirect(url_for('restablecer_contrasena'))
+        
+        # Verificar si el usuario está activo
+        if not usuario.estado:
+            flash('Tu cuenta está desactivada. Contacta al administrador', 'error')
+            return redirect(url_for('restablecer_contrasena'))
+        
+        # Verificar si la nueva contraseña es diferente a la actual
+        if check_password_hash(usuario.password, new_password):
+            flash('La nueva contraseña debe ser diferente a la actual', 'error')
+            return redirect(url_for('restablecer_contrasena'))
+        
+        # Actualizar la contraseña usando el método del modelo
+        usuario.set_password(new_password)
+        
+        # Reiniciar contadores de intentos fallidos si existían
+        usuario.intentos = 0
+        usuario.bloqueo_hasta = None
+        
+        # Guardar cambios en la base de datos
+        db.session.commit()
+        
+        print(f"Contraseña actualizada para usuario: {usuario.id_usuario}")  # Para debugging
+        
+        # Iniciar sesión automáticamente después de restablecer
+        login_user(usuario, remember=True)
+        
+        flash('¡Contraseña restablecida exitosamente! Has iniciado sesión.', 'success')
+        
+        # Redirigir según el rol del usuario
+        if usuario.id_rol == 1:
+            return redirect(url_for('Admin'))
+        elif usuario.id_rol == 2:
+            return redirect(url_for('vendedor'))
+        else:
+            return redirect(url_for('index'))
+            
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al restablecer contraseña: {str(e)}")  # Para debugging
+        flash(f'Error al restablecer la contraseña. Por favor, intenta nuevamente.', 'error')
+        return redirect(url_for('restablecer_contrasena'))
+        
+@app.route('/olvide-contrasena')
+def olvide_contrasena():
+    """Redirige al formulario de restablecimiento"""
+    return redirect(url_for('restablecer_contrasena'))
 ##-----------------------------------cerrar_sesion-------------------------------------------------------------------------------------
 @app.route('/logout')
 @login_required

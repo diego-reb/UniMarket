@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecer Contraseña - UniMarket</title>
+    <style>
+        /* ================= VARIABLES ================= */
+        :root{
+            --bg: #1A1D2B;             
+            --card: #1F2333;           
+            --muted: #9CA3AF;          
+            --text: #E0E2E5;           
+            --brand: #33C695;          /* Verde/Cyan */
+            --brand-2: #0080ff;        /* Azul */
+            --error: #EF4444;          /* Rojo */
+            --success: #10B981;        /* Verde éxito */
+            --separador: #303544;      
+            --radius: 8px;
+            --shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 1. Estilos Globales y Layout */
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            /* Layout centrado */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .recovery-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--card);
+            padding: 40px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        /* 2. Header y Logo */
+        .header-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .logo-badge {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            box-shadow: 0 4px 10px rgba(0,0,0,.3);
+        }
+
+        .logo-badge h1 {
+            color: var(--bg);
+            font-size: 24px;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .recovery-container p {
+            color: var(--muted);
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+
+        /* 3. Estilos del Formulario */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--separador);
+            border-radius: 6px;
+            background-color: var(--bg);
+            color: var(--text);
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--brand);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            background-color: var(--brand);
+            color: var(--bg);
+            border: none;
+            padding: 14px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            background-color: #4CD1A6; 
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 25px;
+            color: var(--muted);
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--brand-2);
+        }
+
+        /* 4. Estilos para mensajes flash */
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash-message {
+            padding: 12px 20px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-align: left;
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .flash-error {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--error);
+            color: var(--error);
+        }
+
+        .flash-success {
+            background-color: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--success);
+            color: var(--success);
+        }
+
+        .flash-close {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .flash-close:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hiding {
+            animation: slideOut 0.3s ease-out forwards;
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="recovery-container">
+        <div class="header-logo">
+            <div class="logo-badge">
+                <h1>U</h1>
+            </div>
+            <h1 style="color: var(--text); font-size: 28px;">UniMarket</h1>
+        </div>
+
+        <h2>Restablecer Contraseña</h2>
+        <p>Introduce tu correo electrónico y establece tu nueva contraseña.</p>
+
+        <!-- Mensajes Flash -->
+        <div class="flash-messages" id="flashContainer">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}" data-category="{{ category }}">
+                            <span>{{ message }}</span>
+                            <button class="flash-close" aria-label="Cerrar mensaje">&times;</button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <form action="/restablecer-password-unificado" method="POST" id="resetForm">
+            
+            <div class="form-group">
+                <label for="email">Correo Electrónico</label>
+                <input type="email" id="email" name="email" placeholder="tu@email.com" required>
+            </div>
+            
+            <hr style="border: 0; height: 1px; background: var(--separador); margin: 30px 0;">
+
+            <p style="margin: -10px 0 20px; font-size: 14px; color: var(--text);">Establece tu nueva clave de acceso:</p>
+
+            <div class="form-group">
+                <label for="new-password">Nueva Contraseña (mínimo 6 caracteres)</label>
+                <input type="password" id="new-password" name="new_password" required minlength="6">
+            </div>
+
+            <div class="form-group">
+                <label for="confirm-password">Confirmar Nueva Contraseña</label>
+                <input type="password" id="confirm-password" name="confirm_password" required minlength="6">
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn">Restablecer Contraseña y Acceder</button>
+        </form>
+
+        <a href="/inicio_sesion" class="back-link">← Volver al Inicio de Sesión</a>
+    </div>
+
+    <script>
+        // Manejo de mensajes flash
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar temporizador para mensajes flash (8 segundos)
+            const flashMessages = document.querySelectorAll('.flash-message');
+            
+            flashMessages.forEach(message => {
+                // Agregar funcionalidad al botón de cerrar
+                const closeBtn = message.querySelector('.flash-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        hideFlashMessage(message);
+                    });
+                }
+                
+                // Configurar temporizador automático de 8 segundos
+                setTimeout(() => {
+                    hideFlashMessage(message);
+                }, 8000);
+            });
+            
+            // Función para ocultar mensajes flash con animación
+            function hideFlashMessage(messageElement) {
+                if (!messageElement.classList.contains('hiding')) {
+                    messageElement.classList.add('hiding');
+                    
+                    // Remover el elemento del DOM después de la animación
+                    setTimeout(() => {
+                        if (messageElement.parentNode) {
+                            messageElement.parentNode.removeChild(messageElement);
+                        }
+                    }, 300);
+                }
+            }
+            
+            // También permitir cerrar al hacer clic en cualquier parte del mensaje
+            flashMessages.forEach(message => {
+                message.addEventListener('click', function(e) {
+                    // Solo cerrar si no se hizo clic en el botón de cerrar
+                    if (!e.target.classList.contains('flash-close')) {
+                        hideFlashMessage(message);
+                    }
+                });
+            });
+
+            // Validación del formulario antes de enviar
+            document.getElementById('resetForm').addEventListener('submit', function(e) {
+                const email = document.getElementById('email').value;
+                const newPassword = document.getElementById('new-password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                const submitBtn = document.getElementById('submitBtn');
+                
+                // Validar formato de email
+                const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                if (email && !emailRegex.test(email)) {
+                    e.preventDefault();
+                    alert('Por favor, introduce un correo electrónico válido');
+                    return false;
+                }
+                
+                // Validar que las contraseñas coincidan
+                if (newPassword !== confirmPassword) {
+                    e.preventDefault();
+                    alert('Las contraseñas no coinciden');
+                    return false;
+                }
+                
+                // Validar longitud mínima
+                if (newPassword.length < 6) {
+                    e.preventDefault();
+                    alert('La contraseña debe tener al menos 6 caracteres');
+                    return false;
+                }
+                
+                // Deshabilitar el botón para evitar múltiples envíos
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Procesando...';
+            });
+        });
+    </script>
+</body>
+</html>
