@@ -707,7 +707,7 @@
     
 <script>
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    let chatHistory = []; // Guardará la conversación mientras la página esté abierta
+    let chatHistory = []; 
 
     function updateBadge() {
         const badge = document.getElementById('cartBadge');
@@ -755,7 +755,6 @@
         }
     });
 
-    /* ================= CHATBOT ================= */
     const botBtn = document.getElementById('botBtn');
     const chatModalOverlay = document.getElementById('chatModalOverlay');
     const closeChatBtn = document.getElementById('closeChatBtn');
@@ -790,7 +789,6 @@
     async function getBotResponse(userMessage) {
         showTyping();
 
-        // Guardamos el mensaje del usuario
         chatHistory.push({ role: 'user', content: userMessage });
 
         try {
@@ -837,6 +835,91 @@
     chatModalOverlay.addEventListener("click", (e) => {
         if (e.target === chatModalOverlay) chatModalOverlay.style.display = "none";
     });
+
+    // ================= FILTRADO Y BÚSQUEDA CORREGIDO =================
+    
+    // 1. Manejar clics en categorías
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Remover active de todos
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            // Agregar active al clickeado
+            this.classList.add('active');
+            
+            // Filtrar productos
+            aplicarFiltros();
+        });
+    });
+
+    // 2. Manejar búsqueda
+    const searchInput = document.getElementById('search');
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            aplicarFiltros();
+        }, 300);
+    });
+
+    // 3. Función principal de filtrado
+    function aplicarFiltros() {
+        const activeTab = document.querySelector('.tab.active');
+        const categoryFilter = activeTab ? activeTab.getAttribute('data-filter') : 'todos';
+        const searchTerm = searchInput.value.toLowerCase();
+        
+        const products = document.querySelectorAll('.card');
+        
+        products.forEach(product => {
+            const productName = product.getAttribute('data-name').toLowerCase();
+            const productCategory = product.getAttribute('data-category');
+            
+            // Buscar también en la descripción (si está disponible)
+            const productDesc = product.querySelector('.meta:nth-of-type(2)')?.textContent.toLowerCase() || '';
+            const productVendor = product.querySelector('.meta:nth-of-type(1)')?.textContent.toLowerCase() || '';
+            
+            // Verificar categoría
+            const categoryMatch = categoryFilter === 'todos' || productCategory === categoryFilter;
+            
+            // Verificar búsqueda
+            let searchMatch = true;
+            if (searchTerm) {
+                searchMatch = productName.includes(searchTerm) || 
+                             productDesc.includes(searchTerm) || 
+                             productVendor.includes(searchTerm);
+            }
+            
+            // Mostrar/ocultar producto
+            if (categoryMatch && searchMatch) {
+                product.style.display = 'flex';
+            } else {
+                product.style.display = 'none';
+            }
+        });
+    }
+
+    // 4. Inicializar filtros al cargar la página
+    window.addEventListener('DOMContentLoaded', () => {
+        aplicarFiltros();
+    });
+
+    // 5. Carrusel automático
+    let currentSlide = 0;
+    const carouselTrack = document.getElementById('carouselTrack');
+    const slides = document.querySelectorAll('.carousel-slide');
+    
+    if (slides.length > 0) {
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            carouselTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+        
+        // Cambiar slide cada 5 segundos
+        setInterval(nextSlide, 5000);
+    }
+
+    // 6. Año actual en footer
+    document.getElementById('year').textContent = new Date().getFullYear();
 </script>
 
 

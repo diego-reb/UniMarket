@@ -424,6 +424,7 @@
             Asistente UniMarket 
             <button id="closeChatBtn" aria-label="Cerrar chat">&times;</button>
         </div>
+        <div class="chat-body" id="chatBody"></div>
         <div class="chat-input-area">
             <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." aria-label="Campo de mensaje">
             <button id="sendChatBtn">Enviar</button>
@@ -431,128 +432,135 @@
     </div>
 </div>
 
-
 <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
+let chatHistory = [];
+const initialBotMessage = "¡Hola! Soy UniBot, tu asistente para el dashboard de vendedor 🤖. Puedo ayudarte a gestionar tus productos, procesar pedidos y revisar tu historial de ventas. ¿En qué necesitas ayuda hoy?";
 
-    // 🆕 Nuevo: Array para almacenar el historial de conversación (memoria)
-    let chatHistory = [];
-    // 💬 Mensaje inicial específico para el vendedor
-    const initialBotMessage = "¡Hola! Soy UniBot, tu asistente para el dashboard de vendedor 🤖. Puedo ayudarte a gestionar tus productos, procesar pedidos y revisar tu historial de ventas. ¿En qué necesitas ayuda hoy?";
+// Referencias del Chat
+const botBtn = document.getElementById('botBtn');
+const chatModalOverlay = document.getElementById('chatModalOverlay');
+const closeChatBtn = document.getElementById('closeChatBtn');
+const chatBody = document.getElementById('chatBody');
+const chatInput = document.getElementById('chatInput');
+const sendChatBtn = document.getElementById('sendChatBtn');
 
-    // --- Referencias del Chat ---
-    const botBtn = document.getElementById('botBtn');
-    const chatModalOverlay = document.getElementById('chatModalOverlay');
-    const closeChatBtn = document.getElementById('closeChatBtn');
-    const chatBody = document.getElementById('chatBody');
-    const chatInput = document.getElementById('chatInput');
-    const sendChatBtn = document.getElementById('sendChatBtn');
-
-    // Inicializar el mensaje de bienvenida al cargar el chat
-    function initializeChat() {
-        // Solo agrega el mensaje inicial si no hay mensajes.
-        if (chatBody.children.length === 0) {
-            appendMessage(initialBotMessage, 'bot');
-            // ⚠️ NOTA: El primer mensaje del bot es contexto puro, no es una respuesta directa 
-            // a una pregunta del usuario, por lo que no lo agregamos al historial
-            // para no complicar el prompt de Flask. Se agregará una vez que el usuario pregunte.
-        }
+// Inicializar el chat
+function initializeChat() {
+    if (chatBody.children.length === 0) {
+        appendMessage(initialBotMessage, 'bot');
     }
+}
 
+// Función para mostrar mensajes
+function appendMessage(text, sender) {
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', `${sender}-message`);
+    messageDiv.innerHTML = text.replace(/\n/g, '<br>');
+    chatBody.appendChild(messageDiv);
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
 
-    // Función para mostrar mensajes en el chat
-    function appendMessage(text, sender) {
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('message', `${sender}-message`);
-        messageDiv.innerHTML = text.replace(/\n/g, '<br>'); 
-        chatBody.appendChild(messageDiv);
-        chatBody.scrollTop = chatBody.scrollHeight;
-    }
+// Función para mostrar "escribiendo..."
+function showTyping() {
+    const typingDiv = document.createElement('div');
+    typingDiv.id = 'typingIndicator';
+    typingDiv.classList.add('message', 'bot-message');
+    typingDiv.textContent = 'Escribiendo...';
+    chatBody.appendChild(typingDiv);
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
 
-    // Función principal para llamar a la API de Flask
-    async function getBotResponse(userMessage) {
-        const CHAT_API_URL = "/api/chat_vendedor"; 
-        
-        // 🆕 1. Agregar el mensaje del usuario al historial
-        chatHistory.push({ role: 'user', parts: [{ text: userMessage }] });
-        
-        try {
-            appendMessage("Escribiendo...", 'bot');
-            
-            const response = await fetch(CHAT_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    // 🆕 2. Enviar el historial COMPLETO de conversación
-                    history: chatHistory
-                })
-            });
+// Función para remover "escribiendo..."
+function removeTyping() {
+    const typing = document.getElementById('typingIndicator');
+    if (typing) typing.remove();
+}
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.reply || `Error de red (${response.status})`);
-            }
-
-            const data = await response.json();
-            
-            // Remover el mensaje de carga
-            if (chatBody.lastElementChild && chatBody.lastElementChild.textContent === "Escribiendo...") {
-                chatBody.lastElementChild.remove();
-            }
-            
-            const botReply = data.reply || "No pude generar una respuesta. Intenta con otra pregunta.";
-            appendMessage(botReply, 'bot');
-            
-            // 🆕 3. Agregar la respuesta del bot al historial
-            chatHistory.push({ role: 'model', parts: [{ text: botReply }] });
-
-        } catch (error) {
-            console.error("Error en la llamada a la API:", error);
-            // Si falla, el último mensaje de usuario agregado (Paso 1) debe ser removido 
-            // o el error debe ser reportado sin corromper el historial. Por simplicidad, 
-            // lo dejamos así y reportamos el error.
-            if (chatBody.lastElementChild && chatBody.lastElementChild.textContent === "Escribiendo...") {
-                chatBody.lastElementChild.remove();
-            }
-            appendMessage(`Hubo un error: ${error.message}.`, 'bot');
-        }
-    }
+// Función principal para llamar a la API
+async function getBotResponse(userMessage) {
+    const CHAT_API_URL = "/api/chat_vendedor";
     
-    // Manejador de envío de mensaje
-    function sendMessageHandler() {
-        const message = chatInput.value.trim();
-        if (message === "") return;
+    // Mostrar indicador de escritura
+    showTyping();
+    
+    try {
+        const response = await fetch(CHAT_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: userMessage,  // Enviar el mensaje directamente
+                history: chatHistory   // Enviar historial
+            })
+        });
 
-        appendMessage(message, 'user');
-        chatInput.value = '';
+        removeTyping();
+
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const botReply = data.reply || "No pude generar una respuesta. Intenta con otra pregunta.";
         
-        getBotResponse(message);
+        // Agregar al historial
+        chatHistory.push({ 
+            role: 'user', 
+            parts: [{ text: userMessage }] 
+        });
+        chatHistory.push({ 
+            role: 'model', 
+            parts: [{ text: botReply }] 
+        });
+        
+        appendMessage(botReply, 'bot');
+
+    } catch (error) {
+        removeTyping();
+        console.error("Error en la llamada a la API:", error);
+        appendMessage(`⚠️ Error: No se pudo conectar con el asistente.`, 'bot');
     }
+}
 
-    // Eventos del chat
-    sendChatBtn.addEventListener('click', sendMessageHandler);
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendMessageHandler();
-    }
-    );
+// Manejador de envío de mensaje
+function sendMessageHandler() {
+    const message = chatInput.value.trim();
+    if (message === "") return;
 
-    // Abrir/Cerrar Chat
-    botBtn.addEventListener('click', () => {
-        chatModalOverlay.style.display = 'flex';
-        initializeChat(); // Llama a la inicialización al abrir
-    });
+    appendMessage(message, 'user');
+    chatInput.value = '';
+    
+    getBotResponse(message);
+}
 
-    closeChatBtn.addEventListener('click', () => {
+// Eventos del chat
+sendChatBtn.addEventListener('click', sendMessageHandler);
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessageHandler();
+});
+
+// Abrir/Cerrar Chat
+botBtn.addEventListener('click', () => {
+    chatModalOverlay.style.display = 'flex';
+    initializeChat();
+});
+
+closeChatBtn.addEventListener('click', () => {
+    chatModalOverlay.style.display = 'none';
+});
+
+chatModalOverlay.addEventListener('click', (e) => {
+    if (e.target === chatModalOverlay) {
         chatModalOverlay.style.display = 'none';
-    });
-    
-    // Cierre del chat al hacer clic en el fondo oscuro
-    chatModalOverlay.addEventListener('click', (e) => {
-        if (e.target === chatModalOverlay) {
-            chatModalOverlay.style.display = 'none';
-        }
-    });
+    }
+});
 
+// Inicializar cuando se carga la página
+document.addEventListener('DOMContentLoaded', () => {
+    // Asegurarse de que el chat body esté limpio
+    if (chatBody) {
+        chatBody.innerHTML = '';
+    }
+});
     // ⚠️ ATENCIÓN: La siguiente línea debe ser eliminada del HTML:
     // <div class="message bot-message">¡Hola! Soy tu asistente para el dashboard de vendedor. [...]</div>
     // Ya que ahora se inicializa vía JavaScript.

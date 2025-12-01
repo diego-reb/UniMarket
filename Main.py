@@ -208,6 +208,7 @@ Si la pregunta del usuario es sobre un tema que **NO** está cubierto por estas 
 @app.route('/api/chat', methods=['POST'])
 def chat_api():
     import time
+    import re
 
     data = request.json
     user_message = data.get("message")
@@ -216,6 +217,39 @@ def chat_api():
     if not user_message:
         return jsonify({"reply": "⚠️ El mensaje está vacío."}), 400
 
+    
+    unimarket_keywords = [
+        'registro', 'registrarse', 'cuenta', 'login', 'inicio de sesión', 'sesión', 'perfil', 
+        'comprador', 'vendedor', 'dashboard', 'verificación', 'captcha',
+        
+        'comprar', 'compra', 'pedido', 'orden', 'carrito', 'agregar', 'pagar', 
+        'método de pago', 'mercadopago', 'efectivo', 'entrega', 'horario',
+        
+        'vender', 'venta', 'publicar', 'producto', 'subir', 'inventario', 'stock',
+        
+        'producto', 'productos', 'categoría', 'categorías', 'maquillaje', 'comida',
+        'ropa', 'dulcería', 'snacks', 'uniformes', 'sudaderas', 'accesorios',
+        
+        'entrega', 'entregar', 'punto de entrega', 'horario', 'matutino', 'vespertino',
+        'cafetería', 'duela', 'prefectura', 'dirección', 'torniquetes',
+        
+        'cancelación', 'cancelar', 'devolución', 'devolver', 'política', 'términos',
+        'suspensión', 'penalización', 'no-show', 'falta', 'seguridad',
+        
+        'unimarket', 'plataforma', 'funcionamiento', 'cómo funciona', 'ayuda',
+        'soporte', 'asistente', 'unibot', 'chatbot', 'itiz', 'campus'
+    ]
+    
+    message_lower = user_message.lower()
+    message_lower = re.sub(r'[^\w\sáéíóúüñ]', '', message_lower)
+    
+    is_unimarket_related = any(keyword in message_lower for keyword in unimarket_keywords)
+    
+    if not is_unimarket_related:
+        return jsonify({
+            "reply": "Lo siento, mi función es estrictamente asistirte con preguntas sobre el mercado universitario UniMarket y sus políticas de venta/entrega. No tengo información sobre ese tema."
+        })
+
     MODEL_NAME = "gemini-2.5-flash"
     API_KEY = os.environ.get("GEMINI_API_KEY")
     if not API_KEY:
@@ -223,9 +257,21 @@ def chat_api():
 
     API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent?key={API_KEY}"
 
+    prompt = f"""
+    {UNIBOT_TRAINING}
+    
+    Pregunta del usuario: {user_message}
+    
+    Recuerda: Si la pregunta NO está cubierta por la base de conocimiento, responde EXCLUSIVAMENTE:
+    "Lo siento, mi función es estrictamente asistirte con preguntas sobre el mercado universitario UniMarket y sus políticas de venta/entrega. No tengo información sobre ese tema."
+    """
+    
     payload = {
-        "contents": chat_history + [{"role": "user", "parts": [{"text": user_message}]}],
-        "generationConfig": {"temperature": 0.7}
+        "contents": chat_history + [{"role": "user", "parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.7,
+            "maxOutputTokens": 500
+        }
     }
 
     max_retries = 2
@@ -248,7 +294,7 @@ def chat_api():
         except requests.exceptions.RequestException as e:
             print(f"Intento {attempt+1} fallido:", e)
             if attempt < max_retries:
-                time.sleep(2)  # espera antes de reintentar
+                time.sleep(2)
             else:
                 return jsonify({"reply": "⚠️ Lo siento, no se pudo conectar con el chatbot. Intenta más tarde."}), 500
 
@@ -1013,57 +1059,68 @@ def pedidos_vendedor():
         })
 
     return jsonify(pedidos_list)
-
 @app.route('/api/chat_vendedor', methods=['POST'])
 def chat_api_vendedor():
     import time
     import requests
     import os
+    import json
     from flask import request, jsonify
 
     data = request.json
     user_message = data.get("message")
+    history = data.get("history", [])
     
-    if not user_message:
-        return jsonify({"reply": "⚠️ El mensaje está vacío."}), 400
+    if not user_message and history:
+        for msg in reversed(history):
+            if msg.get("role") == "user" and msg.get("parts"):
+                user_message = msg["parts"][0].get("text", "")
+                break
+    
+    if not user_message or user_message.strip() == "":
+        return jsonify({"reply": "⚠️ No se recibió un mensaje válido."}), 400
 
     MODEL_NAME = "gemini-2.5-flash"
     API_KEY = os.environ.get("GEMINI_API_KEY")
     if not API_KEY:
-        return jsonify({"reply": "⚠️ No se encontró la clave del chatbot para el vendedor."}), 500
+        return jsonify({"reply": "⚠️ No se encontró la clave del chatbot."}), 500
 
     API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent?key={API_KEY}"
 
-    VENDOR_PROMPT = f"""
-    Eres un asistente especializado llamado UniBot para el panel de **vendedores** de UniMarket. 
-    Los usuarios que interactúan contigo son vendedores registrados en la plataforma ITIZ que gestionan sus productos y pedidos.
-    Tu rol es **ESTRICTO Y LIMITADO**: proporcionar información precisa ÚNICAMENTE sobre las funcionalidades del Dashboard de Vendedor.
+    SYSTEM_PROMPT = """Eres UniBot, el asistente especializado para vendedores de UniMarket. 
+    Tu función es ayudar EXCLUSIVAMENTE con:
+    1. Agregar productos
+    2. Editar productos  
+    3. Eliminar productos
+    4. Gestionar pedidos pendientes
+    5. Marcar pedidos como entregados
+    6. Ver historial de ventas
+    7. Navegación en el dashboard
+    
+    Si te preguntan sobre temas NO relacionados con el dashboard de vendedor, responde:
+    "Lo siento, mi función es estrictamente asistirte con preguntas sobre tu panel de vendedor de UniMarket (gestión de productos y pedidos). No tengo información sobre ese tema."
+    
+    Sé conciso y útil."""
 
-    ---
-    **BASE DE CONOCIMIENTO (NARRATIVAS DE RESPUESTA):**
-
-    1. Agregar productos: Para agregar un nuevo producto, ve a la sección 'Agregar productos', completa Nombre, Descripción, Cantidad, Costo y Categoría, sube la imagen (opcional), y haz clic en 'Guardar Producto'.
-    2. Editar productos: Para editar un producto, ve a 'Lista de productos', haz clic en 'Editar', modifica los campos necesarios en el modal (ventana emergente) y haz clic en 'Guardar Producto'.
-    3. Eliminar productos: Para eliminar un producto, ve a 'Lista de productos', haz clic en 'Eliminar' y confirma la acción.
-    4. Pedidos pendientes: En la sección 'Pedidos', verás el número de pedido, la información del Comprador (Nombre, Correo y Teléfono), productos comprados y el total. El siguiente paso es coordinar la entrega.
-    5. Marcar como entregado: Para finalizar una transacción, ve a 'Pedidos', identifica el pedido entregado y haz clic en 'Marcar como Entregado'. El pedido se moverá al 'Historial'.
-    6. Historial de entregas: En la sección 'Historial' puedes revisar todos los pedidos completados y sus detalles.
-    7. Navegación: El dashboard tiene un menú central con botones. Haz clic en 'Agregar productos', 'Lista de productos', 'Pedidos' o 'Historial' para cambiar de vista.
-    8. Sobre UniBot: Soy UniBot, tu asistente personal para el Dashboard de Vendedor 🤖. Puedo ayudarte con la gestión de productos y pedidos. **Lo que NO hago:** No tengo información sobre temas externos al dashboard.
-
-    ---
-    **REGLA DE RESTRICCIÓN ESTRICTA (IMPERATIVA):**
-
-    Si la pregunta del usuario es sobre un tema que NO está cubierto por esta BASE DE CONOCIMIENTO, **DEBES RESPONDER EXCLUSIVAMENTE**:
-
-    > **"Lo siento, mi función es estrictamente asistirte con preguntas sobre tu panel de vendedor de UniMarket (gestión de productos y pedidos). No tengo información sobre ese tema."**
-
-    **Pregunta del usuario a responder:** {user_message}
-    """
+    messages = []
+    
+    messages.append({"role": "user", "parts": [{"text": SYSTEM_PROMPT}]})
+    messages.append({"role": "model", "parts": [{"text": "Entendido. Soy UniBot, asistente para vendedores de UniMarket. ¿En qué puedo ayudarte hoy?"}]})
+    if history:
+        for msg in history:
+            if msg.get("role") == "user" and msg.get("parts"):
+                messages.append({"role": "user", "parts": [{"text": msg["parts"][0].get("text", "")}]})
+            elif msg.get("role") == "model" and msg.get("parts"):
+                messages.append({"role": "model", "parts": [{"text": msg["parts"][0].get("text", "")}]})
+    
+    messages.append({"role": "user", "parts": [{"text": user_message}]})
     
     payload = {
-        "contents": [{"role": "user", "parts": [{"text": VENDOR_PROMPT}]}],
-        "generationConfig": {"temperature": 0.7}
+        "contents": messages,
+        "generationConfig": {
+            "temperature": 0.7,
+            "maxOutputTokens": 500
+        }
     }
 
     max_retries = 2
@@ -1079,14 +1136,14 @@ def chat_api_vendedor():
                 content = candidates[0].get("content", {})
                 parts = content.get("parts", [])
                 if parts:
-                    reply = parts[0].get("text", reply)
+                    reply = parts[0].get("text", reply).strip()
 
             return jsonify({"reply": reply})
 
         except requests.exceptions.RequestException as e:
             print(f"Intento {attempt+1} fallido:", e)
             if attempt < max_retries:
-                time.sleep(2)  # espera antes de reintentar
+                time.sleep(2)
             else:
                 return jsonify({"reply": "⚠️ Lo siento, no se pudo conectar con el chatbot. Intenta más tarde."}), 500
 
