@@ -329,7 +329,6 @@ def google_callback():
         code=code
     )
 
-
     token_response = requests.post(
         token_url,
         headers=headers,
@@ -349,14 +348,14 @@ def google_callback():
 
     usuario = Usuario.query.filter_by(correo=correo).first()
     if not usuario:
-        session['nuevo_usuario']={
-            "nombre":nombre,
-            "correo":correo,
-            "telefono":'',
-            }
-        session['correo_google'] = email
+        session['nuevo_usuario'] = {
+            "nombre": nombre,
+            "correo": correo,
+            "telefono": '',
+        }
+        session['correo_google'] = correo  
         session['nombre_google'] = nombre
-        return redirect(url_for('choose_role'))
+        return redirect(url_for('choose_role'))  
 
 
     login_user(usuario)
@@ -368,7 +367,27 @@ def google_callback():
         return redirect(url_for('vendedor'))
     else:
         return redirect(url_for('index'))
+
+@app.route('/choose_role')
+def choose_role():
+    if 'nuevo_usuario' not in session:
+        return redirect(url_for('index'))
+    return render_template('Rol.html')  
+
+@app.route('/set_rol', methods=['POST'])
+def set_rol():
+    if 'nuevo_usuario' not in session:
+        return redirect(url_for('index'))
     
+    rol = request.form.get('rol')
+    
+    if rol not in ['2', '3']: 
+        flash("Rol inválido", "error")
+        return redirect(url_for('choose_role'))
+    
+    session['rol_elegido'] = int(rol)
+    return redirect(url_for('complete_registration'))
+
 @app.route('/complete_registration')
 def complete_registration():
     if 'nuevo_usuario' not in session or 'rol_elegido' not in session:
@@ -391,16 +410,18 @@ def complete_registration():
 
     login_user(usuario)
 
-    session.pop('nuevo_usuario')
-    session.pop('rol_elegido')
+    # Clean up session
+    session.pop('nuevo_usuario', None)
+    session.pop('rol_elegido', None)
+    session.pop('correo_google', None)
+    session.pop('nombre_google', None)
 
     flash("Registro completado y sesión iniciada", "login")
     if rol == 2:
         return redirect(url_for('vendedor'))
     else:
         return redirect(url_for('index'))
-
-
+        
 ##-------------------------------------fin_inicio_sesion google-------------------------------------------------------------------------------
 ##-----------------------------------inicio_sesion-------------------------------------------------------------------------------------
 login_manager = LoginManager()
