@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Checkout – UniMarket</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
-<script src="{{ url_for('static', filename='js/accesibilidad.js')}}"></script>
+<script src="{{ url_for('static', filename='JS/accesibilidad.js')}}"></script>
 <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD"></script>
 <style>
     body { font-family: Arial, sans-serif; background:#0f172a; color:#e5e7eb; padding:20px; }
@@ -192,7 +192,10 @@ function renderPayPalButtons() {
             return fetch('/capture-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderID: data.orderID })
+                body: JSON.stringify({ 
+                    orderID: data.orderID, 
+                    userEmail: '{{ current_user.email }}'  
+                })
             }).then(function(response) {
                 showLoading(false);
                 if (!response.ok) {

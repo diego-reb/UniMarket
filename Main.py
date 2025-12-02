@@ -622,7 +622,7 @@ def registro():
         telefono = request.form.get("phone")
         password = request.form.get("password")
         confirm_pass = request.form.get("confirm-password")
-        tipo_cuenta = request.form.get("tipo")  # Comprador o Vendedor
+        tipo_cuenta = request.form.get("tipo")  
 
         if not tipo_cuenta:
             flash("Debes seleccionar un tipo de cuenta (Comprador o Vendedor).")
@@ -663,7 +663,6 @@ def registro():
             db.session.add(nuevo_usuario)
             db.session.commit()
 
-            # 🔥 ENVIAR CORREO DESPUÉS DEL COMMIT
             token = s.dumps(correo, salt='email-confirm')
             confirm_url = url_for('confirmar_correo', token=token, _external=True)
 
@@ -1265,6 +1264,91 @@ def chat_api_vendedor():
 
 ##-------------------------------------------------------------fin_vendedor------------------------------------------------------------------
 ##-------------------------------------------------------------comprador-------------------------------------------------------------------------------------
+def notificar_vendedor(pedido):
+    """Notifica al vendedor por consola sobre un nuevo pedido."""
+    vendedor = Usuario.query.get(pedido.id_vendedor)
+    if vendedor:
+        print(f"🔔 NOTIFICACIÓN: Nuevo pedido #{pedido.id_pedido} (Metodo: {pedido.metodo_pago}) para el vendedor {vendedor.nombre} ({vendedor.correo}).")
+    return True
+
+def guardar_pedido(id_comprador, cart_data_json, metodo_pago, turno, horas, paypal_order_id=None):
+    """Guarda uno o más pedidos (uno por vendedor) y sus detalles en la BD."""
+    
+    try:
+        cart = json.loads(cart_data_json)
+    except Exception as e:
+        print(f"ERROR: Datos de carrito inválidos: {e}")
+        return None
+
+    productos_por_vendedor = defaultdict(list)
+    
+    for item in cart:
+        producto_db = Producto.query.get(item['id'])
+        if not producto_db:
+            print(f"Advertencia: Producto ID {item['id']} no encontrado.")
+            continue
+        
+        # Necesitas el ID del vendedor del producto
+        id_vendedor = producto_db.id_vendedor
+            
+        productos_por_vendedor[id_vendedor].append({
+            'producto_id': producto_db.id_producto,
+            'cantidad': item['quantity'],
+            'precio_unitario': float(producto_db.precio),
+            'subtotal': float(producto_db.precio) * item['quantity'],
+        })
+        
+    pedidos_guardados = []
+    
+    for id_vendedor, items in productos_por_vendedor.items():
+        try:
+            total_pedido = sum(item['subtotal'] for item in items)
+            
+            nuevo_pedido = Pedido(
+                id_comprador=id_comprador,
+                id_vendedor=id_vendedor, 
+                fecha=datetime.now(),
+                total=total_pedido,
+                estado='Pendiente',
+                metodo_pago=metodo_pago,
+                paypal_order_id=paypal_order_id, 
+                fecha_entrega=datetime.now().date(),
+                turno_entrega=turno,
+                horas_entrega=", ".join(horas)
+            )
+            db.session.add(nuevo_pedido)
+            db.session.flush() # Obtener el id_pedido
+
+            for item in items:
+                nuevo_detalle = DetallePedido(
+                    id_pedido=nuevo_pedido.id_pedido,
+                    id_producto=item['producto_id'],
+                    cantidad=item['cantidad'],
+                    precio_unitario=item['precio_unitario'],
+                    subtotal=item['subtotal']
+                )
+                db.session.add(nuevo_detalle)
+                
+                # Actualizar stock del producto
+                producto_db = Producto.query.get(item['producto_id'])
+                if producto_db and producto_db.stock >= item['cantidad']:
+                    producto_db.stock -= item['cantidad']
+                else:
+                    print(f"ALERTA DE STOCK: Stock insuficiente para producto {producto_db.nombre}")
+
+            db.session.commit()
+            pedidos_guardados.append(nuevo_pedido)
+            
+            # 3. Notificar al vendedor de este sub-pedido
+            notificar_vendedor(nuevo_pedido) 
+            
+        except Exception as e:
+            db.session.rollback()
+            print(f"ERROR CRÍTICO al guardar pedido para vendedor {id_vendedor}: {e}")
+            continue
+            
+    return pedidos_guardados
+
 def get_paypal_access_token():
     """
     Obtiene un token de acceso de PayPal para autenticar las llamadas a la API.
@@ -1273,7 +1357,7 @@ def get_paypal_access_token():
         print("ERROR: PAYPAL_CLIENT_ID o PAYPAL_CLIENT_SECRET no están configurados.")
         return None
         
-    auth_url = f"{PAYPAL_BASE_URL}/v1/oauth2/token"  # URL corregida
+    auth_url = f"{PAYPAL_BASE_URL}/v1/oauth2/token"  
     
     try:
         response = requests.post(
@@ -1287,10 +1371,10 @@ def get_paypal_access_token():
         )
         response.raise_for_status() 
         data = response.json()
-        print(f"✅ Token de acceso obtenido exitosamente")
+        print(f" Token de acceso obtenido exitosamente")
         return data.get('access_token')
     except requests.exceptions.RequestException as e:
-        print(f"❌ Error al obtener el token de PayPal: {e}")
+        print(f" Error al obtener el token de PayPal: {e}")
         if hasattr(e, 'response') and e.response:
             print(f"Respuesta de error: {e.response.text}")
         return None
@@ -1300,84 +1384,94 @@ def get_paypal_access_token():
 def comprador():
     return render_template('compra.html', paypal_client_id=PAYPAL_CLIENT_ID)
 
-@app.route('/create-order', methods=['POST'])
-@login_required
-def create_order():
+def enviar_correo_entrega(user_email, order_details):
     """
-    Ruta llamada por el frontend para crear una orden de PayPal.
+    Envía un correo de confirmación de entrega al usuario
     """
     try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No se recibieron datos'}), 400
-            
-        total_amount = data.get('total', '10.00')
-
-        # Validar que el total sea un número válido
-        try:
-            amount_float = float(total_amount)
-            if amount_float <= 0:
-                return jsonify({'error': 'El monto debe ser mayor a 0'}), 400
-        except ValueError:
-            return jsonify({'error': 'Monto inválido'}), 400
-
-        print(f"🔄 Creando orden de PayPal por: ${total_amount}")
-
-        access_token = get_paypal_access_token()
-        if not access_token:
-            return jsonify({'error': 'No se pudo autenticar con PayPal. Verifica tus credenciales.'}), 500
-
-        order_data = {
-            "intent": "CAPTURE",
-            "purchase_units": [{
-                "amount": {
-                    "currency_code": "USD", 
-                    "value": total_amount
-                },
-                "description": "Compra en UniMarket"
-            }],
-            "application_context": {
-                "brand_name": "UniMarket",
-                "return_url": url_for('pago_exitoso', _external=True),
-                "cancel_url": url_for('comprador', _external=True)
-            }
-        }
-
-        create_url = f"{PAYPAL_BASE_URL}/v2/checkout/orders"
+        subject = "¡Tu pedido en UniMarket ha sido procesado!"
         
-        print(f"📤 Enviando solicitud a PayPal...")
-        response = requests.post(
-            create_url,
-            headers={
-                'Content-Type': 'application/json',
-                'Authorization': f'Bearer {access_token}',
-            },
-            json=order_data,
-            timeout=30
+        html_body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Confirmación de Pedido - UniMarket</title>
+            <style>
+                body {{ font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; }}
+                .header {{ background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                .content {{ background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
+                .success-icon {{ color: #22c55e; font-size: 48px; margin-bottom: 20px; }}
+                .order-details {{ background: #f8fafc; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; }}
+                .footer {{ text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px; }}
+                .btn {{ display: inline-block; background: #22c55e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; margin-top: 20px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>UniMarket</h1>
+                    <p>Confirmación de Pedido</p>
+                </div>
+                <div class="content">
+                    <div style="text-align: center;">
+                        <div class="success-icon">✓</div>
+                        <h2>¡Pedido Confirmado!</h2>
+                        <p>Hemos recibido tu pedido y está siendo procesado.</p>
+                    </div>
+                    
+                    <div class="order-details">
+                        <h3>Detalles del Pedido:</h3>
+                        <p><strong>ID de Orden:</strong> {order_details.get('order_id', 'N/A')}</p>
+                        <p><strong>Fecha:</strong> {order_details.get('date', 'N/A')}</p>
+                        <p><strong>Total:</strong> ${order_details.get('amount', '0.00')} USD</p>
+                        <p><strong>Estado:</strong> <span style="color: #22c55e;">Pagado y Procesando</span></p>
+                    </div>
+                    
+                    <div>
+                        <h3>Próximos Pasos:</h3>
+                        <ol>
+                            <li>Tu pedido está siendo preparado para envío</li>
+                            <li>Recibirás una notificación cuando sea despachado</li>
+                            <li>Tiempo estimado de entrega: 1 día hábil</li>
+                        </ol>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <p>¿Tienes preguntas sobre tu pedido?</p>
+                        <p>Contáctanos: soporte@unimarket.com</p>
+                    </div>
+                </div>
+                
+                <div class="footer">
+                    <p>© 2024 UniMarket. Todos los derechos reservados.</p>
+                    <p>Este es un correo automático, por favor no responder.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        msg = Message(
+            subject=subject,
+            recipients=[user_email],
+            html=html_body
         )
         
-        if response.status_code != 201:
-            error_detail = response.json() if response.content else 'Sin detalles'
-            print(f"❌ Error PayPal API: {response.status_code} - {error_detail}")
-            return jsonify({'error': f'Error de PayPal: {response.status_code}'}), 500
-            
-        order = response.json()
-        print(f"✅ Orden creada exitosamente - ID: {order.get('id')}")
+        mail.send(msg)
+        print(f"✅ Correo de confirmación enviado a {user_email}")
+        return True
         
-        return jsonify(order), 201
-        
-    except requests.exceptions.RequestException as e:
-        print(f"❌ Error de conexión con PayPal: {e}")
-        return jsonify({'error': 'Error de conexión con PayPal'}), 500
     except Exception as e:
-        print(f"❌ Error inesperado en create-order: {e}")
-        return jsonify({'error': 'Error interno del servidor'}), 500
+        print(f"❌ Error al enviar correo: {e}")
+        return False
 
 @app.route('/capture-order', methods=['POST'])
 @login_required
 def capture_order():
     """
-    Ruta llamada por el frontend para capturar el pago de PayPal.
+    Ruta llamada por el frontend para capturar el pago de PayPal y registrar la orden.
     """
     try:
         data = request.get_json()
@@ -1385,7 +1479,11 @@ def capture_order():
             return jsonify({'error': 'No se recibieron datos'}), 400
             
         order_id = data.get('orderID')
-
+        user_email = data.get('userEmail')
+        cart_data = data.get('cartData') 
+        turno = data.get('turno')
+        horas = data.get('horas')
+        
         if not order_id:
             return jsonify({'error': 'ID de orden faltante'}), 400
 
@@ -1413,12 +1511,34 @@ def capture_order():
             return jsonify({'error': f'Error al procesar pago: {response.status_code}'}), 500
             
         capture_data = response.json()
+        pedidos_guardados = []
 
-        # Aquí puedes guardar la información de la transacción en tu BD
         if capture_data.get('status') == 'COMPLETED':
             print(f"✅ Pago COMPLETADO - ID: {capture_data['id']}")
-            # Guardar en base de datos, enviar email, etc.
             
+            pedidos_guardados = guardar_pedido(
+                id_comprador=current_user.id_usuario,
+                cart_data_json=cart_data, 
+                metodo_pago='paypal', 
+                turno=turno, 
+                horas=horas if isinstance(horas, list) else [horas],
+                paypal_order_id=order_id
+            )
+
+            if user_email and pedidos_guardados:
+                from datetime import datetime
+                total_pagado = sum(p.total for p in pedidos_guardados)
+                
+                order_details = {
+                    'order_id': order_id,
+                    'date': datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    'amount': "{:.2f}".format(total_pagado)
+                }
+                
+                enviar_correo_entrega(user_email, order_details)
+            else:
+                print("⚠️ No se pudo guardar el pedido o enviar correo de confirmación.")
+        
         return jsonify(capture_data)
         
     except requests.exceptions.RequestException as e:
@@ -1426,6 +1546,7 @@ def capture_order():
         return jsonify({'error': 'Error al procesar el pago'}), 500
     except Exception as e:
         print(f"❌ Error inesperado en capture-order: {e}")
+        print(traceback.format_exc())
         return jsonify({'error': 'Error interno del servidor'}), 500
 
 @app.route('/pago-exitoso')
@@ -1442,13 +1563,18 @@ def pago_exitoso():
             .container { max-width: 500px; margin: 100px auto; background: #111827; padding: 40px; border-radius: 16px; }
             .success { color: #22c55e; font-size: 48px; margin-bottom: 20px; }
             .btn { background: #22c55e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 20px; }
+            .email-notice { background: #1e3a8a; padding: 15px; border-radius: 8px; margin: 20px 0; }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="success">✓</div>
             <h1>¡Pago Completado Exitosamente!</h1>
-            <p>Tu compra ha sido procesada correctamente.</p>
+            <div class="email-notice">
+                <h3>📧 Correo de Confirmación</h3>
+                <p>Hemos enviado un correo de confirmación a tu dirección de email con los detalles de tu pedido.</p>
+                <p>Por favor, revisa tu bandeja de entrada (y spam).</p>
+            </div>
             <a href="/" class="btn">Volver a Comprar</a>
         </div>
     </body>
@@ -1466,14 +1592,27 @@ def procesar_compra():
         metodo_pago = request.form.get('pago')
         turno = request.form.get('turno')
         horas = request.form.getlist('horas')
-        
+        user_email = request.form.get('userEmail', current_user.email)  
+
         print(f"✅ Procesando compra con {metodo_pago}")
-        print(f"📅 Turno: {turno}")
-        print(f"⏰ Horas: {horas}")
-        print(f"🛒 Carrito: {cart_data}")
-        
-        # Aquí procesas la compra según el método de pago
-        # Guardar en base de datos, etc.
+        print(f"📧 Email del usuario: {user_email}")
+        pedidos_guardados = guardar_pedido(
+            id_comprador=current_user.id_usuario,
+            cart_data_json=cart_data, 
+            metodo_pago=metodo_pago, 
+            turno=turno, 
+            horas=horas
+        )
+        if user_email:
+            from datetime import datetime
+            
+            order_details = {
+                'order_id': f"ORD-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                'date': datetime.now().strftime("%d/%m/%Y %H:%M"),
+                'amount': "10.00"  
+            }
+            
+            enviar_correo_entrega(user_email, order_details)
         
         return f"""
         <!DOCTYPE html>
@@ -1485,6 +1624,7 @@ def procesar_compra():
                 .container {{ max-width: 500px; margin: 100px auto; background: #111827; padding: 40px; border-radius: 16px; }}
                 .success {{ color: #22c55e; font-size: 48px; margin-bottom: 20px; }}
                 .btn {{ background: #22c55e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 20px; }}
+                .email-notice {{ background: #1e3a8a; padding: 15px; border-radius: 8px; margin: 20px 0; }}
             </style>
         </head>
         <body>
@@ -1492,6 +1632,10 @@ def procesar_compra():
                 <div class="success">✓</div>
                 <h1>¡Compra Procesada Exitosamente!</h1>
                 <p>Método de pago: {metodo_pago.title()}</p>
+                <div class="email-notice">
+                    <h3>📧 Correo de Confirmación</h3>
+                    <p>Hemos enviado un correo de confirmación a {user_email}</p>
+                </div>
                 <p>Tu pedido ha sido recibido y está siendo procesado.</p>
                 <a href="/compra" class="btn">Volver a Comprar</a>
             </div>
@@ -1502,8 +1646,6 @@ def procesar_compra():
     except Exception as e:
         print(f"❌ Error en procesar_compra: {e}")
         return "Error al procesar la compra", 500
-
-# Ruta para verificar la configuración
 @app.route('/config')
 def config():
     """Ruta para verificar la configuración de PayPal"""
