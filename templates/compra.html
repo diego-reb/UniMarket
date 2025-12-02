@@ -1,269 +1,334 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Checkout – UniMarket</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
-<script src="{{ url_for('static', filename='JS/accesibilidad.js')}}"></script>
-<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD"></script>
-<style>
-    body { font-family: Arial, sans-serif; background:#0f172a; color:#e5e7eb; padding:20px; }
-    .container { max-width:600px; margin:auto; background:#111827; padding:20px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.35);}
-    h1 { text-align:center; color:#22c55e;}
-    label { display:block; margin-top:15px; }
-    input, select { width:100%; padding:10px; margin-top:5px; border-radius:8px; border:1px solid #94a3b8; background:#1f2937; color:#e5e7eb;}
-    .btn { background:linear-gradient(135deg,#22c55e,#38bdf8); border:none; padding:12px; border-radius:12px; color:#111827; font-weight:800; width:100%; margin-top:20px; cursor:pointer;}
-    .btn-back { background:#ef4444; margin-top:10px; }
-    .btn:disabled { background:#64748b; cursor:not-allowed; }
-    .message { padding:10px; border-radius:8px; margin:10px 0; text-align:center; }
-    .hidden { display:none; }
-    #paypal-button-container { margin-top:20px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout – UniMarket</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
+    <script src="{{ url_for('static', filename='JS/accesibilidad.js')}}"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #e5e7eb;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #111827;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+        }
+
+        h1 {
+            text-align: center;
+            color: #22c55e;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 8px;
+            border: 1px solid #94a3b8;
+            background: #1f2937;
+            color: #e5e7eb;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #22c55e, #38bdf8);
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            color: #111827;
+            font-weight: 800;
+            width: 100%;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        .btn-back {
+            background: #ef4444;
+            margin-top: 10px;
+        }
+
+        .btn:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #paypal-button-container {
+            margin-top: 20px;
+        }
+    </style>
 </head>
+
 <body>
 
-<div class="container">
-    <h1>Finalizar Compra</h1>
+    <div class="container">
+        <h1>Finalizar Compra</h1>
 
-    <form id="checkoutForm" method="POST" action="/procesar_compra">
-        
-        <div id="cartSummary"></div>
+        <form id="checkoutForm" method="POST" action="/procesar_compra">
 
-        <label for="pago">Método de pago</label>
-        <select id="pago" name="pago" required>
-            <option value="tarjeta">Tarjeta</option>
-            <option value="efectivo">Efectivo</option>
-            <option value="paypal">PayPal</option>
-        </select>
+            <div id="cartSummary"></div>
 
-        <div id="tarjetaFields" class="hidden">
-            <label>Número de tarjeta</label>
-            <input type="text" name="tarjeta" placeholder="XXXX-XXXX-XXXX-XXXX" pattern="\d{4}-\d{4}-\d{4}-\d{4}">
-            
-            <label>CVV</label>
-            <input type="text" name="cvv" pattern="\d{3}" placeholder="123">
-        </div>
+            <label for="pago">Método de pago</label>
+            <select id="pago" name="pago" required>
+                <option value="tarjeta">Tarjeta</option>
+                <option value="efectivo">Efectivo</option>
+                <option value="paypal">PayPal</option>
+            </select>
 
-        <div id="paypal-container" class="hidden">
-            <div id="paypal-button-container"></div>
-            <div id="loading-message" class="message hidden">Procesando...</div>
-            <div id="status-message" class="message"></div>
-        </div>
+            <div id="tarjetaFields" class="hidden">
+                <label>Número de tarjeta</label>
+                <input type="text" name="tarjeta" placeholder="XXXX-XXXX-XXXX-XXXX" pattern="\d{4}-\d{4}-\d{4}-\d{4}">
 
-        <label for="turno">Turno</label>
-        <select id="turno" name="turno" required>
-            <option value="">-- Selecciona un turno --</option>
-            <option value="matutino">Matutino</option>
-            <option value="vespertino">Vespertino</option>
-        </select>
+                <label>CVV</label>
+                <input type="text" name="cvv" pattern="\d{3}" placeholder="123">
+            </div>
 
-        <label>Horas disponibles</label>
-        <div id="horasContainer">
-            <label data-turno="matutino"><input type="checkbox" name="horas" value="10:00"> 10:00</label>
-            <label data-turno="matutino"><input type="checkbox" name="horas" value="11:00"> 11:00</label>
-            <label data-turno="matutino"><input type="checkbox" name="horas" value="12:00"> 12:00</label>
-            <label data-turno="matutino"><input type="checkbox" name="horas" value="13:00"> 13:00</label>
+            <div id="paypal-container" class="hidden">
+                <div id="paypal-button-container"></div>
+                <div id="loading-message" class="message hidden">Procesando...</div>
+                <div id="status-message" class="message"></div>
+            </div>
 
-            <label data-turno="vespertino"><input type="checkbox" name="horas" value="14:00"> 14:00</label>
-            <label data-turno="vespertino"><input type="checkbox" name="horas" value="15:00"> 15:00</label>
-            <label data-turno="vespertino"><input type="checkbox" name="horas" value="16:00"> 16:00</label>
-            <label data-turno="vespertino"><input type="checkbox" name="horas" value="17:00"> 17:00</label>
-            <label data-turno="vespertino"><input type="checkbox" name="horas" value="18:00"> 18:00</label>
-        </div>
+            <label for="turno">Turno</label>
+            <select id="turno" name="turno" required>
+                <option value="">-- Selecciona un turno --</option>
+                <option value="matutino">Matutino</option>
+                <option value="vespertino">Vespertino</option>
+            </select>
 
-        <input type="hidden" id="cartData" name="cartData">
+            <label>Horas disponibles</label>
+            <div id="horasContainer">
+                <label data-turno="matutino"><input type="checkbox" name="horas" value="10:00"> 10:00</label>
+                <label data-turno="matutino"><input type="checkbox" name="horas" value="11:00"> 11:00</label>
+                <label data-turno="matutino"><input type="checkbox" name="horas" value="12:00"> 12:00</label>
+                <label data-turno="matutino"><input type="checkbox" name="horas" value="13:00"> 13:00</label>
 
-        <button type="submit" class="btn" id="confirmButton">Confirmar Compra</button>
-        <button type="button" class="btn btn-back" onclick="window.history.back()">Regresar</button>
-    </form>
-</div>
+                <label data-turno="vespertino"><input type="checkbox" name="horas" value="14:00"> 14:00</label>
+                <label data-turno="vespertino"><input type="checkbox" name="horas" value="15:00"> 15:00</label>
+                <label data-turno="vespertino"><input type="checkbox" name="horas" value="16:00"> 16:00</label>
+                <label data-turno="vespertino"><input type="checkbox" name="horas" value="17:00"> 17:00</label>
+                <label data-turno="vespertino"><input type="checkbox" name="horas" value="18:00"> 18:00</label>
+            </div>
 
-<script>
-const turnoSelect = document.getElementById('turno');
-const horasContainer = document.getElementById('horasContainer');
-const pagoSelect = document.getElementById('pago');
-const tarjetaFields = document.getElementById('tarjetaFields');
-const paypalContainer = document.getElementById('paypal-container');
-const confirmButton = document.getElementById('confirmButton');
-const summary = document.getElementById('cartSummary');
-const cartDataInput = document.getElementById('cartData');
-const loadingMessage = document.getElementById('loading-message');
-const statusMessage = document.getElementById('status-message');
+            <input type="hidden" id="cartData" name="cartData">
 
-let cartTotal = 0;
+            <button type="submit" class="btn" id="confirmButton">Confirmar Compra</button>
+            <button type="button" class="btn btn-back" onclick="window.history.back()">Regresar</button>
+        </form>
+    </div>
 
-// Funciones de utilidad
-function displayStatus(message, type = 'info') {
-    statusMessage.style.display = 'block';
-    statusMessage.textContent = message;
-    statusMessage.style.color = type === 'success' ? '#22c55e' : (type === 'error' ? '#ef4444' : '#38bdf8');
-}
+    <script>
+        const turnoSelect = document.getElementById('turno');
+        const horasContainer = document.getElementById('horasContainer');
+        const pagoSelect = document.getElementById('pago');
+        const tarjetaFields = document.getElementById('tarjetaFields');
+        const paypalContainer = document.getElementById('paypal-container');
+        const confirmButton = document.getElementById('confirmButton');
+        const summary = document.getElementById('cartSummary');
+        const cartDataInput = document.getElementById('cartData');
+        const loadingMessage = document.getElementById('loading-message');
+        const statusMessage = document.getElementById('status-message');
 
-function showLoading(show) {
-    loadingMessage.style.display = show ? 'block' : 'none';
-}
+        let cartTotal = 0;
 
-// Lógica del carrito
-function renderCartSummary() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    cartTotal = 0;
-
-    if (cart.length === 0) {
-        summary.innerHTML = '<p style="color:#f87171;">Tu carrito está vacío. No puedes continuar.</p>';
-        confirmButton.disabled = true;
-    } else {
-        let html = '<h3 style="color:#22c55e; margin-bottom:10px;">Resumen de compra</h3><ul style="list-style:disc; margin-left:20px;">';
-
-        cart.forEach(item => {
-            cartTotal += (item.price * item.quantity);
-            html += `<li>${item.name} – $${item.price.toFixed(2)} x ${item.quantity}</li>`;
-        });
-
-        html += `</ul><p style="margin-top:10px;"><strong>Total: $${cartTotal.toFixed(2)} USD</strong></p>`;
-        summary.innerHTML = html;
-        confirmButton.disabled = false;
-    }
-
-    cartDataInput.value = JSON.stringify(cart);
-}
-
-// Lógica de turnos y horas
-function actualizarHoras() {
-    const turno = turnoSelect.value;
-    document.querySelectorAll('#horasContainer label').forEach(label => {
-        const visible = label.dataset.turno === turno;
-        const input = label.querySelector('input');
-
-        label.style.display = visible ? 'block' : 'none';
-        input.disabled = !visible;
-        if (!visible) input.checked = false;
-    });
-}
-
-// Lógica de campos de pago
-function actualizarCamposPago() {
-    const metodo = pagoSelect.value;
-    
-    tarjetaFields.style.display = metodo === 'tarjeta' ? 'block' : 'none';
-    paypalContainer.style.display = metodo === 'paypal' ? 'block' : 'none';
-    confirmButton.style.display = metodo !== 'paypal' ? 'block' : 'none';
-    
-    statusMessage.style.display = 'none';
-    loadingMessage.style.display = 'none';
-}
-
-// Integración PayPal
-function renderPayPalButtons() {
-    if (typeof paypal === 'undefined') {
-        console.error('PayPal SDK no cargado');
-        return;
-    }
-
-    paypal.Buttons({
-        createOrder: function(data, actions) {
-            showLoading(true);
-            statusMessage.style.display = 'none';
-
-            return fetch('/create-order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ total: cartTotal.toFixed(2) })
-            }).then(function(response) {
-                showLoading(false);
-                if (!response.ok) {
-                    return response.json().then(error => {
-                        throw new Error(error.error || 'Fallo al crear la orden.');
-                    });
-                }
-                return response.json();
-            }).then(function(orderData) {
-                return orderData.id;
-            }).catch(function(error) {
-                console.error('Error en createOrder:', error);
-                displayStatus('Error: No se pudo iniciar el pago. ' + error.message, 'error');
-            });
-        },
-
-        onApprove: function(data, actions) {
-    showLoading(true);
-    displayStatus('Pago aprobado, confirmando transacción...', 'info');
-
-    // OBTENER EL CARRITO DEL LOCALSTORAGE
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    
-    // DEPURACIÓN: Ver qué hay en el carrito
-    console.log("📦 Carrito enviando a PayPal:", cart);
-    console.log("📦 Número de items:", cart.length);
-    
-    return fetch('/capture-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            orderID: data.orderID, 
-            cartData: cart,  // ¡IMPORTANTE: ENVIAR EL CARRITO!
-            userEmail: '{{ current_user.email }}'
-        })
-    }).then(function(response) {
-        showLoading(false);
-        if (!response.ok) {
-            return response.json().then(error => {
-                throw new Error(error.error || 'Fallo al capturar la orden.');
-            });
+        // Funciones de utilidad
+        function displayStatus(message, type = 'info') {
+            statusMessage.style.display = 'block';
+            statusMessage.textContent = message;
+            statusMessage.style.color = type === 'success' ? '#22c55e' : (type === 'error' ? '#ef4444' : '#38bdf8');
         }
-        return response.json();
-    }).then(function(captureData) {
-        if (captureData.status === 'COMPLETED') {
-            // Verificar si se crearon pedidos
-            if (captureData.pedidos_creados) {
-                console.log("✅ Pedidos creados:", captureData.pedidos_creados);
+
+        function showLoading(show) {
+            loadingMessage.style.display = show ? 'block' : 'none';
+        }
+
+        // Lógica del carrito
+        function renderCartSummary() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cartTotal = 0;
+
+            if (cart.length === 0) {
+                summary.innerHTML = '<p style="color:#f87171;">Tu carrito está vacío. No puedes continuar.</p>';
+                confirmButton.disabled = true;
+            } else {
+                let html = '<h3 style="color:#22c55e; margin-bottom:10px;">Resumen de compra</h3><ul style="list-style:disc; margin-left:20px;">';
+
+                cart.forEach(item => {
+                    cartTotal += (item.price * item.quantity);
+                    html += `<li>${item.name} – $${item.price.toFixed(2)} x ${item.quantity}</li>`;
+                });
+
+                html += `</ul><p style="margin-top:10px;"><strong>Total: $${cartTotal.toFixed(2)} USD</strong></p>`;
+                summary.innerHTML = html;
+                confirmButton.disabled = false;
             }
-            
-            localStorage.removeItem('cart');
-            displayStatus('¡Pago completado con éxito! ID: ' + captureData.id, 'success');
-            setTimeout(() => {
-                window.location.href = '/pago-exitoso';
-            }, 2000);
-        } else {
-            displayStatus('El pago está ' + captureData.status, 'error');
+
+            cartDataInput.value = JSON.stringify(cart);
         }
-    }).catch(function(error) {
-        console.error('Error en captureOrder:', error);
-        displayStatus('Error al confirmar la orden.', 'error');
-    });
-},
 
-        onCancel: function(data) {
-            displayStatus('Pago cancelado.', 'info');
-        },
+        // Lógica de turnos y horas
+        function actualizarHoras() {
+            const turno = turnoSelect.value;
+            document.querySelectorAll('#horasContainer label').forEach(label => {
+                const visible = label.dataset.turno === turno;
+                const input = label.querySelector('input');
 
-        onError: function(err) {
-            console.error('Error de PayPal:', err);
-            displayStatus('Error con PayPal.', 'error');
+                label.style.display = visible ? 'block' : 'none';
+                input.disabled = !visible;
+                if (!visible) input.checked = false;
+            });
         }
-    }).render('#paypal-button-container');
-}
 
-// Event listeners
-turnoSelect.addEventListener('change', actualizarHoras);
-pagoSelect.addEventListener('change', actualizarCamposPago);
+        // Lógica de campos de pago
+        function actualizarCamposPago() {
+            const metodo = pagoSelect.value;
 
-// Inicialización
-document.addEventListener('DOMContentLoaded', function() {
-    renderCartSummary();
-    actualizarHoras();
-    actualizarCamposPago();
-    renderPayPalButtons();
-    
-    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
-        if(pagoSelect.value === 'paypal') {
-            e.preventDefault();
-            return false;
+            tarjetaFields.style.display = metodo === 'tarjeta' ? 'block' : 'none';
+            paypalContainer.style.display = metodo === 'paypal' ? 'block' : 'none';
+            confirmButton.style.display = metodo !== 'paypal' ? 'block' : 'none';
+
+            statusMessage.style.display = 'none';
+            loadingMessage.style.display = 'none';
         }
-        localStorage.removeItem('cart');
-    });
-});
-</script>
+
+        // Integración PayPal
+        function renderPayPalButtons() {
+            if (typeof paypal === 'undefined') {
+                console.error('PayPal SDK no cargado');
+                return;
+            }
+
+            paypal.Buttons({
+                createOrder: function (data, actions) {
+                    showLoading(true);
+                    statusMessage.style.display = 'none';
+
+                    return fetch('/create-order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ total: cartTotal.toFixed(2) })
+                    }).then(function (response) {
+                        showLoading(false);
+                        if (!response.ok) {
+                            return response.json().then(error => {
+                                throw new Error(error.error || 'Fallo al crear la orden.');
+                            });
+                        }
+                        return response.json();
+                    }).then(function (orderData) {
+                        return orderData.id;
+                    }).catch(function (error) {
+                        console.error('Error en createOrder:', error);
+                        displayStatus('Error: No se pudo iniciar el pago. ' + error.message, 'error');
+                    });
+                },
+
+                onApprove: function (data, actions) {
+                    showLoading(true);
+                    displayStatus('Pago aprobado, confirmando transacción...', 'info');
+
+                    // OBTENER EL CARRITO DEL LOCALSTORAGE
+                    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+                    // DEPURACIÓN: Ver qué hay en el carrito
+                    console.log("📦 Carrito enviando a PayPal:", cart);
+                    console.log("📦 Número de items:", cart.length);
+
+                    return fetch('/capture-order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            orderID: data.orderID,
+                            cartData: cart,  // ¡IMPORTANTE: ENVIAR EL CARRITO!
+                            userEmail: '{{ current_user.email }}'
+                        })
+                    }).then(function (response) {
+                        showLoading(false);
+                        if (!response.ok) {
+                            return response.json().then(error => {
+                                throw new Error(error.error || 'Fallo al capturar la orden.');
+                            });
+                        }
+                        return response.json();
+                    }).then(function (captureData) {
+                        if (captureData.status === 'COMPLETED') {
+                            // Verificar si se crearon pedidos
+                            if (captureData.pedidos_creados) {
+                                console.log("✅ Pedidos creados:", captureData.pedidos_creados);
+                            }
+
+                            localStorage.removeItem('cart');
+                            displayStatus('¡Pago completado con éxito! ID: ' + captureData.id, 'success');
+                            setTimeout(() => {
+                                window.location.href = '/pago-exitoso';
+                            }, 2000);
+                        } else {
+                            displayStatus('El pago está ' + captureData.status, 'error');
+                        }
+                    }).catch(function (error) {
+                        console.error('Error en captureOrder:', error);
+                        displayStatus('Error al confirmar la orden.', 'error');
+                    });
+                },
+
+                onCancel: function (data) {
+                    displayStatus('Pago cancelado.', 'info');
+                },
+
+                onError: function (err) {
+                    console.error('Error de PayPal:', err);
+                    displayStatus('Error con PayPal.', 'error');
+                }
+            }).render('#paypal-button-container');
+        }
+
+        // Event listeners
+        turnoSelect.addEventListener('change', actualizarHoras);
+        pagoSelect.addEventListener('change', actualizarCamposPago);
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function () {
+            renderCartSummary();
+            actualizarHoras();
+            actualizarCamposPago();
+            renderPayPalButtons();
+
+            document.getElementById('checkoutForm').addEventListener('submit', function (e) {
+                if (pagoSelect.value === 'paypal') {
+                    e.preventDefault();
+                    return false;
+                }
+                localStorage.removeItem('cart');
+            });
+        });
+    </script>
 
 </body>
+
 </html>

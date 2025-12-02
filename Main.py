@@ -218,33 +218,44 @@ def chat_api():
     if not user_message:
         return jsonify({"reply": "⚠️ El mensaje está vacío."}), 400
 
-    
     unimarket_keywords = [
-        'registro', 'registrarse', 'cuenta', 'login', 'inicio de sesión', 'sesión', 'perfil', 
-        'comprador', 'vendedor', 'dashboard', 'verificación', 'captcha',
+        'registro', 'registrarse', 'registrar', 'cuenta', 'login', 'iniciar sesión', 'sesión', 
+        'perfil', 'comprador', 'vendedor', 'dashboard', 'verificación', 'verificar', 'captcha',
+        'google', 'correo', 'institucional', 'itiz',
         
-        'comprar', 'compra', 'pedido', 'orden', 'carrito', 'agregar', 'pagar', 
-        'método de pago', 'mercadopago', 'efectivo', 'entrega', 'horario',
+        'comprar', 'compra', 'pedido', 'orden', 'carrito', 'agregar', 'pagar', 'método de pago',
+        'mercadopago', 'mercado pago', 'efectivo', 'entrega', 'horario', 'fecha', 'programar',
         
-        'vender', 'venta', 'publicar', 'producto', 'subir', 'inventario', 'stock',
+        'vender', 'venta', 'publicar', 'producto', 'subir', 'inventario', 'stock', 'precio',
+        'foto', 'imagen', 'descripción',
         
-        'producto', 'productos', 'categoría', 'categorías', 'maquillaje', 'comida',
-        'ropa', 'dulcería', 'snacks', 'uniformes', 'sudaderas', 'accesorios',
+        'producto', 'productos', 'categoría', 'categorías', 'catálogo', 'artículo', 'artículos',
+        'maquillaje', 'cosméticos', 'labial', 'sombra', 'base', 'paleta',
+        'comida', 'alimento', 'alimentos', 'almuerzo', 'platillo', 'postre', 'cena', 'desayuno',
+        'ropa', 'vestimenta', 'uniformes', 'uniforme', 'sudaderas', 'sudera', 'camiseta', 'playera',
+        'dulcería', 'dulces', 'snacks', 'bebidas', 'refresco', 'chocolate', 'caramelo',
+        'accesorios', 'papelería', 'lápices', 'útiles', 'material', 'libros',
         
-        'entrega', 'entregar', 'punto de entrega', 'horario', 'matutino', 'vespertino',
-        'cafetería', 'duela', 'prefectura', 'dirección', 'torniquetes',
+        'entrega', 'entregar', 'punto de entrega', 'puntos de entrega', 'lugar', 'recoger',
+        'horario', 'matutino', 'vespertino', 'mañana', 'tarde',
+        'cafetería', 'duela', 'prefectura', 'dirección', 'torniquetes', 'entrada', 'campus',
         
-        'cancelación', 'cancelar', 'devolución', 'devolver', 'política', 'términos',
-        'suspensión', 'penalización', 'no-show', 'falta', 'seguridad',
+        'cancelación', 'cancelar', 'devolución', 'devolver', 'política', 'términos', 'condiciones',
+        'suspensión', 'suspender', 'penalización', 'penalizar', 'no-show', 'falta', 'ausencia',
+        'seguridad', 'protección', 'datos', 'privacidad',
         
-        'unimarket', 'plataforma', 'funcionamiento', 'cómo funciona', 'ayuda',
-        'soporte', 'asistente', 'unibot', 'chatbot', 'itiz', 'campus'
+        'unimarket', 'unibot', 'plataforma', 'funcionamiento', 'funciona', 'cómo funciona',
+        'ayuda', 'soporte', 'asistente', 'chatbot', 'itiz', 'campus', 'universidad', 'estudiantil',
+        'mercado', 'compraventa', 'comunidad'
     ]
     
     message_lower = user_message.lower()
     message_lower = re.sub(r'[^\w\sáéíóúüñ]', '', message_lower)
     
     is_unimarket_related = any(keyword in message_lower for keyword in unimarket_keywords)
+    
+    print(f"Pregunta: {user_message}")
+    print(f"Es relacionado: {is_unimarket_related}")
     
     if not is_unimarket_related:
         return jsonify({
@@ -298,7 +309,6 @@ def chat_api():
                 time.sleep(2)
             else:
                 return jsonify({"reply": "⚠️ Lo siento, no se pudo conectar con el chatbot. Intenta más tarde."}), 500
-
 ##-----------------------------------fin_index-----------------------------------------------------------------------------------------------
 
 ##-------------------------------------inicio_sesion google--------------------------------------------------------------------------------
