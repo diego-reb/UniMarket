@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
+    <script src="{{ url_for('static', filename='js/accesibilidad.js')}}"></script>
     <style>
         /* VARIABLES Y ESTILOS GLOBALES */
         :root {
@@ -20,6 +22,7 @@
             --accent: #f6d047;    /* yellow-300 */
             --error: #e44444;    /* red-500 */
             --ok: #10b98f;    /* emerald-500 */
+            --warning: #f59e0b;    /* amber-500 */
             --shadow: 0 10px 30px rgba(0,0,0,0.35);
             --radius: 16px;
         }
@@ -41,162 +44,236 @@
         a { color: inherit; text-decoration: none; }
         .container { max-width: 1200px; margin: auto; padding: 0 20px; }
 
-        /* Estilos del Header Global */
-        header {
-            position: sticky; 
-            top: 0; 
-            z-index: 50; 
-            backdrop-filter: blur(10px);
-            background: linear-gradient(180deg, rgba(15,23,42,.85), rgba(15,23,42,.65));
-            border-bottom: 1px solid rgba(148,163,184,.15);
-        }
-
-        .header-wrap { 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            gap: 16px; 
-            padding: 14px 20px; 
-        }
-
-        .logo { 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
-            font-weight: 800; 
-            letter-spacing: .2px; 
-        }
-
-        .logo-badge {
-            width: 42px; 
-            height: 42px; 
-            border-radius: 12px; 
-            display: grid; 
-            place-items: center;
-            background: linear-gradient(135deg, var(--brand), var(--brand-2));
-            box-shadow: var(--shadow);
-        }
-
-        .logo svg { 
-            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.35));
-        }
-
-        .brand { font-size: 1.35rem; }
-        .tagline { font-size: .9rem; color: var(--muted); }
-
-        /* Acciones del Header */
-        .actions { 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
-        }
-
-        .icon-btn {
-            width: 42px; 
-            height: 42px; 
-            border-radius: 12px; 
-            display: grid; 
-            place-items: center; 
-            border: 1px solid rgba(148,163,184,.25);
-            background: rgba(2,6,23,.6); 
-            cursor: pointer; 
-            transition: transform .06s ease, border .2s;
-        }
-
-        .icon-btn:hover { border-color: var(--brand-2); }
-        .icon-btn:active { transform: translateY(1px); }
-
-        /* Contenido Principal */
-        .main-content-wrap {
-            flex: 1;
-            padding: 40px 0;
+        /* Header específico para esta página */
+        .page-header {
             display: flex;
-            flex-direction: column;
-            gap: 30px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 0;
+            border-bottom: 1px solid rgba(148,163,184,0.15);
+            margin-bottom: 30px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(2, 6, 23, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 12px;
+            color: var(--text);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            border-color: var(--brand-2);
+            transform: translateX(-2px);
         }
 
         .page-title {
             font-size: 2rem;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin: 0;
         }
 
-        .page-subtitle {
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-email {
             color: var(--muted);
-            margin-bottom: 30px;
+            font-size: 0.9rem;
         }
 
-        /* Tabla de Pedidos */
-        .orders-card {
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
+        /* Contenido Principal */
+        .main-content-wrap {
+            flex: 1;
+            padding: 0 0 40px 0;
         }
 
-        .orders-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .orders-table th {
-            text-align: left;
-            padding: 16px 20px;
-            background: rgba(30, 41, 59, 0.5);
-            color: var(--muted);
-            font-weight: 600;
-            font-size: 0.875rem;
-            border-bottom: 1px solid rgba(148,163,184,.15);
-        }
-
-        .orders-table td {
-            padding: 16px 20px;
-            border-bottom: 1px solid rgba(148,163,184,.1);
-        }
-
-        .orders-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .orders-table tr:hover {
-            background: rgba(30, 41, 59, 0.3);
-        }
-
-        .product-name {
-            font-weight: 600;
-        }
-
+        /* Estados */
         .status-badge {
             display: inline-block;
             padding: 6px 12px;
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .status-pending {
             background: rgba(246, 208, 71, 0.15);
             color: var(--accent);
+            border: 1px solid rgba(246, 208, 71, 0.3);
+        }
+
+        .status-processing {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
         .status-delivered {
             background: rgba(16, 185, 143, 0.15);
             color: var(--ok);
+            border: 1px solid rgba(16, 185, 143, 0.3);
         }
 
-        .cancel-btn {
+        .status-cancelled {
             background: rgba(228, 68, 68, 0.15);
             color: var(--error);
             border: 1px solid rgba(228, 68, 68, 0.3);
+        }
+
+        /* Tarjetas de pedido */
+        .pedidos-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .pedido-card {
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .pedido-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            border-color: var(--brand-2);
+        }
+
+        .pedido-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .pedido-info {
+            flex: 1;
+        }
+
+        .pedido-id {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--brand);
+            margin-bottom: 5px;
+        }
+
+        .pedido-fecha {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .pedido-vendedor {
+            color: var(--brand-2);
+            font-size: 0.9rem;
+        }
+
+        .pedido-total {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-align: right;
+        }
+
+        /* Lista de productos */
+        .productos-lista {
+            margin: 20px 0;
+        }
+
+        .producto-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .producto-item:last-child {
+            border-bottom: none;
+        }
+
+        .producto-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .producto-imagen {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: rgba(148, 163, 184, 0.1);
+        }
+
+        .producto-detalles {
+            flex: 1;
+        }
+
+        .producto-nombre {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .producto-cantidad {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .producto-precio {
+            font-weight: 700;
+            color: var(--brand);
+        }
+
+        /* Acciones */
+        .pedido-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .action-btn {
             padding: 8px 16px;
             border-radius: 8px;
             font-size: 0.875rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            border: none;
         }
 
-        .cancel-btn:hover {
+        .cancel-btn {
+            background: rgba(228, 68, 68, 0.15);
+            color: var(--error);
+            border: 1px solid rgba(228, 68, 68, 0.3);
+        }
+
+        .cancel-btn:hover:not(:disabled) {
             background: rgba(228, 68, 68, 0.25);
             border-color: var(--error);
         }
@@ -206,132 +283,367 @@
             cursor: not-allowed;
         }
 
+        .contact-btn {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--brand-2);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .contact-btn:hover {
+            background: rgba(56, 189, 248, 0.25);
+            border-color: var(--brand-2);
+        }
+
+        /* Sin pedidos */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(2, 6, 23, 0.4);
+            border-radius: var(--radius);
+            border: 1px dashed rgba(148, 163, 184, 0.3);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .empty-description {
+            color: var(--muted);
+            margin-bottom: 30px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            color: #0f172a;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
+        }
+
+        /* Modal de confirmación */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--text);
+        }
+
+        .modal-message {
+            color: var(--muted);
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .modal-btn-cancel {
+            background: rgba(148, 163, 184, 0.2);
+            color: var(--text);
+        }
+
+        .modal-btn-cancel:hover {
+            background: rgba(148, 163, 184, 0.3);
+        }
+
+        .modal-btn-confirm {
+            background: var(--error);
+            color: white;
+        }
+
+        .modal-btn-confirm:hover {
+            background: #d13434;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
-            .orders-table {
-                display: block;
-                overflow-x: auto;
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
             }
             
-            .orders-table th, 
-            .orders-table td {
-                white-space: nowrap;
+            .user-info {
+                align-self: flex-end;
+            }
+            
+            .pedido-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .pedido-total {
+                align-self: flex-start;
+            }
+            
+            .producto-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .producto-precio {
+                align-self: flex-end;
+            }
+            
+            .pedido-actions {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                width: 100%;
             }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="header-wrap">
-            <div class="logo">
-                <div class="logo-badge">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M9 22V12H15V22" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <div class="container">
+        <div class="page-header">
+            <div class="header-left">
+                <a href="/" class="back-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                </div>
-                <div>
-                    <div class="brand">UniMarket</div>
-                    <div class="tagline">Tu mercado universitario</div>
-                </div>
+                    Volver al inicio
+                </a>
+                <h1 class="page-title">Mis Pedidos</h1>
             </div>
-            <div class="actions">
-                <div class="icon-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6981 21.5547 10.4458 21.3031 10.27 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-                <div class="icon-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2C6.477 2 2 6.477 2 12C2 17.523 6.477 22 12 22C17.523 22 22 17.523 22 12C22 6.477 17.523 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M12 16V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
+            <div class="user-info">
+                <span class="user-email">{{ usuario.email if usuario else 'Usuario' }}</span>
+                <a href="/logout" style="color: var(--error); text-decoration: none; font-size: 0.9rem;">
+                    Cerrar sesión
+                </a>
             </div>
         </div>
-    </header>
 
-    <div class="container">
         <div class="main-content-wrap">
-            <div>
-                <h1 class="page-title">Mis Pedidos</h1>
-                <p class="page-subtitle">Gestiona y realiza seguimiento a tus pedidos realizados</p>
+            {% if pedidos %}
+            <div class="pedidos-container">
+                {% for pedido in pedidos %}
+                <div class="pedido-card" id="pedido-{{ pedido.id }}">
+                    <div class="pedido-header">
+                        <div class="pedido-info">
+                            <div class="pedido-id">Pedido #{{ pedido.id }}</div>
+                            <div class="pedido-fecha">Realizado el: {{ pedido.fecha }}</div>
+                            <div class="pedido-vendedor">Vendedor: {{ pedido.vendedor_nombre }}</div>
+                            <div class="pedido-fecha">Entrega estimada: {{ pedido.fecha_entrega }}</div>
+                            <div style="margin-top: 8px;">
+                                {% if pedido.estado.lower() == 'pendiente' %}
+                                <span class="status-badge status-pending">{{ pedido.estado }}</span>
+                                {% elif pedido.estado.lower() == 'en proceso' %}
+                                <span class="status-badge status-processing">{{ pedido.estado }}</span>
+                                {% elif pedido.estado.lower() == 'entregado' %}
+                                <span class="status-badge status-delivered">{{ pedido.estado }}</span>
+                                {% elif pedido.estado.lower() == 'cancelado' %}
+                                <span class="status-badge status-cancelled">{{ pedido.estado }}</span>
+                                {% else %}
+                                <span class="status-badge status-pending">{{ pedido.estado }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="pedido-total">${{ "%.2f"|format(pedido.total) }}</div>
+                    </div>
+                    
+                    <div class="productos-lista">
+                        {% for producto in pedido.productos %}
+                        <div class="producto-item">
+                            <div class="producto-info">
+                                {% if producto.foto %}
+                                <img src="{{ producto.foto }}" alt="{{ producto.nombre }}" class="producto-imagen">
+                                {% else %}
+                                <div class="producto-imagen"></div>
+                                {% endif %}
+                                <div class="producto-detalles">
+                                    <div class="producto-nombre">{{ producto.nombre }}</div>
+                                    <div class="producto-cantidad">Cantidad: {{ producto.cantidad }}</div>
+                                </div>
+                            </div>
+                            <div class="producto-precio">
+                                ${{ "%.2f"|format(producto.precio_unitario) }} c/u
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="pedido-actions">
+                        
+                        {% if pedido.estado.lower() in ['pendiente', 'en proceso'] %}
+                        <button class="action-btn cancel-btn" 
+                                onclick="mostrarConfirmacionCancelacion({{ pedido.id }}, '{{ pedido.id }}')">
+                            Cancelar pedido
+                        </button>
+                        {% else %}
+                        <button class="action-btn cancel-btn" disabled>
+                            Cancelar pedido
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
             </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h2 class="empty-title">Aún no tienes pedidos</h2>
+                <p class="empty-description">
+                    Parece que aún no has realizado ninguna compra en UniMarket. 
+                    ¡Explora nuestros productos y haz tu primer pedido!
+                </p>
+                <a href="/" class="btn-primary">Explorar productos</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 
-            <div class="orders-card">
-                <table class="orders-table">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Fecha de Entrega</th>
-                            <th>Vendedor</th>
-                            <th>Precio</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="product-name">Tenis Running Pro</td>
-                            <td>15/05/2023</td>
-                            <td>Juan Pérez</td>
-                            <td>$89.99</td>
-                            <td><span class="status-badge status-pending">En Proceso</span></td>
-                            <td><button class="cancel-btn">Cancelar</button></td>
-                        </tr>
-                        <tr>
-                            <td class="product-name">Collar Plata Estrella</td>
-                            <td>10/05/2023</td>
-                            <td>María García</td>
-                            <td>$24.50</td>
-                            <td><span class="status-badge status-delivered">Entregado</span></td>
-                            <td><button class="cancel-btn" disabled>Cancelar</button></td>
-                        </tr>
-                        <tr>
-                            <td class="product-name">Chocolate Artesanal</td>
-                            <td>18/05/2023</td>
-                            <td>Carlos López</td>
-                            <td>$12.75</td>
-                            <td><span class="status-badge status-pending">En Proceso</span></td>
-                            <td><button class="cancel-btn">Cancelar</button></td>
-                        </tr>
-                        <tr>
-                            <td class="product-name">Reloj Deportivo</td>
-                            <td>05/05/2023</td>
-                            <td>Ana Martínez</td>
-                            <td>$45.00</td>
-                            <td><span class="status-badge status-delivered">Entregado</span></td>
-                            <td><button class="cancel-btn" disabled>Cancelar</button></td>
-                        </tr>
-                        <tr>
-                            <td class="product-name">Pulsera Cuero</td>
-                            <td>20/05/2023</td>
-                            <td>Roberto Sánchez</td>
-                            <td>$18.99</td>
-                            <td><span class="status-badge status-pending">En Proceso</span></td>
-                            <td><button class="cancel-btn">Cancelar</button></td>
-                        </tr>
-                    </tbody>
-                </table>
+    <!-- Modal de confirmación -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-content">
+            <h2 class="modal-title">¿Cancelar pedido?</h2>
+            <p class="modal-message" id="modalMessage">
+                ¿Estás seguro de que quieres cancelar este pedido? Esta acción no se puede deshacer.
+            </p>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" onclick="cerrarModal()">
+                    No, mantener
+                </button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmarCancelacion()">
+                    Sí, cancelar
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // Función para manejar la cancelación de pedidos
-        document.querySelectorAll('.cancel-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                if (!this.disabled) {
-                    const productName = this.closest('tr').querySelector('.product-name').textContent;
-                    if (confirm(`¿Estás seguro de que quieres cancelar el pedido de "${productName}"?`)) {
-                        // Aquí iría la lógica para cancelar el pedido
-                        alert(`Pedido de "${productName}" cancelado correctamente.`);
-                        // Actualizar la interfaz según sea necesario
+        let pedidoACancelar = null;
+        let pedidoIdACancelar = null;
+
+        function mostrarConfirmacionCancelacion(pedidoId, pedidoNumero) {
+            pedidoACancelar = pedidoId;
+            pedidoIdACancelar = pedidoNumero;
+            
+            const modal = document.getElementById('confirmModal');
+            const modalMessage = document.getElementById('modalMessage');
+            
+            modalMessage.textContent = `¿Estás seguro de que quieres cancelar el pedido #${pedidoNumero}? Esta acción no se puede deshacer.`;
+            modal.style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            const modal = document.getElementById('confirmModal');
+            modal.style.display = 'none';
+            pedidoACancelar = null;
+            pedidoIdACancelar = null;
+        }
+
+        async function confirmarCancelacion() {
+            if (!pedidoACancelar) return;
+            
+            try {
+                const response = await fetch(`/cancelar_pedido/${pedidoACancelar}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Pedido cancelado exitosamente.');
+                    // Actualizar la interfaz
+                    const pedidoElement = document.getElementById(`pedido-${pedidoACancelar}`);
+                    if (pedidoElement) {
+                        // Cambiar estado a cancelado
+                        const statusBadge = pedidoElement.querySelector('.status-badge');
+                        if (statusBadge) {
+                            statusBadge.className = 'status-badge status-cancelled';
+                            statusBadge.textContent = 'Cancelado';
+                        }
+                        
+                        // Deshabilitar botón de cancelar
+                        const cancelBtn = pedidoElement.querySelector('.cancel-btn');
+                        if (cancelBtn) {
+                            cancelBtn.disabled = true;
+                        }
+                    }
+                } else {
+                    alert(`Error: ${data.message}`);
                 }
-            });
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al cancelar el pedido. Por favor, intenta nuevamente.');
+            } finally {
+                cerrarModal();
+            }
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('confirmModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarModal();
+            }
+        });
+
+        // Cerrar modal con Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                cerrarModal();
+            }
         });
     </script>
 </body>

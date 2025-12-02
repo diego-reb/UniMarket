@@ -586,6 +586,13 @@
             </div>
 
             <div class="actions" style="display:flex; gap:10px;">
+                <a href="/mis_pedidos" class="icon-btn" title="Mis Pedidos" aria-label="Ver mis pedidos">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 12h6M9 16h6" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" />
+                        <rect x="4" y="6" width="16" height="12" rx="2" stroke="#94a3b8" stroke-width="2" />
+                        <path d="M8 6V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1" stroke="#94a3b8" stroke-width="2" />
+                    </svg>
+                </a>
                 {% if current_user.is_authenticated %}
                 <a href="/logout" class="icon-btn" title="Cerrar sesión" aria-label="Cerrar sesión">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -671,8 +678,7 @@
                         <div class="price">${{ "%.2f"|format(p.precio) }}</div>
                         <button class="btn primary" data-add data-id="{{ p.id }}" data-name="{{ p.nombre }}"
                             data-price="{{ p.precio }}" data-vendedor="{{ p.vendedor }}"
-                            data-descripcion="{{p.descripcion}}"
-                            data-image="{{ p.foto }}">
+                            data-descripcion="{{p.descripcion}}" data-image="{{ p.foto }}">
                             Agregar
                         </button>
                     </div>
@@ -704,223 +710,223 @@
             </div>
         </div>
     </div>
-    
-<script>
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    let chatHistory = []; 
 
-    function updateBadge() {
-        const badge = document.getElementById('cartBadge');
-        const totalQuantity = cart.reduce((sum, p) => sum + p.quantity, 0);
-        badge.textContent = totalQuantity;
-        badge.hidden = totalQuantity === 0;
-    }
+    <script>
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let chatHistory = [];
 
-    document.querySelectorAll('[data-add]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const productId = parseInt(btn.dataset.id);
-            const existing = cart.find(p => p.id === productId);
-
-            if (existing) {
-                existing.quantity += 1;
-            } else {
-                cart.push({
-                    id: productId,
-                    name: btn.dataset.name,
-                    price: parseFloat(btn.dataset.price),
-                    vendor: btn.dataset.vendedor,
-                    quantity: 1,
-                    image: btn.dataset.image,
-                    description: btn.dataset.descripcion || ""
-                });
-            }
-
-            localStorage.setItem('cart', JSON.stringify(cart));
-            updateBadge();
-
-            btn.textContent = 'Agregado ✓';
-            setTimeout(() => btn.textContent = 'Agregar', 900);
-        });
-    });
-
-    document.getElementById('cartBtn').addEventListener('click', () => {
-        window.location.href = '/carrito';
-    });
-
-    updateBadge();
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'cart') {
-            cart = JSON.parse(e.newValue) || [];
-            updateBadge();
+        function updateBadge() {
+            const badge = document.getElementById('cartBadge');
+            const totalQuantity = cart.reduce((sum, p) => sum + p.quantity, 0);
+            badge.textContent = totalQuantity;
+            badge.hidden = totalQuantity === 0;
         }
-    });
 
-    const botBtn = document.getElementById('botBtn');
-    const chatModalOverlay = document.getElementById('chatModalOverlay');
-    const closeChatBtn = document.getElementById('closeChatBtn');
-    const chatBody = document.getElementById('chatBody');
-    const chatInput = document.getElementById('chatInput');
-    const sendChatBtn = document.getElementById('sendChatBtn');
+        document.querySelectorAll('[data-add]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const productId = parseInt(btn.dataset.id);
+                const existing = cart.find(p => p.id === productId);
 
-    function appendMessage(text, sender) {
-        const msg = document.createElement('div');
-        msg.classList.add('message', `${sender}-message`);
-        msg.innerHTML = text.replace(/\n/g, "<br>");
-        chatBody.appendChild(msg);
-        chatBody.scrollTop = chatBody.scrollHeight;
-    }
+                if (existing) {
+                    existing.quantity += 1;
+                } else {
+                    cart.push({
+                        id: productId,
+                        name: btn.dataset.name,
+                        price: parseFloat(btn.dataset.price),
+                        vendor: btn.dataset.vendedor,
+                        quantity: 1,
+                        image: btn.dataset.image,
+                        description: btn.dataset.descripcion || ""
+                    });
+                }
 
-    function showTyping() {
-        if (!document.getElementById('typingIndicator')) {
-            const typing = document.createElement('div');
-            typing.id = 'typingIndicator';
-            typing.classList.add('message', 'bot-message');
-            typing.textContent = 'Escribiendo...';
-            chatBody.appendChild(typing);
+                localStorage.setItem('cart', JSON.stringify(cart));
+                updateBadge();
+
+                btn.textContent = 'Agregado ✓';
+                setTimeout(() => btn.textContent = 'Agregar', 900);
+            });
+        });
+
+        document.getElementById('cartBtn').addEventListener('click', () => {
+            window.location.href = '/carrito';
+        });
+
+        updateBadge();
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'cart') {
+                cart = JSON.parse(e.newValue) || [];
+                updateBadge();
+            }
+        });
+
+        const botBtn = document.getElementById('botBtn');
+        const chatModalOverlay = document.getElementById('chatModalOverlay');
+        const closeChatBtn = document.getElementById('closeChatBtn');
+        const chatBody = document.getElementById('chatBody');
+        const chatInput = document.getElementById('chatInput');
+        const sendChatBtn = document.getElementById('sendChatBtn');
+
+        function appendMessage(text, sender) {
+            const msg = document.createElement('div');
+            msg.classList.add('message', `${sender}-message`);
+            msg.innerHTML = text.replace(/\n/g, "<br>");
+            chatBody.appendChild(msg);
             chatBody.scrollTop = chatBody.scrollHeight;
         }
-    }
 
-    function removeTyping() {
-        const typing = document.getElementById('typingIndicator');
-        if (typing) typing.remove();
-    }
+        function showTyping() {
+            if (!document.getElementById('typingIndicator')) {
+                const typing = document.createElement('div');
+                typing.id = 'typingIndicator';
+                typing.classList.add('message', 'bot-message');
+                typing.textContent = 'Escribiendo...';
+                chatBody.appendChild(typing);
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+        }
 
-    async function getBotResponse(userMessage) {
-        showTyping();
+        function removeTyping() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
 
-        chatHistory.push({ role: 'user', content: userMessage });
+        async function getBotResponse(userMessage) {
+            showTyping();
 
-        try {
-            const response = await fetch("/api/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: userMessage })
+            chatHistory.push({ role: 'user', content: userMessage });
+
+            try {
+                const response = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: userMessage })
+                });
+
+                removeTyping();
+
+                if (!response.ok) {
+                    appendMessage("⚠️ Error al comunicar con el servidor.", "bot");
+                    return;
+                }
+
+                const data = await response.json();
+                const botReply = data.reply || "Lo siento, no pude generar una respuesta.";
+
+                chatHistory.push({ role: 'bot', content: botReply });
+                appendMessage(botReply, "bot");
+
+            } catch (err) {
+                removeTyping();
+                appendMessage("⚠️ Error: " + err.message, "bot");
+            }
+        }
+
+        function sendMessageHandler() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+            appendMessage(message, "user");
+            chatInput.value = "";
+            getBotResponse(message);
+        }
+
+        sendChatBtn.addEventListener("click", sendMessageHandler);
+        chatInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") sendMessageHandler();
+        });
+
+        botBtn.addEventListener("click", () => chatModalOverlay.style.display = "flex");
+        closeChatBtn.addEventListener("click", () => chatModalOverlay.style.display = "none");
+        chatModalOverlay.addEventListener("click", (e) => {
+            if (e.target === chatModalOverlay) chatModalOverlay.style.display = "none";
+        });
+
+        // ================= FILTRADO Y BÚSQUEDA CORREGIDO =================
+
+        // 1. Manejar clics en categorías
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function () {
+                // Remover active de todos
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // Agregar active al clickeado
+                this.classList.add('active');
+
+                // Filtrar productos
+                aplicarFiltros();
             });
+        });
 
-            removeTyping();
+        // 2. Manejar búsqueda
+        const searchInput = document.getElementById('search');
+        let searchTimeout;
 
-            if (!response.ok) {
-                appendMessage("⚠️ Error al comunicar con el servidor.", "bot");
-                return;
-            }
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                aplicarFiltros();
+            }, 300);
+        });
 
-            const data = await response.json();
-            const botReply = data.reply || "Lo siento, no pude generar una respuesta.";
+        // 3. Función principal de filtrado
+        function aplicarFiltros() {
+            const activeTab = document.querySelector('.tab.active');
+            const categoryFilter = activeTab ? activeTab.getAttribute('data-filter') : 'todos';
+            const searchTerm = searchInput.value.toLowerCase();
 
-            chatHistory.push({ role: 'bot', content: botReply });
-            appendMessage(botReply, "bot");
+            const products = document.querySelectorAll('.card');
 
-        } catch (err) {
-            removeTyping();
-            appendMessage("⚠️ Error: " + err.message, "bot");
+            products.forEach(product => {
+                const productName = product.getAttribute('data-name').toLowerCase();
+                const productCategory = product.getAttribute('data-category');
+
+                // Buscar también en la descripción (si está disponible)
+                const productDesc = product.querySelector('.meta:nth-of-type(2)')?.textContent.toLowerCase() || '';
+                const productVendor = product.querySelector('.meta:nth-of-type(1)')?.textContent.toLowerCase() || '';
+
+                // Verificar categoría
+                const categoryMatch = categoryFilter === 'todos' || productCategory === categoryFilter;
+
+                // Verificar búsqueda
+                let searchMatch = true;
+                if (searchTerm) {
+                    searchMatch = productName.includes(searchTerm) ||
+                        productDesc.includes(searchTerm) ||
+                        productVendor.includes(searchTerm);
+                }
+
+                // Mostrar/ocultar producto
+                if (categoryMatch && searchMatch) {
+                    product.style.display = 'flex';
+                } else {
+                    product.style.display = 'none';
+                }
+            });
         }
-    }
 
-    function sendMessageHandler() {
-        const message = chatInput.value.trim();
-        if (!message) return;
-        appendMessage(message, "user");
-        chatInput.value = "";
-        getBotResponse(message);
-    }
-
-    sendChatBtn.addEventListener("click", sendMessageHandler);
-    chatInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") sendMessageHandler();
-    });
-
-    botBtn.addEventListener("click", () => chatModalOverlay.style.display = "flex");
-    closeChatBtn.addEventListener("click", () => chatModalOverlay.style.display = "none");
-    chatModalOverlay.addEventListener("click", (e) => {
-        if (e.target === chatModalOverlay) chatModalOverlay.style.display = "none";
-    });
-
-    // ================= FILTRADO Y BÚSQUEDA CORREGIDO =================
-    
-    // 1. Manejar clics en categorías
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            // Remover active de todos
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            // Agregar active al clickeado
-            this.classList.add('active');
-            
-            // Filtrar productos
+        // 4. Inicializar filtros al cargar la página
+        window.addEventListener('DOMContentLoaded', () => {
             aplicarFiltros();
         });
-    });
 
-    // 2. Manejar búsqueda
-    const searchInput = document.getElementById('search');
-    let searchTimeout;
-    
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            aplicarFiltros();
-        }, 300);
-    });
+        // 5. Carrusel automático
+        let currentSlide = 0;
+        const carouselTrack = document.getElementById('carouselTrack');
+        const slides = document.querySelectorAll('.carousel-slide');
 
-    // 3. Función principal de filtrado
-    function aplicarFiltros() {
-        const activeTab = document.querySelector('.tab.active');
-        const categoryFilter = activeTab ? activeTab.getAttribute('data-filter') : 'todos';
-        const searchTerm = searchInput.value.toLowerCase();
-        
-        const products = document.querySelectorAll('.card');
-        
-        products.forEach(product => {
-            const productName = product.getAttribute('data-name').toLowerCase();
-            const productCategory = product.getAttribute('data-category');
-            
-            // Buscar también en la descripción (si está disponible)
-            const productDesc = product.querySelector('.meta:nth-of-type(2)')?.textContent.toLowerCase() || '';
-            const productVendor = product.querySelector('.meta:nth-of-type(1)')?.textContent.toLowerCase() || '';
-            
-            // Verificar categoría
-            const categoryMatch = categoryFilter === 'todos' || productCategory === categoryFilter;
-            
-            // Verificar búsqueda
-            let searchMatch = true;
-            if (searchTerm) {
-                searchMatch = productName.includes(searchTerm) || 
-                             productDesc.includes(searchTerm) || 
-                             productVendor.includes(searchTerm);
+        if (slides.length > 0) {
+            function nextSlide() {
+                currentSlide = (currentSlide + 1) % slides.length;
+                carouselTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
             }
-            
-            // Mostrar/ocultar producto
-            if (categoryMatch && searchMatch) {
-                product.style.display = 'flex';
-            } else {
-                product.style.display = 'none';
-            }
-        });
-    }
 
-    // 4. Inicializar filtros al cargar la página
-    window.addEventListener('DOMContentLoaded', () => {
-        aplicarFiltros();
-    });
-
-    // 5. Carrusel automático
-    let currentSlide = 0;
-    const carouselTrack = document.getElementById('carouselTrack');
-    const slides = document.querySelectorAll('.carousel-slide');
-    
-    if (slides.length > 0) {
-        function nextSlide() {
-            currentSlide = (currentSlide + 1) % slides.length;
-            carouselTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+            // Cambiar slide cada 5 segundos
+            setInterval(nextSlide, 5000);
         }
-        
-        // Cambiar slide cada 5 segundos
-        setInterval(nextSlide, 5000);
-    }
 
-    // 6. Año actual en footer
-    document.getElementById('year').textContent = new Date().getFullYear();
-</script>
+        // 6. Año actual en footer
+        document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
 
 
 

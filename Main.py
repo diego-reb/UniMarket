@@ -25,7 +25,7 @@ from models.Pedido import Pedido, DetallePedido
 from models.Categoria import Categoria
 from models.Notificaciones import Notificacion  
 import os 
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 from oauthlib.oauth2 import WebApplicationClient
 import requests
@@ -309,6 +309,117 @@ def chat_api():
                 time.sleep(2)
             else:
                 return jsonify({"reply": "⚠️ Lo siento, no se pudo conectar con el chatbot. Intenta más tarde."}), 500
+
+@app.route('/mis_pedidos')
+@login_required
+def mis_pedidos():
+    try:
+        # Obtener todos los pedidos del usuario actual
+        pedidos = Pedido.query.filter_by(id_comprador=current_user.id_usuario)\
+                             .order_by(Pedido.fecha.desc())\
+                             .all()
+        
+        # Formatear los pedidos para el template
+        pedidos_formateados = []
+        for pedido in pedidos:
+            # Obtener detalles del pedido
+            detalles = DetallePedido.query.filter_by(id_pedido=pedido.id_pedido).all()
+            
+            # Formatear productos del pedido
+            productos_pedido = []
+            for detalle in detalles:
+                # Usar db.session.get() en lugar de Query.get()
+                producto = db.session.get(Producto, detalle.id_producto)
+                if producto:
+                    productos_pedido.append({
+                        'id': producto.id_producto,
+                        'nombre': producto.nombre,
+                        'cantidad': detalle.cantidad,
+                        'precio_unitario': float(detalle.precio_unitario),
+                        'subtotal': float(detalle.subtotal),
+                        'foto': producto.foto if hasattr(producto, 'foto') else ''
+                    })
+            
+            # Obtener información del vendedor usando db.session.get()
+            vendedor = db.session.get(Usuario, pedido.id_vendedor)
+            
+            # Calcular fecha estimada de entrega
+            fecha_entrega_estimada = None
+            if pedido.fecha:
+                fecha_entrega_estimada = pedido.fecha + timedelta(days=3)
+            
+            pedidos_formateados.append({
+                'id': pedido.id_pedido,
+                'fecha': pedido.fecha.strftime('%d/%m/%Y %H:%M') if pedido.fecha else 'Fecha no disponible',
+                'fecha_entrega': fecha_entrega_estimada.strftime('%d/%m/%Y') if fecha_entrega_estimada else 'Por definir',
+                'estado': pedido.estado,
+                'total': float(pedido.total),
+                'vendedor_nombre': vendedor.nombre if vendedor else 'Vendedor no disponible',
+                'vendedor_id': vendedor.id_usuario if vendedor else None,
+                'productos': productos_pedido
+            })
+        
+        return render_template('pedidos.html', 
+                             pedidos=pedidos_formateados,
+                             usuario=current_user)
+                             
+    except Exception as e:
+        print(f"Error al obtener pedidos: {str(e)}")
+        import traceback
+        traceback.print_exc()  # <-- Esto te dará más detalles del error
+        flash('Error al cargar tus pedidos. Por favor, intenta más tarde.', 'error')
+        return render_template('pedidos.html', 
+                             pedidos=[],
+                             usuario=current_user)
+
+@app.route('/cancelar_pedido/<int:pedido_id>', methods=['POST'])
+@login_required
+def cancelar_pedido(pedido_id):
+    try:
+        # Buscar el pedido usando db.session.get()
+        pedido = db.session.get(Pedido, pedido_id)
+        
+        if not pedido:
+            return jsonify({'success': False, 'message': 'Pedido no encontrado'}), 404
+        
+        # Verificar que el pedido pertenezca al usuario actual
+        if pedido.id_comprador != current_user.id_usuario:
+            return jsonify({'success': False, 'message': 'No tienes permiso para cancelar este pedido'}), 403
+        
+        # Verificar si se puede cancelar
+        estado_actual = pedido.estado.lower()
+        estados_cancelables = ['pendiente', 'en proceso', 'procesando']
+        
+        if estado_actual not in estados_cancelables:
+            return jsonify({
+                'success': False, 
+                'message': f'No se puede cancelar un pedido con estado "{pedido.estado}"'
+            }), 400
+        
+        # Cambiar estado del pedido
+        pedido.estado = 'Cancelado'
+        
+        # Opcional: devolver productos al stock
+        detalles = DetallePedido.query.filter_by(id_pedido=pedido.id_pedido).all()
+        for detalle in detalles:
+            producto = db.session.get(Producto, detalle.id_producto)
+            if producto and hasattr(producto, 'stock'):
+                producto.stock += detalle.cantidad
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Pedido cancelado exitosamente',
+            'pedido_id': pedido.id_pedido
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al cancelar pedido: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': 'Error interno al cancelar el pedido'}), 500
 ##-----------------------------------fin_index-----------------------------------------------------------------------------------------------
 
 ##-------------------------------------inicio_sesion google--------------------------------------------------------------------------------
