@@ -1393,6 +1393,13 @@ def capture_order():
 
         print(f"🔄 Capturando orden PayPal: {order_id}")
         print(f"📦 Datos del carrito recibidos: {cart_data}")
+        
+        # DEPURACIÓN: Ver estructura del carrito
+        if cart_data:
+            print(f"📊 Tipo de cart_data: {type(cart_data)}")
+            print(f"📊 Longitud del carrito: {len(cart_data)}")
+            for i, item in enumerate(cart_data):
+                print(f"   Item {i}: {item}")
 
         access_token = get_paypal_access_token()
         if not access_token:
@@ -1422,12 +1429,12 @@ def capture_order():
             
             # CREAR PEDIDO EN LA BASE DE DATOS
             try:
-                if cart_data:
+                if cart_data and len(cart_data) > 0:
                     import json
-                    if isinstance(cart_data, str):
-                        cart_items = json.loads(cart_data)
-                    else:
-                        cart_items = cart_data
+                    
+                    # El carrito ya debería ser una lista (viene del frontend)
+                    cart_items = cart_data
+                    print(f"📝 Procesando {len(cart_items)} items del carrito")
                     
                     current_user_id = current_user.id_usuario
                     print(f"👤 ID del comprador: {current_user_id}")
@@ -1435,27 +1442,53 @@ def capture_order():
                     vendedores_pedidos = {}
                     
                     for item in cart_items:
-                        producto_id = item.get('id_producto')
-                        cantidad = item.get('cantidad', 1)
+                        # DEPURACIÓN: Ver todos los campos del item
+                        print(f"🛍️ Item completo: {item}")
                         
-                        print(f"🛍️ Procesando producto ID: {producto_id}, cantidad: {cantidad}")
+                        # El problema puede estar aquí - verifica los nombres de campos
+                        producto_id = item.get('id_producto') or item.get('id') or item.get('productoId')
+                        cantidad = item.get('quantity') or item.get('cantidad') or item.get('qty') or 1
+                        nombre_producto = item.get('name') or item.get('nombre') or 'Producto sin nombre'
                         
-                        producto = Producto.query.get(producto_id)
-                        if not producto:
-                            print(f"⚠️ Producto {producto_id} no encontrado")
+                        print(f"   ID producto: {producto_id}")
+                        print(f"   Cantidad: {cantidad}")
+                        print(f"   Nombre: {nombre_producto}")
+                        
+                        if not producto_id:
+                            print(f"⚠️ Item sin ID de producto: {item}")
+                            continue
+                            
+                        # Convertir a enteros
+                        try:
+                            producto_id = int(producto_id)
+                            cantidad = int(cantidad)
+                        except ValueError:
+                            print(f"⚠️ Error convirtiendo valores: producto_id={producto_id}, cantidad={cantidad}")
                             continue
                         
-                        print(f"📦 Producto encontrado: {producto.nombre}, Vendedor: {producto.id_vendedor}")
+                        print(f"   Buscando producto ID {producto_id} en BD...")
+                        producto = Producto.query.get(producto_id)
+                        if not producto:
+                            print(f"❌ Producto ID {producto_id} no encontrado en BD")
+                            continue
                         
+                        print(f"   ✅ Producto encontrado: {producto.nombre}, Vendedor: {producto.id_vendedor}, Stock: {producto.stock}")
+                        
+                        # Verificar stock
                         if producto.stock < cantidad:
+                            print(f"❌ Stock insuficiente: {producto.stock} < {cantidad}")
                             return jsonify({
                                 'error': f'Stock insuficiente para {producto.nombre}'
                             }), 400
                         
                         # Actualizar stock
                         producto.stock -= cantidad
+                        print(f"   📉 Stock actualizado: {producto.stock}")
                         
-                        subtotal = float(producto.precio) * cantidad
+                        # Obtener precio
+                        precio = float(item.get('price') or item.get('precio') or producto.precio)
+                        subtotal = precio * cantidad
+                        print(f"   💰 Precio: {precio}, Subtotal: {subtotal}")
                         
                         vendedor_id = producto.id_vendedor
                         if vendedor_id not in vendedores_pedidos:
@@ -1468,51 +1501,64 @@ def capture_order():
                         vendedores_pedidos[vendedor_id]['items'].append({
                             'producto': producto,
                             'cantidad': cantidad,
-                            'precio_unitario': float(producto.precio),
+                            'precio_unitario': precio,
                             'subtotal': subtotal
                         })
                     
-                    pedidos_creados = []
+                    print(f"📊 Vendedores con pedidos: {len(vendedores_pedidos)}")
                     
-                    for vendedor_id, datos in vendedores_pedidos.items():
-                        # ¡IMPORTANTE! Cambia 'Completado' por 'Pendiente'
-                        nuevo_pedido = Pedido(
-                            id_comprador=current_user_id,
-                            id_vendedor=vendedor_id,
-                            total=datos['total'],
-                            estado='Pendiente',  # Cambiado de 'Completado' a 'Pendiente'
-                            fecha=datetime.now()
-                        )
+                    if not vendedores_pedidos:
+                        print("⚠️ No se encontraron productos válidos en el carrito")
+                        capture_data['warning'] = 'No se encontraron productos válidos'
+                    else:
+                        pedidos_creados = []
                         
-                        db.session.add(nuevo_pedido)
-                        db.session.flush()  
-                        
-                        print(f"📝 Creando pedido #{nuevo_pedido.id_pedido} para vendedor {vendedor_id}")
-                        
-                        for item_data in datos['items']:
-                            producto = item_data['producto']
+                        for vendedor_id, datos in vendedores_pedidos.items():
+                            print(f"   Creando pedido para vendedor {vendedor_id}, total: ${datos['total']:.2f}")
                             
-                            detalle = DetallePedido(
-                                id_pedido=nuevo_pedido.id_pedido,
-                                id_producto=producto.id_producto,
-                                cantidad=item_data['cantidad'],
-                                precio_unitario=item_data['precio_unitario'],
-                                subtotal=item_data['subtotal']
+                            nuevo_pedido = Pedido(
+                                id_comprador=current_user_id,
+                                id_vendedor=int(vendedor_id),
+                                total=float(datos['total']),
+                                estado='Pendiente',
+                                fecha=datetime.now()
                             )
-                            db.session.add(detalle)
-                            print(f"   + {producto.nombre} x {item_data['cantidad']}")
+                            
+                            db.session.add(nuevo_pedido)
+                            db.session.flush()  # Para obtener el id_pedido
+                            
+                            print(f"   📝 Pedido #{nuevo_pedido.id_pedido} creado")
+                            
+                            for item_data in datos['items']:
+                                producto = item_data['producto']
+                                
+                                detalle = DetallePedido(
+                                    id_pedido=nuevo_pedido.id_pedido,
+                                    id_producto=producto.id_producto,
+                                    cantidad=item_data['cantidad'],
+                                    precio_unitario=item_data['precio_unitario'],
+                                    subtotal=item_data['subtotal']
+                                )
+                                db.session.add(detalle)
+                                print(f"      + {producto.nombre} x {item_data['cantidad']} = ${item_data['subtotal']:.2f}")
+                            
+                            pedidos_creados.append(nuevo_pedido.id_pedido)
                         
-                        pedidos_creados.append(nuevo_pedido.id_pedido)
-                    
-                    db.session.commit()
-                    
-                    print(f"✅ Pedidos creados exitosamente: {pedidos_creados}")
-                    
-                    for pedido_id in pedidos_creados:
-                        print(f"📦 Pedido {pedido_id} listo para el vendedor")
-                    
+                        # Guardar todos los cambios
+                        db.session.commit()
+                        
+                        print(f"✅ Pedidos creados exitosamente: {pedidos_creados}")
+                        capture_data['pedidos_creados'] = pedidos_creados
+                        
+                        # Verificar en la BD
+                        for pedido_id in pedidos_creados:
+                            pedido_db = Pedido.query.get(pedido_id)
+                            if pedido_db:
+                                print(f"   ✅ Pedido {pedido_id} confirmado en BD: Comprador={pedido_db.id_comprador}, Vendedor={pedido_db.id_vendedor}")
+                
                 else:
-                    print("⚠️ No hay datos del carrito para crear pedido")
+                    print("⚠️ No hay datos del carrito o carrito vacío")
+                    capture_data['warning'] = 'Carrito vacío'
                     
             except Exception as db_error:
                 db.session.rollback()

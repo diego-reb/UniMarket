@@ -186,39 +186,52 @@ function renderPayPalButtons() {
         },
 
         onApprove: function(data, actions) {
-            showLoading(true);
-            displayStatus('Pago aprobado, confirmando transacción...', 'info');
+    showLoading(true);
+    displayStatus('Pago aprobado, confirmando transacción...', 'info');
 
-            return fetch('/capture-order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    orderID: data.orderID, 
-                    userEmail: '{{ current_user.email }}'  
-                })
-            }).then(function(response) {
-                showLoading(false);
-                if (!response.ok) {
-                    return response.json().then(error => {
-                        throw new Error(error.error || 'Fallo al capturar la orden.');
-                    });
-                }
-                return response.json();
-            }).then(function(captureData) {
-                if (captureData.status === 'COMPLETED') {
-                    localStorage.removeItem('cart');
-                    displayStatus('¡Pago completado con éxito! ID: ' + captureData.id, 'success');
-                    setTimeout(() => {
-                        window.location.href = '/pago-exitoso';
-                    }, 2000);
-                } else {
-                    displayStatus('El pago está ' + captureData.status, 'error');
-                }
-            }).catch(function(error) {
-                console.error('Error en captureOrder:', error);
-                displayStatus('Error al confirmar la orden.', 'error');
+    // OBTENER EL CARRITO DEL LOCALSTORAGE
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    // DEPURACIÓN: Ver qué hay en el carrito
+    console.log("📦 Carrito enviando a PayPal:", cart);
+    console.log("📦 Número de items:", cart.length);
+    
+    return fetch('/capture-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            orderID: data.orderID, 
+            cartData: cart,  // ¡IMPORTANTE: ENVIAR EL CARRITO!
+            userEmail: '{{ current_user.email }}'
+        })
+    }).then(function(response) {
+        showLoading(false);
+        if (!response.ok) {
+            return response.json().then(error => {
+                throw new Error(error.error || 'Fallo al capturar la orden.');
             });
-        },
+        }
+        return response.json();
+    }).then(function(captureData) {
+        if (captureData.status === 'COMPLETED') {
+            // Verificar si se crearon pedidos
+            if (captureData.pedidos_creados) {
+                console.log("✅ Pedidos creados:", captureData.pedidos_creados);
+            }
+            
+            localStorage.removeItem('cart');
+            displayStatus('¡Pago completado con éxito! ID: ' + captureData.id, 'success');
+            setTimeout(() => {
+                window.location.href = '/pago-exitoso';
+            }, 2000);
+        } else {
+            displayStatus('El pago está ' + captureData.status, 'error');
+        }
+    }).catch(function(error) {
+        console.error('Error en captureOrder:', error);
+        displayStatus('Error al confirmar la orden.', 'error');
+    });
+},
 
         onCancel: function(data) {
             displayStatus('Pago cancelado.', 'info');
