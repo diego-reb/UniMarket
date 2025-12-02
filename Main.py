@@ -1392,6 +1392,7 @@ def capture_order():
             return jsonify({'error': 'ID de orden faltante'}), 400
 
         print(f"🔄 Capturando orden PayPal: {order_id}")
+        print(f"📦 Datos del carrito recibidos: {cart_data}")
 
         access_token = get_paypal_access_token()
         if not access_token:
@@ -1419,6 +1420,7 @@ def capture_order():
         if capture_data.get('status') == 'COMPLETED':
             print(f"✅ Pago COMPLETADO - ID: {capture_data['id']}")
             
+            # CREAR PEDIDO EN LA BASE DE DATOS
             try:
                 if cart_data:
                     import json
@@ -1428,6 +1430,7 @@ def capture_order():
                         cart_items = cart_data
                     
                     current_user_id = current_user.id_usuario
+                    print(f"👤 ID del comprador: {current_user_id}")
                     
                     vendedores_pedidos = {}
                     
@@ -1435,24 +1438,29 @@ def capture_order():
                         producto_id = item.get('id_producto')
                         cantidad = item.get('cantidad', 1)
                         
+                        print(f"🛍️ Procesando producto ID: {producto_id}, cantidad: {cantidad}")
+                        
                         producto = Producto.query.get(producto_id)
                         if not producto:
                             print(f"⚠️ Producto {producto_id} no encontrado")
                             continue
+                        
+                        print(f"📦 Producto encontrado: {producto.nombre}, Vendedor: {producto.id_vendedor}")
                         
                         if producto.stock < cantidad:
                             return jsonify({
                                 'error': f'Stock insuficiente para {producto.nombre}'
                             }), 400
                         
+                        # Actualizar stock
                         producto.stock -= cantidad
                         
-                        subtotal = producto.precio * cantidad
+                        subtotal = float(producto.precio) * cantidad
                         
                         vendedor_id = producto.id_vendedor
                         if vendedor_id not in vendedores_pedidos:
                             vendedores_pedidos[vendedor_id] = {
-                                'total': Decimal('0'),
+                                'total': 0.0,
                                 'items': []
                             }
                         
@@ -1460,23 +1468,26 @@ def capture_order():
                         vendedores_pedidos[vendedor_id]['items'].append({
                             'producto': producto,
                             'cantidad': cantidad,
-                            'precio_unitario': producto.precio,
+                            'precio_unitario': float(producto.precio),
                             'subtotal': subtotal
                         })
                     
                     pedidos_creados = []
                     
                     for vendedor_id, datos in vendedores_pedidos.items():
+                        # ¡IMPORTANTE! Cambia 'Completado' por 'Pendiente'
                         nuevo_pedido = Pedido(
                             id_comprador=current_user_id,
                             id_vendedor=vendedor_id,
                             total=datos['total'],
-                            estado='Completado',
+                            estado='Pendiente',  # Cambiado de 'Completado' a 'Pendiente'
                             fecha=datetime.now()
                         )
                         
                         db.session.add(nuevo_pedido)
                         db.session.flush()  
+                        
+                        print(f"📝 Creando pedido #{nuevo_pedido.id_pedido} para vendedor {vendedor_id}")
                         
                         for item_data in datos['items']:
                             producto = item_data['producto']
@@ -1489,6 +1500,7 @@ def capture_order():
                                 subtotal=item_data['subtotal']
                             )
                             db.session.add(detalle)
+                            print(f"   + {producto.nombre} x {item_data['cantidad']}")
                         
                         pedidos_creados.append(nuevo_pedido.id_pedido)
                     
@@ -1505,6 +1517,8 @@ def capture_order():
             except Exception as db_error:
                 db.session.rollback()
                 print(f"❌ Error al crear pedido en BD: {db_error}")
+                import traceback
+                traceback.print_exc()
                 capture_data['db_error'] = str(db_error)
         
         return jsonify(capture_data)
@@ -1514,6 +1528,8 @@ def capture_order():
         return jsonify({'error': 'Error al procesar el pago'}), 500
     except Exception as e:
         print(f"❌ Error inesperado en capture-order: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': 'Error interno del servidor'}), 500
 
 @app.route('/pago-exitoso')
@@ -1598,6 +1614,50 @@ def config():
         'paypal_base_url': PAYPAL_BASE_URL
     }
     return jsonify(config_info)
+
+@app.route('/debug/pedidos_db')
+@login_required
+def debug_pedidos_db():
+    """Ruta para depurar los pedidos en la base de datos"""
+    from sqlalchemy import text
+    
+    # Consulta SQL directa para ver todos los pedidos
+    query = text("""
+        SELECT 
+            p.id_pedido,
+            p.id_vendedor,
+            p.id_comprador,
+            p.estado,
+            p.total,
+            p.fecha,
+            COUNT(d.id_detalle) as num_detalles
+        FROM pedido p
+        LEFT JOIN detalle_pedido d ON p.id_pedido = d.id_pedido
+        WHERE p.id_vendedor = :vendedor_id
+        GROUP BY p.id_pedido
+        ORDER BY p.fecha DESC
+    """)
+    
+    result = db.session.execute(query, {'vendedor_id': current_user.id_usuario})
+    
+    pedidos = []
+    for row in result:
+        pedidos.append({
+            'id_pedido': row.id_pedido,
+            'id_vendedor': row.id_vendedor,
+            'id_comprador': row.id_comprador,
+            'estado': row.estado,
+            'total': float(row.total) if row.total else 0,
+            'fecha': row.fecha.strftime('%Y-%m-%d %H:%M:%S') if row.fecha else None,
+            'num_detalles': row.num_detalles
+        })
+    
+    return jsonify({
+        'user_id': current_user.id_usuario,
+        'user_name': current_user.nombre,
+        'total_pedidos': len(pedidos),
+        'pedidos': pedidos
+    })
 ##-------------------------------------------------------------fin_comprador------------------------------------------------------------------
 
 ##-------------------------------------------------------------error_404------------------------------------------------------------------
